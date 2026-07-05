@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
 import { SplitPanel } from '../components/layout/SplitPanel'
 import { Section } from '../components/layout/Section'
@@ -9,9 +9,10 @@ import { Badge } from '../components/ui/Badge'
 import { Chip } from '../components/ui/Chip'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Skeleton } from '../components/ui/Skeleton'
+import { useToast } from '../components/layout/useToast'
+import { jdService } from '../services/jd'
 import { resumeService } from '../services/resume'
 import { applicationsService } from '../services/applications'
-import { useToast } from '../components/layout/useToast'
 import type { ResumeStrategy, JDAnalysis } from '../types'
 import {
   Sparkles,
@@ -27,10 +28,11 @@ import {
 export function ResumeStrategyPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const toast = useToast()
-  const analysis = (location.state as { analysis?: JDAnalysis })?.analysis
+  const initialAnalysis = (location.state as { analysis?: JDAnalysis })?.analysis || null
 
+  const [analysis, setAnalysis] = useState<JDAnalysis | null>(initialAnalysis)
   const [strategy, setStrategy] = useState<ResumeStrategy | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -39,13 +41,27 @@ export function ResumeStrategyPage() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
 
   useEffect(() => {
-    if (id) {
-      applicationsService.getApplication(id).then((app) => {
-        if (app.jdAnalysisId) {
+    const appId = searchParams.get('application')
+    if (!appId) return
+
+    setLoading(true)
+    applicationsService.getApplication(appId)
+      .then((app) => {
+        if (app.jdText) {
+          return jdService.analyzeJD(app.jdText)
         }
+        throw new Error('No job description found in this application')
       })
-    }
-  }, [id])
+      .then((result) => {
+        setAnalysis(result)
+      })
+      .catch((err) => {
+        console.error('Failed to load application JD for Strategy', err)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [searchParams])
 
   async function handleGenerateStrategy() {
     if (!analysis) {

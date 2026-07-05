@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { applicationsService } from '../services/applications'
 import { AppLayout } from '../components/layout/AppLayout'
 import { SplitPanel } from '../components/layout/SplitPanel'
 import { Section } from '../components/layout/Section'
@@ -156,7 +157,12 @@ function makeEntryId(): string {
 
 export function JDAnalysisPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const appId = searchParams.get('application')
   const toast = useToast()
+
+  // Target application context
+  const [targetApp, setTargetApp] = useState<{ company: string; role: string } | null>(null)
 
   // Mode / tab
   const [mode, setMode] = useState<JDMode>('single')
@@ -181,6 +187,31 @@ export function JDAnalysisPage() {
   const [csvDragActive, setCsvDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // ── Load Application on Mount ──────────────────────────
+  useEffect(() => {
+    const id = searchParams.get('application')
+    if (id === null) return
+    let active = true
+
+    async function loadApp() {
+      try {
+        const app = await applicationsService.getApplication(id!)
+        if (active) {
+          setTargetApp({ company: app.company, role: app.role })
+          if (app.jdText) {
+            setJdText(app.jdText)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load application for JD analysis', err)
+      }
+    }
+    loadApp()
+    return () => {
+      active = false
+    }
+  }, [appId])
+
   // ── Handlers: single JD (unchanged) ───────────────────
 
   async function handleAnalyze() {
@@ -194,6 +225,25 @@ export function JDAnalysisPage() {
     try {
       const result = await jdService.analyzeJD(jdText)
       setAnalysis(result)
+      
+      // If we are linked to a specific application, update it with analysis reference and scores
+      if (appId) {
+        try {
+          await applicationsService.updateApplication(appId, {
+            jdText,
+            jdAnalysisId: result._id,
+            scores: {
+              match: result.matchScore || 0,
+              ats: result.matchScore || 0,
+              overall: result.matchScore || 0
+            }
+          })
+          toast.showToast('Application scores updated', 'success')
+        } catch (updateErr) {
+          console.error('Failed to update application with scores', updateErr)
+        }
+      }
+
       toast.showToast('JD analyzed successfully', 'success')
     } catch {
       setError('Failed to analyze the job description. The server may be unavailable. Please try again.')
@@ -624,6 +674,19 @@ export function JDAnalysisPage() {
 
         {mode === 'single' && (
           <div className="space-y-md">
+            {targetApp && (
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between">
+                <div>
+                  <p className="text-label-sm text-primary font-semibold">Active Application Context</p>
+                  <p className="text-body-md font-medium text-on-surface">
+                    {targetApp.role} @ {targetApp.company}
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => navigate(`/applications/${appId}`)}>
+                  View App
+                </Button>
+              </div>
+            )}
             <Section
               title="Paste Job Description"
               description="Paste the full job description to extract skills, keywords, and insights"
