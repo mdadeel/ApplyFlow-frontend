@@ -15,6 +15,8 @@ import {
   Clock,
   Target,
   ChevronDown,
+  Plus,
+  ListChecks,
 } from '../lib/icons'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Card } from '../components/ui/Card'
@@ -23,12 +25,18 @@ import { StatusBadge } from '../components/ui/StatusBadge'
 import { Skeleton } from '../components/ui/Skeleton'
 import { Dialog } from '../components/ui/Dialog'
 import { Dropdown } from '../components/ui/Dropdown'
+import { Modal } from '../components/ui/Modal'
+import { Input } from '../components/ui/Input'
+import { Select } from '../components/ui/Select'
+import { EmptyState } from '../components/ui/EmptyState'
 import { Timeline } from '../components/features/Timeline'
+import { TaskCard } from '../components/features/TaskCard'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { useToast } from '../components/layout/useToast'
 import { getStatusDefinitions, type StatusDefinitionsResponse } from '../services/status'
 import { applicationsService } from '../services/applications'
-import type { Application, ApplicationStatus } from '../types'
+import { tasksService, type CreateTaskInput } from '../services/tasks'
+import type { Application, ApplicationStatus, Task, TaskPriority, TaskStatus } from '../types'
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', {
@@ -44,10 +52,20 @@ export function ApplicationDetailPage() {
   const { showToast } = useToast()
 
   const [application, setApplication] = useState<Application | null>(null)
+  const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [statusDefs, setStatusDefs] = useState<StatusDefinitionsResponse | null>(null)
+
+  const [taskModalOpen, setTaskModalOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [taskTitle, setTaskTitle] = useState('')
+  const [taskDescription, setTaskDescription] = useState('')
+  const [taskStatus, setTaskStatus] = useState<TaskStatus>('todo')
+  const [taskPriority, setTaskPriority] = useState<TaskPriority>('medium')
+  const [taskDueDate, setTaskDueDate] = useState('')
+  const [taskSubmitting, setTaskSubmitting] = useState(false)
 
   useEffect(() => {
     getStatusDefinitions().then(setStatusDefs).catch(() => {})
@@ -60,6 +78,16 @@ export function ApplicationDetailPage() {
     try {
       const app = await applicationsService.getApplication(id)
       setApplication(app)
+      if (app.trackerTasks) {
+        setTasks(app.trackerTasks)
+      } else {
+        try {
+          const list = await tasksService.getTasks(id)
+          setTasks(list)
+        } catch {
+          setTasks([])
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load application')
       showToast('Failed to load application', 'error')
@@ -93,6 +121,71 @@ export function ApplicationDetailPage() {
       showToast('Failed to delete application', 'error')
     }
     setDeleteDialogOpen(false)
+  }
+
+  const openTaskModalForCreate = () => {
+    setEditingTask(null)
+    setTaskTitle('')
+    setTaskDescription('')
+    setTaskStatus('todo')
+    setTaskPriority('medium')
+    setTaskDueDate('')
+    setTaskModalOpen(true)
+  }
+
+  const openTaskModalForEdit = (task: Task) => {
+    setEditingTask(task)
+    setTaskTitle(task.title)
+    setTaskDescription(task.description ?? '')
+    setTaskStatus(task.status)
+    setTaskPriority(task.priority)
+    setTaskDueDate(task.dueDate ? task.dueDate.slice(0, 10) : '')
+    setTaskModalOpen(true)
+  }
+
+  const closeTaskModal = () => {
+    setTaskModalOpen(false)
+    setEditingTask(null)
+  }
+
+  const handleTaskSubmit = async () => {
+    if (!application || !taskTitle.trim()) return
+    setTaskSubmitting(true)
+    const payload: CreateTaskInput = {
+      title: taskTitle.trim(),
+      description: taskDescription.trim() || undefined,
+      status: taskStatus,
+      priority: taskPriority,
+      dueDate: taskDueDate || undefined,
+    }
+    try {
+      if (editingTask) {
+        const updated = await tasksService.updateTask(application._id, editingTask._id, payload)
+        setTasks((prev) => prev.map((t) => (t._id === updated._id ? updated : t)))
+        showToast('Task updated', 'success')
+      } else {
+        const created = await tasksService.createTask(application._id, payload)
+        setTasks((prev) => [...prev, created])
+        showToast('Task created', 'success')
+      }
+      closeTaskModal()
+    } catch {
+      showToast(editingTask ? 'Failed to update task' : 'Failed to create task', 'error')
+    } finally {
+      setTaskSubmitting(false)
+    }
+  }
+
+  const handleTaskDelete = async (task: Task) => {
+    if (!application) return
+    if (!window.confirm(`Delete task "${task.title}"?`)) return
+    try {
+      await tasksService.deleteTask(application._id, task._id)
+      setTasks((prev) => prev.filter((t) => t._id !== task._id))
+      showToast('Task deleted', 'success')
+    } catch {
+      showToast('Failed to delete task', 'error')
+    }
   }
 
   if (loading) {
@@ -195,6 +288,40 @@ export function ApplicationDetailPage() {
             <Timeline
               events={application.timeline.map((e) => ({ ...e, status: application.status }))}
             />
+          </Card>
+
+          <Card className="p-md">
+            <div className="flex items-center justify-between gap-2 mb-md">
+              <div className="flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-on-surface" />
+                <h2 className="text-headline-md text-on-surface">Tasks</h2>
+                {tasks.length > 0 && (
+                  <span className="text-label-sm text-on-surface-variant">({tasks.length})</span>
+                )}
+              </div>
+              <Button size="sm" icon={<Plus className="h-4 w-4" />} onClick={openTaskModalForCreate}>
+                Add Task
+              </Button>
+            </div>
+            {tasks.length === 0 ? (
+              <EmptyState
+                icon={<ListChecks className="h-8 w-8" />}
+                title="No tasks yet"
+                description="Track follow-ups, prep steps, or anything else related to this application."
+                action={{ label: 'Add Task', onClick: openTaskModalForCreate }}
+              />
+            ) : (
+              <div className="space-y-3">
+                {tasks.map((task) => (
+                  <TaskCard
+                    key={task._id}
+                    task={task}
+                    onEdit={openTaskModalForEdit}
+                    onDelete={handleTaskDelete}
+                  />
+                ))}
+              </div>
+            )}
           </Card>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -311,6 +438,75 @@ export function ApplicationDetailPage() {
         confirmLabel="Delete"
         variant="danger"
       />
+
+      <Modal
+        open={taskModalOpen}
+        onClose={closeTaskModal}
+        title={editingTask ? 'Edit Task' : 'New Task'}
+        size="md"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Title"
+            value={taskTitle}
+            onChange={(e) => setTaskTitle(e.target.value)}
+            placeholder="e.g. Send thank-you email"
+          />
+          <div className="flex flex-col gap-1.5">
+            <label className="font-label-md text-on-surface" htmlFor="task-description">
+              Description
+            </label>
+            <textarea
+              id="task-description"
+              value={taskDescription}
+              onChange={(e) => setTaskDescription(e.target.value)}
+              placeholder="Optional details..."
+              rows={3}
+              className="w-full rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors duration-150 focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none"
+            />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Status"
+              value={taskStatus}
+              onChange={(v) => setTaskStatus(v as TaskStatus)}
+              options={[
+                { value: 'todo', label: 'To Do' },
+                { value: 'in_progress', label: 'In Progress' },
+                { value: 'done', label: 'Done' },
+              ]}
+            />
+            <Select
+              label="Priority"
+              value={taskPriority}
+              onChange={(v) => setTaskPriority(v as TaskPriority)}
+              options={[
+                { value: 'low', label: 'Low' },
+                { value: 'medium', label: 'Medium' },
+                { value: 'high', label: 'High' },
+              ]}
+            />
+          </div>
+          <Input
+            label="Due Date"
+            type="date"
+            value={taskDueDate}
+            onChange={(e) => setTaskDueDate(e.target.value)}
+          />
+          <div className="flex justify-end gap-3 pt-2">
+            <Button variant="secondary" onClick={closeTaskModal}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleTaskSubmit}
+              loading={taskSubmitting}
+              disabled={!taskTitle.trim()}
+            >
+              {editingTask ? 'Save' : 'Create'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </AppLayout>
   )
 }

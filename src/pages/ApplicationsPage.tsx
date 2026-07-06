@@ -292,6 +292,7 @@ export function ApplicationsPage() {
                   key={app._id}
                   application={app}
                   onClick={() => handleRowClick(app)}
+                  pendingTaskCount={app.trackerTasks?.filter((t) => t.status !== 'done').length ?? 0}
                 />
               ))}
             </div>

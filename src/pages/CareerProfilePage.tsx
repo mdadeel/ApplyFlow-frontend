@@ -365,7 +365,7 @@ export function CareerProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null)
-  const [view, setView] = useState<'overview' | 'manual'>('overview')
+  const [manualMode, setManualMode] = useState(false)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [modalType, setModalType] = useState<string | null>(null)
@@ -761,20 +761,28 @@ export function CareerProfilePage() {
     certificates.length > 0 ||
     personal !== null
 
-  const renderHeroUpload = () => (
+  const renderHeroUpload = (compact: boolean = false) => (
     <Card
-      className={`p-lg border-2 border-dashed transition-all ${
+      className={`border-2 border-dashed transition-all ${
         isDragging
           ? 'border-primary bg-primary/5 border-solid shadow-md'
           : 'border-outline-variant hover:border-primary/40 bg-surface-container-lowest'
-      }`}
+      } ${compact ? 'p-md' : 'p-lg'}`}
       data-testid="career-profile-hero-upload"
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/pdf,.pdf"
+        onChange={handleFileSelected}
+        className="hidden"
+        aria-hidden="true"
+      />
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className="flex flex-col items-center text-center py-4"
+        className={compact ? 'flex items-center gap-4' : 'flex flex-col items-center text-center py-4'}
       >
         {uploading ? (
           <div className="w-full max-w-md space-y-3 py-4">
@@ -789,6 +797,28 @@ export function CareerProfilePage() {
               />
             </div>
           </div>
+        ) : compact ? (
+          <>
+            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary shrink-0">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-body-md font-medium text-on-surface truncate" data-testid="career-profile-hero-filename">
+                {extractedFileName || 'Your CV'}
+              </p>
+              <p className="text-label-sm text-on-surface-variant truncate">
+                {extractedFileName ? 'Drag & drop a new PDF or click replace' : 'Drag & drop a PDF or click to upload'}
+              </p>
+            </div>
+            <Button
+              onClick={handleUploadClick}
+              variant="secondary"
+              size="sm"
+              icon={<Upload className="h-4 w-4" />}
+            >
+              Replace CV
+            </Button>
+          </>
         ) : (
           <>
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-4">
@@ -803,7 +833,7 @@ export function CareerProfilePage() {
               icon={<Upload className="h-4 w-4" />}
               size="lg"
             >
-              {hasProfile ? 'Upload new CV' : 'Choose PDF file'}
+              Choose PDF file
             </Button>
             <p className="text-label-sm text-on-surface-variant mt-4">
               or drag and drop · Supported format: PDF
@@ -836,100 +866,73 @@ export function CareerProfilePage() {
     )
   }
 
-  const renderOverview = () => {
-    if (!hasProfile) {
-      return (
-        <div className="space-y-6 pb-24">
-          {renderHeroUpload()}
-          <Card className="p-md">
-            <div className="text-center py-2">
-              <p className="text-body-md text-on-surface">No profile data yet.</p>
-              <p className="text-label-sm text-on-surface-variant mt-1">
-                Upload your CV above to get started, or build it from scratch.
-              </p>
-              <Button
-                variant="secondary"
-                className="mt-4"
-                icon={<Pencil className="h-4 w-4" />}
-                onClick={() => setView('manual')}
-              >
-                Edit manually instead
-              </Button>
+  const renderOverviewSections = () => (
+    <div className="space-y-6 pb-24">
+      {renderProfileSummary()}
+      <div className="space-y-8">
+        {filteredExperiences.length > 0 && (
+          <section data-testid="overview-section-experience" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <Briefcase className="h-5 w-5 text-primary" /> Experience
+            </h3>
+            <div className="space-y-4">
+              {filteredExperiences.map((item) => (
+                <ExperienceCard key={item._id} item={item} />
+              ))}
             </div>
-          </Card>
-        </div>
-      )
-    }
-
-    return (
-      <div className="space-y-6 pb-24">
-        {renderHeroUpload()}
-        {renderProfileSummary()}
-        <div className="space-y-8">
-          {filteredExperiences.length > 0 && (
-            <section data-testid="overview-section-experience" className="space-y-4">
-              <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-primary" /> Experience
-              </h3>
-              <div className="space-y-4">
-                {filteredExperiences.map((item) => (
-                  <ExperienceCard key={item._id} item={item} />
-                ))}
-              </div>
-            </section>
-          )}
-          {filteredProjects.length > 0 && (
-            <section data-testid="overview-section-projects" className="space-y-4">
-              <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
-                <Code className="h-5 w-5 text-primary" /> Projects
-              </h3>
-              <div className="space-y-4">
-                {filteredProjects.map((item) => (
-                  <ProjectCard key={item._id} item={item} />
-                ))}
-              </div>
-            </section>
-          )}
-          {filteredSkills.length > 0 && (
-            <section data-testid="overview-section-skills" className="space-y-4">
-              <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
-                <Code2 className="h-5 w-5 text-primary" /> Skills
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {filteredSkills.map((item) => (
-                  <SkillCard key={item._id} item={item} />
-                ))}
-              </div>
-            </section>
-          )}
-          {filteredEducation.length > 0 && (
-            <section data-testid="overview-section-education" className="space-y-4">
-              <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-primary" /> Education
-              </h3>
-              <div className="space-y-4">
-                {filteredEducation.map((item) => (
-                  <EducationCard key={item._id} item={item} />
-                ))}
-              </div>
-            </section>
-          )}
-          {filteredCertificates.length > 0 && (
-            <section data-testid="overview-section-certificates" className="space-y-4">
-              <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
-                <Award className="h-5 w-5 text-primary" /> Certificates
-              </h3>
-              <div className="space-y-4">
-                {filteredCertificates.map((item) => (
-                  <CertificateCard key={item._id} item={item} />
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
+          </section>
+        )}
+        {filteredProjects.length > 0 && (
+          <section data-testid="overview-section-projects" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <Code className="h-5 w-5 text-primary" /> Projects
+            </h3>
+            <div className="space-y-4">
+              {filteredProjects.map((item) => (
+                <ProjectCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filteredSkills.length > 0 && (
+          <section data-testid="overview-section-skills" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <Code2 className="h-5 w-5 text-primary" /> Skills
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {filteredSkills.map((item) => (
+                <SkillCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filteredEducation.length > 0 && (
+          <section data-testid="overview-section-education" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-primary" /> Education
+            </h3>
+            <div className="space-y-4">
+              {filteredEducation.map((item) => (
+                <EducationCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filteredCertificates.length > 0 && (
+          <section data-testid="overview-section-certificates" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <Award className="h-5 w-5 text-primary" /> Certificates
+            </h3>
+            <div className="space-y-4">
+              {filteredCertificates.map((item) => (
+                <CertificateCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
-    )
-  }
+    </div>
+  )
 
   const renderManualSections = () => {
     const groupedFiltered = filteredSkills.reduce<Record<string, Skill[]>>((acc, s) => {
@@ -1070,8 +1073,39 @@ export function CareerProfilePage() {
         </div>
       )
     }
-    if (view === 'manual') return renderManualSections()
-    return renderOverview()
+    return (
+      <div className="space-y-6 pb-24">
+        {renderHeroUpload(hasProfile)}
+        {!hasProfile ? (
+          <div className="flex justify-center">
+            <Button
+              variant="secondary"
+              icon={<Pencil className="h-4 w-4" />}
+              onClick={() => setManualMode(true)}
+              data-testid="career-profile-edit-manually"
+            >
+              Edit manually
+            </Button>
+          </div>
+        ) : manualMode ? (
+          renderManualSections()
+        ) : (
+          <div className="space-y-6">
+            {renderOverviewSections()}
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="secondary"
+                icon={<Pencil className="h-4 w-4" />}
+                onClick={() => setManualMode(true)}
+                data-testid="career-profile-edit-manually"
+              >
+                Edit manually
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    )
   }
 
   const completeness = [
@@ -1120,48 +1154,6 @@ export function CareerProfilePage() {
 
         {/* Right Sidebar */}
         <div className="w-full lg:w-80 shrink-0 space-y-6 lg:sticky lg:top-24">
-          {/* Upload Resume Widget */}
-          <div className={`p-md border-2 border-dashed rounded-xl transition-all overflow-hidden relative ${
-            isDragging ? 'border-primary bg-primary/5 text-primary scale-[1.02] shadow-md border-solid' : 'border-outline-variant hover:border-primary/50 bg-surface'
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf,.pdf"
-              onChange={handleFileSelected}
-              className="hidden"
-              aria-hidden="true"
-            />
-            {uploading ? (
-              <div className="space-y-3 py-2">
-                <div className="flex items-center justify-between text-label-sm font-medium text-on-surface">
-                  <span className="animate-pulse truncate mr-2">{progressStage}</span>
-                  <span className="text-primary font-semibold shrink-0">{Math.round(progress)}%</span>
-                </div>
-                <div className="w-full bg-surface-container-high rounded-full h-1.5 overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all duration-150 ease-out"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div onClick={handleUploadClick} className="cursor-pointer group flex flex-col items-center text-center py-2">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform mb-3">
-                  <FileText className="h-5 w-5" />
-                </div>
-                <p className="text-body-md font-semibold text-on-surface">Import Resume</p>
-                <p className="text-label-sm text-on-surface-variant mt-1">
-                  Drag & drop or <span className="text-primary group-hover:underline">browse</span> PDF
-                </p>
-              </div>
-            )}
-          </div>
-
           {/* Profile Completeness */}
           <Card className="p-md">
             <h3 className="text-label-lg font-medium text-on-surface mb-3">Profile Completeness</h3>

@@ -129,8 +129,9 @@ export function smartCreate(data: SmartCreateInput): Promise<SmartApplicationRes
   if (data.role) formData.append('role', data.role)
   if (data.masterCVText) formData.append('masterCVText', data.masterCVText)
   if (data.masterCVFile) formData.append('masterCV', data.masterCVFile)
+  if (data.resumeId) formData.append('resumeId', data.resumeId)
 
-  return post<SmartApplicationResult>('/applications/smart-create', formData)
+  return post<SmartApplicationResult>('/v1/applications/smart-create', formData)
 }
 
 export function bulkCreate(data: BulkCreateInput): Promise<{ jobId: string; results: Array<SmartApplicationResult | { error: string; company: string; role: string }> }> {
@@ -142,15 +143,35 @@ export function bulkCreate(data: BulkCreateInput): Promise<{ jobId: string; resu
   if (data.masterCVFile) formData.append('masterCV', data.masterCVFile)
   if (data.resumeId) formData.append('resumeId', data.resumeId)
 
-  return post('/applications/bulk-create', formData)
+  return post('/v1/applications/bulk-create', formData)
+}
+
+export interface AiCreateInput {
+  jdText: string
+  company?: string
+  role?: string
+  masterCVFile?: File
+  resumeId?: string
+}
+
+export function aiCreate(data: AiCreateInput): Promise<SmartApplicationResult | { jobId: string; results: Array<SmartApplicationResult | { error: string; company: string; role: string }> }> {
+  const formData = new FormData()
+  formData.append('jdText', data.jdText)
+  if (data.company) formData.append('company', data.company)
+  if (data.role) formData.append('role', data.role)
+  if (data.masterCVFile) formData.append('masterCV', data.masterCVFile)
+  if (data.resumeId) formData.append('resumeId', data.resumeId)
+
+  return post('/v1/applications/ai-create', formData)
 }
 
 export function exportAllFormats(applicationId: string, formats?: string[]): Promise<SmartExportResult> {
-  return get<SmartExportResult>(`/applications/${applicationId}/export-all`, formats ? { formats: formats.join(',') } : undefined)
+  return get<SmartExportResult>(`/v1/applications/${applicationId}/export-all`, formats ? { formats: formats.join(',') } : undefined)
 }
 
 export const smartApplicationService = {
   smartCreate,
   bulkCreate,
+  aiCreate,
   exportAllFormats,
 }

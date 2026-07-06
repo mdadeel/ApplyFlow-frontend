@@ -1,4 +1,5 @@
 import type { Application } from '../../types';
+import { ListChecks } from '../../lib/icons';
 import { Card } from '../ui/Card';
 import { StatusBadge } from '../ui/StatusBadge';
 import { Badge } from '../ui/Badge';
@@ -7,13 +8,14 @@ import { ProgressBar } from '../ui/ProgressBar';
 interface ApplicationCardProps {
   application: Application;
   onClick?: () => void;
+  pendingTaskCount?: number;
 }
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-export function ApplicationCard({ application: app, onClick }: ApplicationCardProps) {
+export function ApplicationCard({ application: app, onClick, pendingTaskCount }: ApplicationCardProps) {
   const score = app.scores?.overall ?? app.scores?.match ?? 0;
 
   return (
@@ -38,16 +40,27 @@ export function ApplicationCard({ application: app, onClick }: ApplicationCardPr
 
       <div className="flex items-center justify-between gap-2">
         <span className="text-label-sm text-on-surface-variant whitespace-nowrap">{formatDate(app.updatedAt)}</span>
-        {app.tags.length > 0 && (
-          <div className="flex items-center gap-1 flex-wrap justify-end">
-            {app.tags.slice(0, 3).map((tag) => (
-              <Badge key={tag} size="sm">{tag}</Badge>
-            ))}
-            {app.tags.length > 3 && (
-              <span className="text-label-sm text-on-surface-variant">+{app.tags.length - 3}</span>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {typeof pendingTaskCount === 'number' && pendingTaskCount > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-label-sm text-on-surface-variant"
+              data-testid="pending-task-count"
+            >
+              <ListChecks className="h-3.5 w-3.5" />
+              {pendingTaskCount} pending
+            </span>
+          )}
+          {app.tags.length > 0 && (
+            <div className="flex items-center gap-1 flex-wrap justify-end">
+              {app.tags.slice(0, 3).map((tag) => (
+                <Badge key={tag} size="sm">{tag}</Badge>
+              ))}
+              {app.tags.length > 3 && (
+                <span className="text-label-sm text-on-surface-variant">+{app.tags.length - 3}</span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </Card>
   );

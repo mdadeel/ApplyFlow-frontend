@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { AppLayout } from '../components/layout/AppLayout'
 import {
   smartApplicationService,
   type SmartApplicationResult,
 } from '../services/smartApplication'
 import { resumeLibraryService } from '../services/resumeLibrary'
-import { parseJDs } from '../utils/parseJDs'
 import type { UploadedResume } from '../types'
 import { useToast } from '../components/layout/useToast'
 import {
@@ -83,11 +82,8 @@ export function SmartApplicationPage() {
     return () => { cancelled = true }
   }, [])
 
-  // ── Derived ───────────────────────────────────────────────
-  const jdCount = useMemo(() => {
-    if (inputMode !== 'text' || !jdText.trim()) return 0
-    return parseJDs(jdText, company, role).filter((j) => j.jdText.length >= 50).length
-  }, [jdText, company, role, inputMode])
+  // Bulk item type for AI-split results
+  type BulkItem = SmartApplicationResult | { error: string; company: string; role: string }
 
   // ── Handlers ──────────────────────────────────────────────
   const validateTextInput = (): boolean => {
@@ -119,52 +115,48 @@ export function SmartApplicationPage() {
     try {
       if (inputMode === 'text') {
         if (!validateTextInput()) { setIsGenerating(false); return }
-        const parsed = parseJDs(jdText, company, role)
-        const valid = parsed.filter((j) => j.jdText.length >= 50)
 
-        if (valid.length <= 1) {
-          const jd = valid[0] ?? { company, role, jdText }
-          const data = await smartApplicationService.smartCreate({
-            jdText: jd.jdText,
-            company: jd.company || undefined,
-            role: jd.role || undefined,
-            masterCVFile: masterCVFile || undefined,
-            resumeId: selectedResumeId || undefined,
-          })
-          setResult(data)
-          setEditedResume(data.output.resume.markdown)
-          setResultTab('resume')
-          showToast('Application package generated!', 'success')
-        } else {
-          const data = await smartApplicationService.bulkCreate({
-            jds: valid.map((j) => ({ company: j.company, role: j.role, jdText: j.jdText })),
-            masterCVFile: masterCVFile || undefined,
-            resumeId: selectedResumeId || undefined,
-          })
-          setBulkResults(data.results)
-          const firstSuccess = data.results.find((r): r is SmartApplicationResult => 'output' in r)
+        // Send raw text to AI — it auto-detects 1 or multiple JDs
+        const data = await smartApplicationService.aiCreate({
+          jdText,
+          company: company || undefined,
+          role: role || undefined,
+          masterCVFile: masterCVFile || undefined,
+          resumeId: selectedResumeId || undefined,
+        })
+
+        if ('results' in data && Array.isArray(data.results)) {
+          setBulkResults(data.results as BulkItem[])
+          const firstSuccess = (data.results as BulkItem[]).find((r): r is SmartApplicationResult => 'output' in r)
           if (firstSuccess) {
             setResult(firstSuccess)
             setEditedResume(firstSuccess.output.resume.markdown)
             setResultTab('resume')
           }
           showToast(`Generated ${data.results.length} application(s)`, 'success')
+        } else {
+          // Single result (not wrapped in bulk)
+          const singleResult = data as SmartApplicationResult
+          setResult(singleResult)
+          setEditedResume(singleResult.output.resume.markdown)
+          setResultTab('resume')
+          showToast('Application package generated!', 'success')
         }
       } else {
         if (!validateCsvInput()) { setIsGenerating(false); return }
-        const data = await smartApplicationService.bulkCreate({
+        const csvData = await smartApplicationService.bulkCreate({
           jds: [],
           masterCVFile: masterCVFile!,
           resumeId: selectedResumeId || undefined,
         })
-        setBulkResults(data.results)
-        const firstSuccess = data.results.find((r): r is SmartApplicationResult => 'output' in r)
+        setBulkResults(csvData.results as BulkItem[])
+        const firstSuccess = csvData.results.find((r): r is SmartApplicationResult => 'output' in r)
         if (firstSuccess) {
           setResult(firstSuccess)
           setEditedResume(firstSuccess.output.resume.markdown)
           setResultTab('resume')
         }
-        showToast(`Generated ${data.results.length} application(s)`, 'success')
+        showToast(`Generated ${csvData.results.length} application(s)`, 'success')
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to generate application'
@@ -237,7 +229,6 @@ export function SmartApplicationPage() {
             onSelectedResumeIdChange={setSelectedResumeId}
             isGenerating={isGenerating}
             onGenerate={() => handleGenerate()}
-            jdCount={jdCount}
           />
           <SmartApplicationResultPanel
             errorMessage={errorMessage}

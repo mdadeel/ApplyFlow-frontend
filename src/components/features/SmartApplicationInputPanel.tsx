@@ -14,7 +14,6 @@ import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { Tabs } from '../ui/Tabs'
 import { Skeleton } from '../ui/Skeleton'
-import { Badge } from '../ui/Badge'
 import { useToast } from '../layout/useToast'
 import type { UploadedResume } from '../../types'
 
@@ -37,7 +36,6 @@ export interface SmartApplicationInputPanelProps {
   onSelectedResumeIdChange: (id: string) => void
   isGenerating: boolean
   onGenerate: () => void
-  jdCount: number
 }
 
 export function SmartApplicationInputPanel({
@@ -57,7 +55,6 @@ export function SmartApplicationInputPanel({
   onSelectedResumeIdChange,
   isGenerating,
   onGenerate,
-  jdCount,
 }: SmartApplicationInputPanelProps) {
   const { showToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -156,23 +153,15 @@ export function SmartApplicationInputPanel({
             </div>
 
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-body-sm font-medium text-on-surface">Job Description</label>
-                {jdCount > 0 && (
-                  <Badge variant="info" size="sm">
-                    {jdCount} JD{jdCount > 1 ? 's' : ''} detected
-                  </Badge>
-                )}
-              </div>
+              <label className="text-body-sm font-medium text-on-surface">Job Description</label>
               <textarea
                 value={jdText}
                 onChange={(e) => onJdTextChange(e.target.value)}
-                placeholder="Paste the full job description here..."
+                placeholder="Paste one or more job descriptions here..."
                 className="w-full h-64 p-3 bg-surface-container-low rounded-lg text-body-md text-on-surface placeholder-on-surface-variant resize-y focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <p className="text-caption text-on-surface-variant">
-                For multiple JDs, separate each with <code>---</code> on a new line.
-                Add <code>Company:</code> and <code>Role:</code> headers for each.
+                Paste one or more job descriptions. The AI will automatically detect and process them.
               </p>
             </div>
           </div>
