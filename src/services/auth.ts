@@ -41,6 +41,18 @@ export function deleteApiKey(provider: string): Promise<User> {
   return del<User>(`/auth/api-key/${encodeURIComponent(provider)}`)
 }
 
+export function changePassword(data: { currentPassword: string; newPassword: string }): Promise<{ ok: boolean }> {
+  return put<{ ok: boolean }>('/auth/password', data)
+}
+
+export function deleteAccount(): Promise<{ ok: boolean }> {
+  return del<{ ok: boolean }>('/auth/account')
+}
+
+export function getApiKeysConfigured(): Promise<{ providers: string[] }> {
+  return get<{ providers: string[] }>('/auth/api-keys')
+}
+
 export const authService = {
   login,
   register,
@@ -52,4 +64,7 @@ export const authService = {
   getPreferences,
   saveApiKey,
   deleteApiKey,
+  changePassword,
+  deleteAccount,
+  getApiKeysConfigured,
 }

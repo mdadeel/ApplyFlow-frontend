@@ -28,7 +28,7 @@ vi.mock('../../components/layout/useToast', () => ({
 // Mock the smart application service.
 vi.mock('../../services/smartApplication', () => ({
   smartApplicationService: {
-    smartCreate: mocks.smartCreate,
+    aiCreate: mocks.smartCreate,
     bulkCreate: mocks.bulkCreate,
     exportAllFormats: mocks.exportAllFormats,
   },
@@ -106,7 +106,7 @@ describe('SmartApplicationPage', () => {
     const user = userEvent.setup()
     render(<SmartApplicationPage />)
 
-    const textarea = screen.getByPlaceholderText(/paste the full job description/i)
+    const textarea = screen.getByPlaceholderText(/paste one or more job descriptions here/i)
     await user.type(textarea, 'too short')
 
     await user.click(screen.getByRole('button', { name: /generate application package/i }))
@@ -129,7 +129,7 @@ describe('SmartApplicationPage', () => {
 
     const jd =
       'We are looking for a senior frontend engineer with strong React and TypeScript experience to join our team.'
-    const textarea = screen.getByPlaceholderText(/paste the full job description/i)
+    const textarea = screen.getByPlaceholderText(/paste one or more job descriptions here/i)
     await user.type(textarea, jd)
 
     await user.click(screen.getByRole('button', { name: /generate application package/i }))
@@ -162,7 +162,7 @@ describe('SmartApplicationPage', () => {
 
     const jd =
       'A senior frontend role focused on building polished interfaces with React and TypeScript in a fast-paced team.'
-    await user.type(screen.getByPlaceholderText(/paste the full job description/i), jd)
+    await user.type(screen.getByPlaceholderText(/paste one or more job descriptions here/i), jd)
 
     await user.click(screen.getByRole('button', { name: /generate application package/i }))
 

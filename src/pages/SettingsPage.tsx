@@ -5,33 +5,37 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Select } from '../components/ui/Select'
 import { Dialog } from '../components/ui/Dialog'
+import { Tabs } from '../components/ui/Tabs'
+import { Toggle } from '../components/ui/Toggle'
 import { useAuthStore } from '../stores/authStore'
 import { authService } from '../services/auth'
+import { getNotifications, markAsRead, dismiss, type NotificationItem } from '../services/notifications'
 import { useToast } from '../components/layout/useToast'
 import {
   User,
   Save,
   AlertTriangle,
-  Sparkles,
   Shield,
-  Bell,
   Key,
   Link,
   CheckCircle,
+  Check,
   ExternalLink,
   GitPullRequest,
   Globe,
   Trash2,
+  Bell,
+  X,
 } from '../lib/icons'
 
 type SettingsTab = 'profile' | 'ai-preferences' | 'security' | 'integrations' | 'notifications'
 
-const tabs: { id: SettingsTab; label: string; icon: typeof User }[] = [
-  { id: 'profile', label: 'Account', icon: User },
-  { id: 'ai-preferences', label: 'AI Preferences', icon: Sparkles },
-  { id: 'security', label: 'Security', icon: Shield },
-  { id: 'integrations', label: 'Integrations', icon: Link },
-  { id: 'notifications', label: 'Notifications', icon: Bell },
+const tabs: { id: SettingsTab; label: string }[] = [
+  { id: 'profile', label: 'Account' },
+  { id: 'ai-preferences', label: 'AI Preferences' },
+  { id: 'security', label: 'Security' },
+  { id: 'integrations', label: 'Integrations' },
+  { id: 'notifications', label: 'Notifications' },
 ]
 
 export function SettingsPage() {
@@ -48,12 +52,17 @@ export function SettingsPage() {
 
   // 2FA toggle
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
-  
+  const [twoFactorSaving, setTwoFactorSaving] = useState(false)
+
   // Password change
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [passwordSaving, setPasswordSaving] = useState(false)
   const [savingNotifications, setSavingNotifications] = useState(false)
+
+  // Notification history
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [notificationBusy, setNotificationBusy] = useState<Record<string, boolean>>({})
 
   // Notifications
   const [emailNotifications, setEmailNotifications] = useState({
@@ -130,6 +139,75 @@ export function SettingsPage() {
         // Backend unreachable or not configured — leave as false.
       })
     return () => { cancelled = true }
+  }, [])
+
+  // Load persisted settings on mount: preferences, configured API keys, and notification history.
+  // Each fetch is independent — a single failure shows one error toast and does not block the others.
+  useEffect(() => {
+    let cancelled = false
+    let loadErrors = 0
+
+    const markError = (label: string) => {
+      if (cancelled) return
+      loadErrors += 1
+      if (loadErrors === 1) {
+        toast.showToast(`Failed to load ${label}`, 'error')
+      }
+    }
+
+    authService.getPreferences()
+      .then((prefs) => {
+        if (cancelled) return
+        if (prefs) {
+          setPreferences(prev => ({
+            ...prev,
+            aiProvider: prefs.aiProvider ?? prev.aiProvider,
+            model: prefs.model ?? prev.model,
+            temperature: typeof prefs.temperature === 'number' ? prefs.temperature : prev.temperature,
+            writingTone: prefs.writingTone ?? prev.writingTone,
+            defaultExportFormat: prefs.defaultExportFormat ?? prev.defaultExportFormat,
+          }))
+          if (prefs.notifications) {
+            setEmailNotifications(prev => ({
+              applicationUpdates: prefs.notifications.applicationUpdates ?? prev.applicationUpdates,
+              interviewReminders: prefs.notifications.interviewReminders ?? prev.interviewReminders,
+              newFeatures: prefs.notifications.newFeatures ?? prev.newFeatures,
+              weeklyDigest: prefs.notifications.weeklyDigest ?? prev.weeklyDigest,
+              marketingEmails: prefs.notifications.marketingEmails ?? prev.marketingEmails,
+            }))
+          }
+          setTwoFactorEnabled(Boolean(prefs.twoFactorEnabled))
+        }
+      })
+      .catch(() => markError('preferences'))
+
+    authService.getApiKeysConfigured()
+      .then((res) => {
+        if (cancelled) return
+        const configured = (res?.providers ?? []).reduce<Record<string, boolean>>((acc, p) => {
+          acc[p] = true
+          return acc
+        }, {})
+        setApiKeyConfigured(prev => {
+          const next = { ...prev }
+          for (const provider of apiKeyProviders) {
+            if (configured[provider]) next[provider] = true
+          }
+          return next
+        })
+      })
+      .catch(() => markError('API keys'))
+
+    getNotifications()
+      .then((res) => {
+        if (cancelled) return
+        setNotifications(res?.items ?? [])
+      })
+      .catch(() => markError('notifications'))
+
+    return () => { cancelled = true }
+    // Run once on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Listen for postMessage from the OAuth popup. On success, refresh user data.
@@ -293,7 +371,7 @@ export function SettingsPage() {
     }
     setPasswordSaving(true)
     try {
-      await authService.updateProfile({ name: user?.name ?? '', password: currentPassword, newPassword } as any & { password: string; newPassword: string })
+      await authService.changePassword({ currentPassword, newPassword })
       toast.showToast('Password updated successfully', 'success')
       setCurrentPassword('')
       setNewPassword('')
@@ -307,6 +385,7 @@ export function SettingsPage() {
   async function handleDeleteAccount() {
     setDeleting(true)
     try {
+      await authService.deleteAccount()
       useAuthStore.getState().logout()
       toast.showToast('Account deleted', 'info')
       navigate('/auth/login', { replace: true })
@@ -317,28 +396,54 @@ export function SettingsPage() {
     }
   }
 
-  function ToggleSwitch({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean) => void }) {
-    return (
-      <button
-        type="button"
-        onClick={() => onChange(!enabled)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${enabled ? 'bg-primary' : 'bg-outline-variant'}`}
-        role="switch"
-        aria-checked={enabled}
-      >
-        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${enabled ? 'translate-x-6' : 'translate-x-1'}`} />
-      </button>
-    )
+  async function handleToggle2FA(value: boolean) {
+    const previous = twoFactorEnabled
+    setTwoFactorEnabled(value)
+    setTwoFactorSaving(true)
+    try {
+      await authService.updatePreferences({ twoFactorEnabled: value })
+      toast.showToast(value ? '2FA enabled' : '2FA disabled', 'success')
+    } catch (err: unknown) {
+      setTwoFactorEnabled(previous)
+      const message = err instanceof Error ? err.message : 'Failed to update 2FA'
+      toast.showToast(message, 'error')
+    } finally {
+      setTwoFactorSaving(false)
+    }
+  }
+
+  async function handleMarkAsRead(id: string) {
+    setNotificationBusy(prev => ({ ...prev, [id]: true }))
+    try {
+      const updated = await markAsRead(id)
+      setNotifications(prev => prev.map(n => (n._id === id ? { ...n, read: updated.read } : n)))
+    } catch {
+      toast.showToast('Failed to mark notification as read', 'error')
+    } finally {
+      setNotificationBusy(prev => ({ ...prev, [id]: false }))
+    }
+  }
+
+  async function handleDismiss(id: string) {
+    setNotificationBusy(prev => ({ ...prev, [id]: true }))
+    try {
+      await dismiss(id)
+      setNotifications(prev => prev.filter(n => n._id !== id))
+    } catch {
+      toast.showToast('Failed to dismiss notification', 'error')
+    } finally {
+      setNotificationBusy(prev => ({ ...prev, [id]: false }))
+    }
   }
 
   function renderProfileTab() {
     return (
-      <div className="space-y-xl">
+      <div className="space-y-md">
         <div>
-          <h3 className="text-headline-md text-on-surface mb-1">Account Settings</h3>
-          <p className="text-body-md text-on-surface-variant">Update your personal information and public profile.</p>
+          <h3 className="text-body-md font-semibold text-on-surface">Account Settings</h3>
+          <p className="text-label-md text-on-surface-variant">Update your personal information and public profile.</p>
         </div>
-        <div className="space-y-md">
+        <div className="space-y-3 max-w-xl">
           <Input
             label="Full Name"
             value={name}
@@ -351,7 +456,7 @@ export function SettingsPage() {
             disabled
             helperText="Email cannot be changed"
           />
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end">
             <Button onClick={handleSaveProfile} loading={profileSaving} icon={<Save className="h-4 w-4" />}>
               Save Changes
             </Button>
@@ -361,20 +466,19 @@ export function SettingsPage() {
         <hr className="border-outline-variant" />
 
         <div>
-          <h4 className="text-headline-md text-on-surface mb-1">Danger Zone</h4>
-          <p className="text-body-md text-on-surface-variant mb-md">Irreversible actions</p>
-          <div className="flex items-start justify-between gap-4 p-md rounded-xl border border-red-200 bg-red-50">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-red-100 text-red-600">
-                <AlertTriangle className="h-5 w-5" />
+          <h4 className="text-body-md font-semibold text-on-surface mb-2">Danger Zone</h4>
+          <div className="flex items-center justify-between gap-4 p-md rounded-lg border border-red-200 bg-red-50">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-1.5 rounded-md bg-red-100 text-red-600 shrink-0">
+                <AlertTriangle className="h-4 w-4" />
               </div>
-              <div>
-                <h4 className="text-body-md font-medium text-on-surface">Delete Account</h4>
-                <p className="text-label-sm text-on-surface-variant mt-0.5">Permanently delete your account and all associated data.</p>
+              <div className="min-w-0">
+                <p className="text-body-md font-medium text-on-surface">Delete Account</p>
+                <p className="text-label-sm text-on-surface-variant">Permanently delete your account and all data.</p>
               </div>
             </div>
-            <Button variant="danger" onClick={() => setShowDeleteDialog(true)} className="shrink-0">
-              Delete Account
+            <Button variant="danger" size="sm" onClick={() => setShowDeleteDialog(true)} className="shrink-0">
+              Delete
             </Button>
           </div>
         </div>
@@ -384,17 +488,25 @@ export function SettingsPage() {
 
   function renderAIPreferencesTab() {
     return (
-      <div className="space-y-xl">
+      <div className="space-y-md">
         <div>
-          <h3 className="text-headline-md text-on-surface mb-1">AI Preferences</h3>
-          <p className="text-body-md text-on-surface-variant">Configure how ApplyFlow AI interacts with your data and generates applications.</p>
+          <h3 className="text-body-md font-semibold text-on-surface">AI Preferences</h3>
+          <p className="text-label-md text-on-surface-variant">Configure how ApplyFlow AI interacts with your data.</p>
         </div>
-        <div className="space-y-md">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
+        <div className="space-y-3 max-w-2xl">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Select
               label="AI Provider"
               value={preferences.aiProvider}
-              onChange={(v) => setPreferences(prev => ({ ...prev, aiProvider: v }))}
+              onChange={(v) => {
+                const providerDefaults: Record<string, { model: string }> = {
+                  openai: { model: 'gpt-4o' },
+                  anthropic: { model: 'claude-3-sonnet' },
+                  gemini: { model: 'gemini-pro' },
+                }
+                const defaults = providerDefaults[v] ?? { model: preferences.model }
+                setPreferences(prev => ({ ...prev, aiProvider: v, model: defaults.model }))
+              }}
               options={[
                 { value: 'openai', label: 'OpenAI' },
                 { value: 'anthropic', label: 'Anthropic' },
@@ -416,7 +528,7 @@ export function SettingsPage() {
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label className="font-label-md text-on-surface">
               Temperature: {preferences.temperature.toFixed(1)}
             </label>
@@ -427,7 +539,7 @@ export function SettingsPage() {
               step="0.1"
               value={preferences.temperature}
               onChange={(e) => setPreferences(prev => ({ ...prev, temperature: parseFloat(e.target.value) }))}
-              className="w-full h-2 bg-surface-container-high rounded-full appearance-none cursor-pointer accent-primary"
+              className="w-full h-1.5 bg-surface-container-high rounded-full appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between text-label-sm text-on-surface-variant">
               <span>Precise</span>
@@ -435,7 +547,7 @@ export function SettingsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-md">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Select
               label="Writing Tone"
               value={preferences.writingTone}
@@ -456,12 +568,11 @@ export function SettingsPage() {
                 { value: 'pdf', label: 'PDF' },
                 { value: 'docx', label: 'DOCX' },
                 { value: 'md', label: 'Markdown' },
-                { value: 'txt', label: 'Plain Text' },
               ]}
             />
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end">
             <Button onClick={handleSavePreferences} loading={prefSaving} icon={<Save className="h-4 w-4" />}>
               Save Preferences
             </Button>
@@ -470,15 +581,15 @@ export function SettingsPage() {
 
         <hr className="border-outline-variant" />
 
-        <div className="space-y-md">
+        <div className="space-y-3">
           <div>
-            <h4 className="text-headline-md text-on-surface mb-1">Provider API Keys</h4>
-            <p className="text-body-md text-on-surface-variant">
-              Store your own API keys so ApplyFlow AI can call providers on your behalf. Keys are encrypted at rest and never displayed back.
+            <h4 className="text-body-md font-semibold text-on-surface">Provider API Keys</h4>
+            <p className="text-label-md text-on-surface-variant">
+              Store your own keys so ApplyFlow AI can call providers on your behalf. Encrypted at rest, never displayed back.
             </p>
           </div>
 
-          <div className="space-y-md">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {apiKeyProviders.map((provider) => {
               const configured = apiKeyConfigured[provider]
               const labelMap: Record<ApiKeyProvider, string> = {
@@ -490,13 +601,13 @@ export function SettingsPage() {
               const maskedPreview = configured ? `${provider.slice(0, 2)}-****` : 'Not configured'
               const inputId = `api-key-${provider}`
               return (
-                <div key={provider} className="rounded-xl border border-outline-variant p-md space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <label htmlFor={inputId} className="text-body-md font-medium text-on-surface">
+                <div key={provider} className="rounded-lg border border-outline-variant p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <label htmlFor={inputId} className="text-body-md font-medium text-on-surface block truncate">
                         {labelMap[provider]}
                       </label>
-                      <p className="text-label-sm text-on-surface-variant font-mono mt-0.5">
+                      <p className="text-label-sm text-on-surface-variant font-mono">
                         {maskedPreview}
                       </p>
                     </div>
@@ -508,20 +619,21 @@ export function SettingsPage() {
                         loading={!!apiKeyDeleting[provider]}
                         icon={<Trash2 className="h-4 w-4" />}
                       >
-                        Delete
+                        Remove
                       </Button>
                     )}
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex gap-2">
                     <Input
                       id={inputId}
                       type="password"
                       autoComplete="off"
-                      placeholder={configured ? 'Enter a new key to replace the current one' : `Paste your ${labelMap[provider]} API key`}
+                      placeholder={configured ? 'New key to replace' : `Paste ${labelMap[provider]} key`}
                       value={apiKeyInputs[provider]}
                       onChange={(e) => setApiKeyInputs(prev => ({ ...prev, [provider]: e.target.value }))}
                     />
                     <Button
+                      size="sm"
                       onClick={() => handleSaveApiKey(provider)}
                       loading={!!apiKeySaving[provider]}
                       icon={<Save className="h-4 w-4" />}
@@ -540,26 +652,26 @@ export function SettingsPage() {
 
   function renderSecurityTab() {
     return (
-      <div className="space-y-xl">
+      <div className="space-y-md">
         <div>
-          <h3 className="text-headline-md text-on-surface mb-1">Security</h3>
-          <p className="text-body-md text-on-surface-variant">Manage your account credentials and authentication settings.</p>
+          <h3 className="text-body-md font-semibold text-on-surface">Security</h3>
+          <p className="text-label-md text-on-surface-variant">Manage your credentials and authentication.</p>
         </div>
 
-        <div className="flex items-center justify-between p-md rounded-xl border border-outline-variant bg-surface-container-low">
-          <div className="flex items-start gap-3">
-            <Key className="h-5 w-5 text-on-surface-variant mt-0.5" />
-            <div>
+        <div className="flex items-center justify-between gap-4 p-3 rounded-lg border border-outline-variant bg-surface-container-low">
+          <div className="flex items-center gap-3 min-w-0">
+            <Key className="h-4 w-4 text-on-surface-variant shrink-0" />
+            <div className="min-w-0">
               <p className="text-body-md font-medium text-on-surface">Two-factor authentication (2FA)</p>
-              <p className="text-label-sm text-on-surface-variant mt-0.5">Adds an extra layer of security to your account.</p>
+              <p className="text-label-sm text-on-surface-variant">Adds an extra layer of security.</p>
             </div>
           </div>
-          <ToggleSwitch enabled={twoFactorEnabled} onChange={setTwoFactorEnabled} />
+          <Toggle checked={twoFactorEnabled} onChange={handleToggle2FA} disabled={twoFactorSaving} />
         </div>
 
-        <div className="rounded-xl border border-outline-variant p-md space-y-md">
+        <div className="rounded-lg border border-outline-variant p-3 space-y-3 max-w-2xl">
           <h4 className="text-body-md font-medium text-on-surface">Change Password</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="Current Password"
               type="password"
@@ -577,6 +689,7 @@ export function SettingsPage() {
           </div>
           <div className="flex justify-end">
             <Button
+              size="sm"
               onClick={handleChangePassword}
               loading={passwordSaving}
               icon={<Shield className="h-4 w-4" />}
@@ -641,13 +754,13 @@ export function SettingsPage() {
     ]
 
     return (
-      <div className="space-y-xl">
+      <div className="space-y-md">
         <div>
-          <h3 className="text-headline-md text-on-surface mb-1">Integrations</h3>
-          <p className="text-body-md text-on-surface-variant">Connect your third-party tools to streamline your application process.</p>
+          <h3 className="text-body-md font-semibold text-on-surface">Integrations</h3>
+          <p className="text-label-md text-on-surface-variant">Connect third-party tools to streamline your applications.</p>
         </div>
 
-        <div className="grid grid-cols-1 gap-md">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {integrations.map((integration) => {
             const Icon = integration.icon
             const isConnected = connectedSet.has(integration.key)
@@ -655,14 +768,14 @@ export function SettingsPage() {
             return (
               <div
                 key={integration.name}
-                className="flex items-center gap-4 p-md rounded-xl border border-outline-variant hover:border-primary transition-colors"
+                className="flex items-center gap-3 p-3 rounded-lg border border-outline-variant hover:border-primary transition-colors"
               >
-                <div className={`w-10 h-10 ${integration.iconBg} flex items-center justify-center rounded-lg ${integration.iconColor}`}>
-                  <Icon className="h-5 w-5" />
+                <div className={`w-9 h-9 ${integration.iconBg} flex items-center justify-center rounded-md ${integration.iconColor} shrink-0`}>
+                  <Icon className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-body-md font-medium text-on-surface">{integration.name}</p>
-                  <p className="text-label-sm text-on-surface-variant">{integration.description}</p>
+                  <p className="text-body-md font-medium text-on-surface truncate">{integration.name}</p>
+                  <p className="text-label-sm text-on-surface-variant truncate">{integration.description}</p>
                 </div>
                 {isConnected ? (
                   <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-primary text-label-sm font-medium">
@@ -706,32 +819,80 @@ export function SettingsPage() {
     ]
 
     return (
-      <div className="space-y-xl">
+      <div className="space-y-md">
         <div>
-          <h3 className="text-headline-md text-on-surface mb-1">Notifications</h3>
-          <p className="text-body-md text-on-surface-variant">Manage what notifications you receive and how.</p>
+          <h3 className="text-body-md font-semibold text-on-surface">Notifications</h3>
+          <p className="text-label-md text-on-surface-variant">Manage what notifications you receive.</p>
         </div>
 
-        <div className="space-y-1">
+        {notifications.length > 0 && (
+          <div className="space-y-2 max-w-2xl">
+            <h4 className="text-body-md font-medium text-on-surface">Recent Notifications</h4>
+            <div className="divide-y divide-outline-variant rounded-lg border border-outline-variant overflow-hidden">
+              {notifications.map((n) => (
+                <div
+                  key={n._id}
+                  className="flex items-start justify-between gap-3 px-3 py-2.5 hover:bg-surface-container-low transition-colors"
+                >
+                  <div className="flex items-start gap-2 min-w-0 flex-1">
+                    <Bell className="h-4 w-4 text-on-surface-variant mt-0.5 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-body-md font-medium text-on-surface truncate">{n.title}</p>
+                      <p className="text-label-sm text-on-surface-variant line-clamp-2">{n.message}</p>
+                      <p className="text-label-sm text-on-surface-variant">
+                        {new Date(n.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {!n.read && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleMarkAsRead(n._id)}
+                        loading={!!notificationBusy[n._id]}
+                        icon={<Check className="h-3.5 w-3.5" />}
+                      >
+                        Mark Read
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDismiss(n._id)}
+                      loading={!!notificationBusy[n._id]}
+                      icon={<X className="h-3.5 w-3.5" />}
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="divide-y divide-outline-variant rounded-lg border border-outline-variant overflow-hidden max-w-2xl">
           {notificationItems.map((item) => (
             <div
               key={item.key}
-              className="flex items-center justify-between gap-4 p-md rounded-xl hover:bg-surface-container-low transition-colors"
+              className="flex items-center justify-between gap-4 px-3 py-2.5 hover:bg-surface-container-low transition-colors"
             >
               <div className="min-w-0 flex-1">
                 <p className="text-body-md font-medium text-on-surface">{item.label}</p>
-                <p className="text-label-sm text-on-surface-variant mt-0.5">{item.desc}</p>
+                <p className="text-label-sm text-on-surface-variant">{item.desc}</p>
               </div>
-              <ToggleSwitch
-                enabled={emailNotifications[item.key]}
+              <Toggle
+                checked={emailNotifications[item.key]}
                 onChange={(v) => setEmailNotifications(prev => ({ ...prev, [item.key]: v }))}
               />
             </div>
           ))}
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex justify-end max-w-2xl">
           <Button
+            size="sm"
             onClick={handleSaveNotificationPreferences}
             loading={savingNotifications}
             icon={<Save className="h-4 w-4" />}
@@ -753,33 +914,23 @@ export function SettingsPage() {
 
   return (
     <AppLayout>
+      <div className="space-y-md">
+        <div>
+          <h1 className="text-headline-md text-on-surface">Settings</h1>
+          <p className="text-label-md text-on-surface-variant">Manage your account and preferences.</p>
+        </div>
 
-      <div className="flex flex-col md:flex-row gap-lg">
-        {/* Tab Navigation */}
-        <nav className="w-full md:w-56 shrink-0 flex flex-row md:flex-col gap-1 overflow-x-auto md:overflow-x-visible">
-          {tabs.map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-left transition-all whitespace-nowrap text-body-md ${
-                  isActive
-                    ? 'bg-surface-container-high text-primary font-semibold'
-                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface'
-                }`}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span className="truncate">{tab.label}</span>
-              </button>
-            )
-          })}
-        </nav>
-
-        {/* Content */}
-        <div className="flex-1 bg-surface border border-outline-variant rounded-xl p-lg min-h-[400px]">
-          {tabContent[activeTab]()}
+        <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden">
+          <div className="px-md">
+            <Tabs
+              tabs={tabs}
+              activeTab={activeTab}
+              onChange={(id) => setActiveTab(id as SettingsTab)}
+            />
+          </div>
+          <div className="p-md min-h-[280px]">
+            {tabContent[activeTab]()}
+          </div>
         </div>
       </div>
 

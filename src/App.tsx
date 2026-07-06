@@ -18,6 +18,14 @@ import { SmartApplicationPage } from './pages/SmartApplicationPage'
 import { JDAnalysisPage } from './pages/JDAnalysisPage'
 import { ResumeStrategyPage } from './pages/ResumeStrategyPage'
 import { ResumeEditorPage } from './pages/ResumeEditorPage'
+import { CommunityDashboardPage } from './pages/community/DashboardPage'
+import { OpportunityBrowserPage } from './pages/community/OpportunityBrowserPage'
+import { OpportunityDetailPage } from './pages/community/OpportunityDetailPage'
+import { CreateOpportunityPage } from './pages/community/CreateOpportunityPage'
+import { WorkspacePage } from './pages/community/WorkspacePage'
+import { CommunityHubPage } from './pages/community/CommunityHubPage'
+import { NotificationsPage } from './pages/community/NotificationsPage'
+import { CommunityAnalyticsPage } from './pages/community/AnalyticsPage'
 
 function App() {
   return (
@@ -43,6 +51,14 @@ function App() {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/insights" element={<AIInsightsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/community" element={<CommunityDashboardPage />} />
+        <Route path="/community/opportunities" element={<OpportunityBrowserPage />} />
+        <Route path="/community/opportunities/new" element={<CreateOpportunityPage />} />
+        <Route path="/community/opportunities/:id" element={<OpportunityDetailPage />} />
+        <Route path="/community/workspace/:id" element={<WorkspacePage />} />
+        <Route path="/community/hub" element={<CommunityHubPage />} />
+        <Route path="/community/notifications" element={<NotificationsPage />} />
+        <Route path="/community/analytics" element={<CommunityAnalyticsPage />} />
       </Routes>
       </ErrorBoundary>
     </ToastProvider>

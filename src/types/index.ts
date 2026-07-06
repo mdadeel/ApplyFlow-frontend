@@ -30,6 +30,7 @@ export interface UserPreferences {
     marketingEmails: boolean
   }
   apiKeys?: Record<string, string>
+  twoFactorEnabled?: boolean
 }
 
 export interface Experience {

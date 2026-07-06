@@ -11,6 +11,9 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Globe,
+  Users,
+  Bell,
 } from '../../lib/icons'
 import { useLayout } from './useLayout'
 import { Button } from '../ui/Button'
@@ -27,6 +30,14 @@ const navItems: NavItem[] = [
   { label: 'Career Profile', icon: User, href: '/profile' },
   { label: 'Analytics', icon: BarChart3, href: '/analytics' },
   { label: 'Settings', icon: Settings, href: '/settings' },
+]
+
+const communityItems: NavItem[] = [
+  { label: 'Community', icon: Globe, href: '/community' },
+  { label: '  Opportunities', icon: Briefcase, href: '/community/opportunities' },
+  { label: '  Hub', icon: Users, href: '/community/hub' },
+  { label: '  Notifications', icon: Bell, href: '/community/notifications' },
+  { label: '  Analytics', icon: BarChart3, href: '/community/analytics' },
 ]
 
 const bottomItems: NavItem[] = [
@@ -49,11 +60,43 @@ export function Sidebar() {
 
   function isActive(href: string) {
     if (href === '/dashboard') return location.pathname === '/dashboard'
+    if (href.startsWith('  ')) {
+      return location.pathname === href.trim()
+    }
     return location.pathname.startsWith(href)
   }
 
   function handleNav(href: string) {
     navigate(href)
+  }
+
+  function renderItem(item: NavItem) {
+    const Icon = item.icon
+    const active = isActive(item.href)
+    const isSubItem = item.label.startsWith('  ')
+    return (
+      <a
+        key={item.href}
+        href={item.href}
+        onClick={e => { e.preventDefault(); handleNav(item.href) }}
+        className={`group flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors ${
+          sidebarCollapsed && !isSubItem ? 'justify-center px-0' : ''
+        } ${sidebarCollapsed && isSubItem ? 'hidden' : ''} ${
+          active
+            ? 'bg-surface-container-low text-primary font-semibold border-l-4 border-primary'
+            : isSubItem
+              ? 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface border-l-4 border-transparent pl-8'
+              : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface border-l-4 border-transparent'
+        }`}
+        aria-current={active ? 'page' : undefined}
+        aria-label={item.label.trim()}
+      >
+        <Icon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform duration-150" aria-hidden="true" />
+        {!sidebarCollapsed && (
+          <span className="text-body-md truncate">{item.label.trim()}</span>
+        )}
+      </a>
+    )
   }
 
   return (
@@ -118,35 +161,13 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 px-2 py-2 space-y-1 overflow-y-auto">
-          {navItems.map(item => {
-            const Icon = item.icon
-            const active = isActive(item.href)
-            return (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={e => {
-                  e.preventDefault()
-                  handleNav(item.href)
-                }}                  className={`group
-                  flex items-center gap-3 px-3 py-2 rounded cursor-pointer
-                  transition-colors
-                  ${sidebarCollapsed ? 'justify-center px-0' : ''}
-                  ${active
-                    ? 'bg-surface-container-low text-primary font-semibold border-l-4 border-primary'
-                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface border-l-4 border-transparent'
-                  }
-                `}
-                aria-current={active ? 'page' : undefined}
-                aria-label={item.label}
-              >
-                <Icon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform duration-150" aria-hidden="true" />
-                {!sidebarCollapsed && (
-                  <span className="text-body-md truncate">{item.label}</span>
-                )}
-              </a>
-            )
-          })}
+          {navItems.map(item => renderItem(item))}
+          {!sidebarCollapsed && (
+            <div className="pt-3 pb-1 px-3">
+              <div className="h-px bg-outline-variant" />
+            </div>
+          )}
+          {communityItems.map(item => renderItem(item))}
         </nav>
 
         <div className="border-t border-outline-variant px-2 py-2 space-y-1 shrink-0">

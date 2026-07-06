@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import {
-  ArrowLeft,
   MoreHorizontal,
   Trash2,
   FileText,
@@ -15,7 +14,6 @@ import {
   Clock,
   Target,
   ChevronDown,
-  Plus,
   ListChecks,
   ScrollText,
 } from '../lib/icons'
@@ -236,16 +234,6 @@ export function ApplicationDetailPage() {
 
   return (
     <AppLayout>
-      <div className="flex items-center gap-3 mb-lg">
-        <Button
-          variant="ghost"
-          icon={<ArrowLeft className="h-4 w-4" />}
-          onClick={() => navigate('/applications')}
-        >
-          Back
-        </Button>
-      </div>
-
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-lg">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
@@ -282,6 +270,39 @@ export function ApplicationDetailPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-lg">
+        <Link to={`/jd-analysis?application=${application._id}`} className="block">
+          <Card hover className="p-3 flex items-center gap-3">
+            <FileSearch className="h-5 w-5 text-primary shrink-0" />
+            <span className="text-body-md text-on-surface font-medium truncate">JD Analysis</span>
+          </Card>
+        </Link>
+        <Link to={`/resume-strategy?application=${application._id}`} className="block">
+          <Card hover className="p-3 flex items-center gap-3">
+            <BarChart3 className="h-5 w-5 text-primary shrink-0" />
+            <span className="text-body-md text-on-surface font-medium truncate">Resume Strategy</span>
+          </Card>
+        </Link>
+        <Link to={`/resume-editor?application=${application._id}`} className="block">
+          <Card hover className="p-3 flex items-center gap-3">
+            <FileText className="h-5 w-5 text-primary shrink-0" />
+            <span className="text-body-md text-on-surface font-medium truncate">Resume Editor</span>
+          </Card>
+        </Link>
+        <Link to={`/export?resumeId=${application._id}`} className="block">
+          <Card hover className="p-3 flex items-center gap-3">
+            <Download className="h-5 w-5 text-primary shrink-0" />
+            <span className="text-body-md text-on-surface font-medium truncate">Export</span>
+          </Card>
+        </Link>
+        <Link to={`/interview?application=${application._id}`} className="block">
+          <Card hover className="p-3 flex items-center gap-3">
+            <MessageSquare className="h-5 w-5 text-primary shrink-0" />
+            <span className="text-body-md text-on-surface font-medium truncate">Interview Prep</span>
+          </Card>
+        </Link>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
         <div className="lg:col-span-2 space-y-lg">
           <Card className="p-md">
@@ -306,17 +327,12 @@ export function ApplicationDetailPage() {
           )}
 
           <Card className="p-md">
-            <div className="flex items-center justify-between gap-2 mb-md">
-              <div className="flex items-center gap-2">
-                <ListChecks className="h-5 w-5 text-on-surface" />
-                <h2 className="text-headline-md text-on-surface">Tasks</h2>
-                {tasks.length > 0 && (
-                  <span className="text-label-sm text-on-surface-variant">({tasks.length})</span>
-                )}
-              </div>
-              <Button size="sm" icon={<Plus className="h-4 w-4" />} onClick={openTaskModalForCreate}>
-                Add Task
-              </Button>
+            <div className="flex items-center gap-2 mb-md">
+              <ListChecks className="h-5 w-5 text-on-surface" />
+              <h2 className="text-headline-md text-on-surface">Tasks</h2>
+              {tasks.length > 0 && (
+                <span className="text-label-sm text-on-surface-variant">({tasks.length})</span>
+              )}
             </div>
             {tasks.length === 0 ? (
               <EmptyState
@@ -338,44 +354,6 @@ export function ApplicationDetailPage() {
               </div>
             )}
           </Card>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Link to={`/jd-analysis?application=${application._id}`} className="block">
-              <Card hover className="p-md space-y-2">
-                <FileSearch className="h-6 w-6 text-primary" />
-                <h3 className="text-headline-sm text-on-surface">JD Analysis</h3>
-                <p className="text-body-sm text-on-surface-variant">Analyze job description</p>
-              </Card>
-            </Link>
-            <Link to={`/resume-strategy?application=${application._id}`} className="block">
-              <Card hover className="p-md space-y-2">
-                <BarChart3 className="h-6 w-6 text-primary" />
-                <h3 className="text-headline-sm text-on-surface">Resume Strategy</h3>
-                <p className="text-body-sm text-on-surface-variant">Plan your approach</p>
-              </Card>
-            </Link>
-            <Link to={`/resume-editor?application=${application._id}`} className="block">
-              <Card hover className="p-md space-y-2">
-                <FileText className="h-6 w-6 text-primary" />
-                <h3 className="text-headline-sm text-on-surface">Resume Editor</h3>
-                <p className="text-body-sm text-on-surface-variant">Tailor your resume</p>
-              </Card>
-            </Link>
-            <Link to={`/export?resumeId=${application._id}`} className="block">
-              <Card hover className="p-md space-y-2">
-                <Download className="h-6 w-6 text-primary" />
-                <h3 className="text-headline-sm text-on-surface">Export</h3>
-                <p className="text-body-sm text-on-surface-variant">Download as PDF/DOCX</p>
-              </Card>
-            </Link>
-            <Link to={`/interview?application=${application._id}`} className="block">
-              <Card hover className="p-md space-y-2">
-                <MessageSquare className="h-6 w-6 text-primary" />
-                <h3 className="text-headline-sm text-on-surface">Interview Prep</h3>
-                <p className="text-body-sm text-on-surface-variant">Prepare for interviews</p>
-              </Card>
-            </Link>
-          </div>
         </div>
 
         <div className="space-y-lg">
