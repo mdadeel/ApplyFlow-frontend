@@ -79,6 +79,7 @@ export const LayoutDashboard = P.SquaresFour
 export const LayoutGrid = P.GridFour
 export const LayoutList = P.List
 export const List = P.ListBullets
+export const ListChecks = P.ListChecks
 export const Loader2 = P.CircleNotch
 export const Mail = P.Envelope
 export const Menu = P.ListDashes
