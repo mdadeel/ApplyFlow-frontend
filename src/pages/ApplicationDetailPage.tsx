@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Plus,
   ListChecks,
+  ScrollText,
 } from '../lib/icons'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Card } from '../components/ui/Card'
@@ -290,6 +291,20 @@ export function ApplicationDetailPage() {
             />
           </Card>
 
+          {application.jdText && (
+            <Card className="p-md">
+              <div className="flex items-center gap-2 mb-md">
+                <ScrollText className="h-5 w-5 text-on-surface" />
+                <h2 className="text-headline-md text-on-surface">Job Description</h2>
+              </div>
+              <div className="max-h-80 overflow-y-auto rounded-lg border border-outline-variant bg-surface-container-low p-4">
+                <pre className="text-body-md text-on-surface whitespace-pre-wrap font-body leading-relaxed">
+                  {application.jdText}
+                </pre>
+              </div>
+            </Card>
+          )}
+
           <Card className="p-md">
             <div className="flex items-center justify-between gap-2 mb-md">
               <div className="flex items-center gap-2">
@@ -346,7 +361,7 @@ export function ApplicationDetailPage() {
                 <p className="text-body-sm text-on-surface-variant">Tailor your resume</p>
               </Card>
             </Link>
-            <Link to={`/export?application=${application._id}`} className="block">
+            <Link to={`/export?resumeId=${application._id}`} className="block">
               <Card hover className="p-md space-y-2">
                 <Download className="h-6 w-6 text-primary" />
                 <h3 className="text-headline-sm text-on-surface">Export</h3>

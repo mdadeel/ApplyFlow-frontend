@@ -15,6 +15,9 @@ import { AnalyticsPage } from './pages/AnalyticsPage'
 import { AIInsightsPage } from './pages/AIInsightsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SmartApplicationPage } from './pages/SmartApplicationPage'
+import { JDAnalysisPage } from './pages/JDAnalysisPage'
+import { ResumeStrategyPage } from './pages/ResumeStrategyPage'
+import { ResumeEditorPage } from './pages/ResumeEditorPage'
 
 function App() {
   return (
@@ -31,9 +34,9 @@ function App() {
         <Route path="/smart-application" element={<SmartApplicationPage />} />
         <Route path="/profile" element={<ResumeLibraryPage />} />
         <Route path="/templates" element={<Navigate to="/applications" replace />} />
-        <Route path="/jd-analysis" element={<Navigate to="/smart-application" replace />} />
-        <Route path="/resume-strategy" element={<Navigate to="/smart-application" replace />} />
-        <Route path="/resume-editor" element={<Navigate to="/smart-application" replace />} />
+        <Route path="/jd-analysis" element={<JDAnalysisPage />} />
+        <Route path="/resume-strategy" element={<ResumeStrategyPage />} />
+        <Route path="/resume-editor" element={<ResumeEditorPage />} />
         <Route path="/validation" element={<Navigate to="/smart-application" replace />} />
         <Route path="/export" element={<ExportCenterPage />} />
         <Route path="/interview" element={<InterviewPrepPage />} />

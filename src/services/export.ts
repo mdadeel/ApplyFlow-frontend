@@ -1,10 +1,22 @@
-import { postBlob } from './api'
+import { postBlob, post, get, del } from './api'
 
 export interface ExportRequest {
   applicationId: string
   template?: string
   format?: string
   content?: Record<string, unknown>
+}
+
+export interface ExportRecordData {
+  _id: string
+  applicationId: string
+  type: 'resume' | 'cover-letter' | 'email'
+  content: string
+  subject?: string
+  format: string
+  fileName: string
+  createdAt: string
+  updatedAt: string
 }
 
 export function exportResume(data: ExportRequest): Promise<Blob> {
@@ -19,4 +31,23 @@ export function exportCoverLetter(data: ExportRequest): Promise<Blob> {
   return postBlob('/export/cover-letter', data)
 }
 
-export const exportService = { exportResume, exportEmail, exportCoverLetter }
+export function saveExport(data: {
+  applicationId: string
+  type: 'resume' | 'cover-letter' | 'email'
+  content: string
+  subject?: string
+  format: string
+  fileName: string
+}): Promise<ExportRecordData> {
+  return post('/exports', data)
+}
+
+export function getExports(applicationId?: string): Promise<ExportRecordData[]> {
+  return get('/exports', applicationId ? { applicationId } : undefined)
+}
+
+export function deleteExport(id: string): Promise<ExportRecordData> {
+  return del(`/exports/${id}`)
+}
+
+export const exportService = { exportResume, exportEmail, exportCoverLetter, saveExport, getExports, deleteExport }

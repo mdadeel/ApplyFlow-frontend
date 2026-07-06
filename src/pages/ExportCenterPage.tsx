@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Section } from '../components/layout/Section'
@@ -8,13 +8,13 @@ import { Tabs } from '../components/ui'
 import { Select } from '../components/ui/Select'
 import { SearchInput } from '../components/ui/SearchInput'
 import { ExportOptions } from '../components/features/ExportOptions'
-import { exportService } from '../services/export'
+import { exportService, type ExportRecordData } from '../services/export'
 import { contentService } from '../services/content'
 import { applicationsService } from '../services/applications'
 import { useToast } from '../components/layout/useToast'
 import type { Application, JDAnalysis } from '../types'
 import { type JSX } from 'react'
-import { Download, Mail, FileSignature, AlertTriangle, X, FileText, FileSpreadsheet, FileCode, FileType } from '../lib/icons'
+import { Download, Mail, FileSignature, AlertTriangle, X, FileText, FileSpreadsheet, FileCode, FileType, Trash2, Eye, Clock } from '../lib/icons'
 import type { ExportFormat } from '../components/features/ExportOptions'
 
 const EXPORT_TABS = [
@@ -41,6 +41,22 @@ const DEFAULT_FORMAT_BY_TAB: Record<string, string> = {
   email: 'txt',
 }
 
+const TAB_LABELS: Record<string, string> = {
+  resume: 'Resume',
+  'cover-letter': 'Cover Letter',
+  email: 'Email',
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 export function ExportCenterPage() {
   const [searchParams] = useSearchParams()
   const { showToast } = useToast()
@@ -61,6 +77,10 @@ export function ExportCenterPage() {
   const [emailBody, setEmailBody] = useState<string | null>(null)
   const [loadingContent, setLoadingContent] = useState(false)
 
+  const [savedExports, setSavedExports] = useState<ExportRecordData[]>([])
+  const [loadingExports, setLoadingExports] = useState(false)
+  const [viewingExport, setViewingExport] = useState<ExportRecordData | null>(null)
+
   useEffect(() => {
     applicationsService.getApplications().then((res) => {
       setApplications(res.applications ?? [])
@@ -70,6 +90,26 @@ export function ExportCenterPage() {
       showToast('Failed to load applications', 'error')
     })
   }, [showToast])
+
+  const fetchSavedExports = useCallback(async () => {
+    if (!selectedAppId) {
+      setSavedExports([])
+      return
+    }
+    setLoadingExports(true)
+    try {
+      const records = await exportService.getExports(selectedAppId)
+      setSavedExports(records)
+    } catch {
+      // silently fail
+    } finally {
+      setLoadingExports(false)
+    }
+  }, [selectedAppId])
+
+  useEffect(() => {
+    fetchSavedExports()
+  }, [fetchSavedExports])
 
   const appOptions = applications.map((app) => ({
     value: app._id,
@@ -147,20 +187,54 @@ export function ExportCenterPage() {
         redFlags: [],
       }
 
+      let content: string
+      let subject: string | undefined
+
       if (contentType === 'cover-letter') {
         const result = await contentService.generateCoverLetter(mockAnalysis, {})
-        setCoverLetter(result.content)
+        content = result.content
+        setCoverLetter(content)
       } else {
         const result = await contentService.generateEmail(mockAnalysis, {}, 'professional')
-        setEmailSubject(result.subject ?? '')
-        setEmailBody(result.content)
+        subject = result.subject ?? ''
+        content = result.content
+        setEmailSubject(subject)
+        setEmailBody(content)
       }
+
+      const tabLabel = TAB_LABELS[contentType]
+      const fileName = `${tabLabel}-${selectedApp?.role ?? 'document'}-${selectedApp?.company ?? 'export'}.txt`
+
+      try {
+        await exportService.saveExport({
+          applicationId: selectedAppId,
+          type: contentType,
+          content,
+          subject,
+          format: 'txt',
+          fileName,
+        })
+        fetchSavedExports()
+      } catch {
+        // persistence is best-effort
+      }
+
       showToast(`${contentType === 'cover-letter' ? 'Cover letter' : 'Email'} generated`, 'success')
     } catch {
       setContentError(`Failed to generate ${contentType === 'cover-letter' ? 'cover letter' : 'email'}. Please try again.`)
       showToast(`Failed to generate ${contentType}`, 'error')
     } finally {
       setLoadingContent(false)
+    }
+  }
+
+  async function handleDeleteExport(id: string) {
+    try {
+      await exportService.deleteExport(id)
+      setSavedExports((prev) => prev.filter((e) => e._id !== id))
+      showToast('Export record deleted', 'success')
+    } catch {
+      showToast('Failed to delete export record', 'error')
     }
   }
 
@@ -274,6 +348,87 @@ export function ExportCenterPage() {
     )
   }
 
+  function renderSavedExports() {
+    if (viewingExport) {
+      return (
+        <div className="space-y-md">
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setViewingExport(null)}>
+              ← Back to saved exports
+            </Button>
+          </div>
+          <Card className="p-4">
+            <p className="text-label-sm text-on-surface-variant mb-1">
+              {TAB_LABELS[viewingExport.type]} — {formatDate(viewingExport.createdAt)}
+            </p>
+            {viewingExport.subject && (
+              <div className="mb-3">
+                <p className="text-label-sm text-on-surface-variant">Subject</p>
+                <p className="text-body-md font-medium text-on-surface">{viewingExport.subject}</p>
+              </div>
+            )}
+            <div>
+              <p className="text-label-sm text-on-surface-variant mb-1">Content</p>
+              <pre className="text-body-md text-on-surface whitespace-pre-wrap font-body leading-relaxed bg-surface-container-low rounded-lg p-4 max-h-96 overflow-y-auto">
+                {viewingExport.content}
+              </pre>
+            </div>
+          </Card>
+        </div>
+      )
+    }
+
+    return (
+      <div className="space-y-md">
+        <h3 className="text-headline-sm text-on-surface">Saved Exports</h3>
+        {loadingExports ? (
+          <p className="text-body-md text-on-surface-variant">Loading...</p>
+        ) : savedExports.length === 0 ? (
+          <p className="text-body-md text-on-surface-variant">No saved exports for this application yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {savedExports.map((record) => (
+              <Card key={record._id} className="p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <FileText className="h-4 w-4 text-on-surface-variant shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-body-md font-medium text-on-surface truncate">
+                        {TAB_LABELS[record.type]} — {record.fileName}
+                      </p>
+                      <p className="text-label-sm text-on-surface-variant flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatDate(record.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<Eye className="h-4 w-4" />}
+                      onClick={() => setViewingExport(record)}
+                    >
+                      View
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={<Trash2 className="h-4 w-4" />}
+                      onClick={() => handleDeleteExport(record._id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   const tabContent: Record<string, () => JSX.Element> = {
     resume: renderResumeTab,
     'cover-letter': renderCoverLetterTab,
@@ -351,21 +506,29 @@ export function ExportCenterPage() {
       />
 
       {selectedAppId ? (
-        tabContent[activeTab]?.() ?? renderResumeTab()
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-lg">
+          <div className="lg:col-span-2 space-y-lg">
+            {tabContent[activeTab]?.() ?? renderResumeTab()}
+
+            {exportedFileName && (
+              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                <p className="text-body-md text-emerald-700">
+                  ✓ Exported as <strong>{exportedFileName}</strong>
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-lg">
+            {renderSavedExports()}
+          </div>
+        </div>
       ) : (
         <div className="py-xl text-center">
           <Download className="h-12 w-12 text-on-surface-variant/40 mx-auto mb-3" />
           <p className="text-headline-md text-on-surface-variant mb-1">Select an Application</p>
           <p className="text-body-md text-on-surface-variant">
             Choose an application above to export its resume, cover letter, or email.
-          </p>
-        </div>
-      )}
-
-      {exportedFileName && (
-        <div className="mt-lg p-4 rounded-xl bg-emerald-50 border border-emerald-200">
-          <p className="text-body-md text-emerald-700">
-            ✓ Exported as <strong>{exportedFileName}</strong>
           </p>
         </div>
       )}
