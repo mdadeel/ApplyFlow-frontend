@@ -120,7 +120,7 @@ function ExperienceCard({
           {item.technologies.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3">
               {item.technologies.map((t) => (
-                <Chip key={t} label={t} size="sm" />
+                <Chip key={t} label={t} />
               ))}
             </div>
           )}
@@ -172,7 +172,7 @@ function ProjectCard({
         {item.technologies.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {item.technologies.map((t) => (
-              <Chip key={t} label={t} size="sm" />
+              <Chip key={t} label={t} />
             ))}
           </div>
         )}
@@ -317,9 +317,9 @@ function SkillCard({
   onEdit?: () => void
   onDelete?: () => void
 }) {
-  const levelColor: Record<string, 'default' | 'info' | 'warning' | 'success'> = {
+  const levelColor: Record<string, 'default' | 'warning' | 'success'> = {
     Beginner: 'default',
-    Intermediate: 'info',
+    Intermediate: 'default',
     Advanced: 'warning',
     Expert: 'success',
   }
@@ -328,7 +328,7 @@ function SkillCard({
     <div className="group relative inline-flex items-center gap-2 pl-3 pr-1.5 py-1.5 rounded-full bg-surface-container-low border border-outline-variant hover:border-primary/40 hover:bg-surface-container transition-all">
       <div className="flex items-center gap-2 min-w-0">
         <span className="text-body-sm font-medium text-on-surface truncate">{item.name}</span>
-        <Badge variant={levelColor[item.level] || 'default'} size="sm">
+        <Badge variant={levelColor[item.level] || 'default'}>
           {item.level}
         </Badge>
       </div>
@@ -1123,26 +1123,28 @@ export function CareerProfilePage() {
         <div className="flex-1 min-w-0 w-full">
           <div className="flex items-center justify-between mb-lg gap-3 flex-wrap">
             <div>
-              <h2 className="text-headline-md text-on-surface">Career Profile</h2>
-              <p className="text-body-md text-on-surface-variant mt-1">Manage your professional experience and skills to match with jobs.</p>
+              <div>
+                <h1 className="text-heading-2 text-text-primary">Career Profile</h1>
+                <p className="text-body-sm text-text-secondary mt-0.5">Your professional story — experiences, skills, and credentials</p>
+              </div>
             </div>
           </div>
 
           {error && (
-            <div className="rounded-xl border border-error/20 bg-red-50 p-4 text-body-md text-error flex items-start gap-3 mb-lg">
+            <div className="rounded-lg border border-danger/20 bg-red-50 p-4 text-body-sm text-danger flex items-start gap-3 mb-lg">
               <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold">Failed to Load Profile</p>
-                <p className="text-error/80 mt-0.5">{error}</p>
+                <p className="mt-0.5 opacity-80">{error}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => window.location.reload()}
-                  className="px-3 py-1.5 rounded-lg bg-error text-white text-label-sm font-medium hover:bg-error/90 transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-danger text-white text-meta font-medium hover:opacity-90 transition-colors"
                 >
                   Retry
                 </button>
-                <button onClick={() => setError(null)} className="p-1.5 rounded hover:bg-error/10 transition-colors" aria-label="Dismiss">
+                <button onClick={() => setError(null)} className="p-1.5 rounded hover:bg-danger/10 transition-colors" aria-label="Dismiss">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -1155,13 +1157,13 @@ export function CareerProfilePage() {
         {/* Right Sidebar */}
         <div className="w-full lg:w-80 shrink-0 space-y-6 lg:sticky lg:top-24">
           {/* Profile Completeness */}
-          <Card className="p-md">
-            <h3 className="text-label-lg font-medium text-on-surface mb-3">Profile Completeness</h3>
+          <Card className="p-5">
+            <h3 className="text-heading-3 text-text-primary mb-3">Profile Completeness</h3>
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex-1 bg-surface-container-high rounded-full h-2 overflow-hidden">
+              <div className="flex-1 bg-surface-tertiary rounded-full h-2 overflow-hidden">
                 <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${completeness}%` }} />
               </div>
-              <span className="text-label-md font-semibold text-primary">{completeness}%</span>
+              <span className="text-body-sm font-semibold text-primary">{completeness}%</span>
             </div>
             <ul className="space-y-2">
               {[
@@ -1172,10 +1174,10 @@ export function CareerProfilePage() {
                 { id: 'certificates', label: 'Certificates', done: certificates.length > 0 },
               ].map((item) => (
                 <li key={item.id} className="flex items-center gap-2">
-                  <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${item.done ? 'bg-primary text-white' : 'bg-surface-container-high'}`}>
+                  <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${item.done ? 'bg-primary text-white' : 'bg-surface-tertiary'}`}>
                     {item.done && <Check className="h-2.5 w-2.5" />}
                   </div>
-                  <button onClick={() => scrollTo(item.id)} className={`text-label-sm hover:underline ${item.done ? 'text-on-surface' : 'text-on-surface-variant'}`}>
+                  <button onClick={() => scrollTo(item.id)} className={`text-meta hover:underline ${item.done ? 'text-text-primary' : 'text-text-tertiary'}`}>
                     {item.label}
                   </button>
                 </li>
@@ -1184,14 +1186,14 @@ export function CareerProfilePage() {
           </Card>
 
           {/* Navigation ScrollSpy */}
-          <Card className="p-md hidden lg:block">
-            <h3 className="text-label-lg font-medium text-on-surface mb-3">Quick Navigation</h3>
+          <Card className="p-5 hidden lg:block">
+            <h3 className="text-heading-3 text-text-primary mb-3">Quick Navigation</h3>
             <div className="flex flex-col items-start gap-1">
-              <button onClick={() => scrollTo('experience')} className="text-body-sm text-on-surface hover:text-primary transition-colors py-1">Experience</button>
-              <button onClick={() => scrollTo('projects')} className="text-body-sm text-on-surface hover:text-primary transition-colors py-1">Projects</button>
-              <button onClick={() => scrollTo('skills')} className="text-body-sm text-on-surface hover:text-primary transition-colors py-1">Skills</button>
-              <button onClick={() => scrollTo('education')} className="text-body-sm text-on-surface hover:text-primary transition-colors py-1">Education</button>
-              <button onClick={() => scrollTo('certificates')} className="text-body-sm text-on-surface hover:text-primary transition-colors py-1">Certificates</button>
+              <button onClick={() => scrollTo('experience')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Experience</button>
+              <button onClick={() => scrollTo('projects')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Projects</button>
+              <button onClick={() => scrollTo('skills')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Skills</button>
+              <button onClick={() => scrollTo('education')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Education</button>
+              <button onClick={() => scrollTo('certificates')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Certificates</button>
             </div>
           </Card>
         </div>
@@ -1749,7 +1751,7 @@ function ExtractedResumeModal({
                   {data.personal.links && data.personal.links.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {data.personal.links.map((link, i) => (
-                         <Chip key={i} label={link.platform || link.displayText} size="sm" />
+                         <Chip key={i} label={link.platform || link.displayText} />
                       ))}
                     </div>
                   )}
@@ -1818,7 +1820,7 @@ function ExtractedResumeModal({
                       item.technologies?.length ? (
                         <div className="flex flex-wrap gap-1">
                           {item.technologies.slice(0, 8).map((t) => (
-                            <Chip key={t} label={t} size="sm" />
+                            <Chip key={t} label={t} />
                           ))}
                         </div>
                       ) : null

@@ -19,6 +19,7 @@ export interface Contribution {
   title: string
   body: string
   helpfulCount: number
+  isHelpful?: boolean
   isAnonymous: boolean
   createdAt: string
   updatedAt: string

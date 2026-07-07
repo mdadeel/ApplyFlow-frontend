@@ -205,8 +205,8 @@ export function SmartApplicationPage() {
     <AppLayout>
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-headline-lg font-bold text-on-surface">Smart Application</h1>
-          <p className="text-body-md text-on-surface-variant mt-1">
+          <h1 className="text-heading-1 text-text-primary">Smart Application</h1>
+          <p className="text-body text-text-secondary mt-1">
             Generate a complete job application package in one step.
           </p>
         </div>

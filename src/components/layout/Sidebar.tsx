@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import type { JSX } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -6,45 +7,96 @@ import {
   Briefcase,
   User,
   BarChart3,
-  Lightbulb,
-  Settings,
+  BrainCircuit,
   Plus,
   ChevronLeft,
   ChevronRight,
-  Globe,
   Users,
-  Bell,
+  MessageSquare,
+  Sparkles,
+  Target,
+  Zap,
+  FileSearch,
+  FileText,
+  MessageCircle,
+  Settings,
 } from '../../lib/icons'
+import type { LucideIcon } from '../../lib/icons'
 import { useLayout } from './useLayout'
 import { Button } from '../ui/Button'
+import { Tooltip } from '../ui/Tooltip'
+import { getSuggestions } from '../../services/learning'
+import { getPersonal } from '../../services/profile'
+import { getInitials } from '../../lib/format'
 
-interface NavItem {
+export interface SubNavItem {
+  id: string
   label: string
-  icon: typeof LayoutDashboard
+  icon: LucideIcon
   href: string
 }
 
-const navItems: NavItem[] = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-  { label: 'Applications', icon: Briefcase, href: '/applications' },
-  { label: 'Career Profile', icon: User, href: '/profile' },
-  { label: 'Analytics', icon: BarChart3, href: '/analytics' },
-  { label: 'Settings', icon: Settings, href: '/settings' },
+export interface NavItem {
+  id: string
+  label: string
+  icon: LucideIcon
+  href: string
+  badge?: 'unread' | 'count'
+  badgeCount?: number
+  visibleWhenCollapsed: boolean
+  children?: SubNavItem[]
+}
+
+interface Section {
+  id: string
+  label: string
+  items: NavItem[]
+}
+
+const sections: Section[] = [
+  {
+    id: 'dashboard',
+    label: '',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', visibleWhenCollapsed: true },
+    ],
+  },
+  {
+    id: 'career',
+    label: 'Career',
+    items: [
+      {
+        id: 'applications',
+        label: 'Applications',
+        icon: Briefcase,
+        href: '/applications',
+        visibleWhenCollapsed: true,
+        children: [
+          { id: 'smart-application', label: 'Smart Application', icon: Zap, href: '/smart-application' },
+          { id: 'jd-analysis', label: 'JD Analysis', icon: FileSearch, href: '/jd-analysis' },
+          { id: 'resume-editor', label: 'Resume Editor', icon: FileText, href: '/resume-editor' },
+          { id: 'interview-prep', label: 'Interview Prep', icon: MessageCircle, href: '/interview' },
+        ],
+      },
+      { id: 'jobs', label: 'Jobs', icon: Target, href: '/community/opportunities', visibleWhenCollapsed: true },
+      { id: 'profile', label: 'Profile', icon: User, href: '/profile', visibleWhenCollapsed: true },
+      { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/analytics', visibleWhenCollapsed: true },
+      { id: 'learning', label: 'Learning Center', icon: BrainCircuit, href: '/admin/learning', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
+    ],
+  },
+  {
+    id: 'network',
+    label: 'Network',
+items: [
+        { id: 'feed', label: 'Feed', icon: Sparkles, href: '/community/feed', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
+        { id: 'templates', label: 'Templates', icon: FileText, href: '/community/templates', visibleWhenCollapsed: true },
+        { id: 'discussions', label: 'Discussions', icon: MessageSquare, href: '/community/discussions', visibleWhenCollapsed: false },
+        { id: 'referrals', label: 'Referrals', icon: Users, href: '/community/referrals', visibleWhenCollapsed: false },
+      ],
+  },
 ]
 
-const communityItems: NavItem[] = [
-  { label: 'Community', icon: Globe, href: '/community' },
-  { label: '  Opportunities', icon: Briefcase, href: '/community/opportunities' },
-  { label: '  Hub', icon: Users, href: '/community/hub' },
-  { label: '  Notifications', icon: Bell, href: '/community/notifications' },
-  { label: '  Analytics', icon: BarChart3, href: '/community/analytics' },
-]
-
-const bottomItems: NavItem[] = [
-  { label: 'AI Insights', icon: Lightbulb, href: '/insights' },
-]
-
-export function Sidebar() {
+export function Sidebar(): JSX.Element {
   const {
     sidebarCollapsed,
     toggleSidebar,
@@ -53,49 +105,222 @@ export function Sidebar() {
   } = useLayout()
   const location = useLocation()
   const navigate = useNavigate()
+  const [learningBadgeCount, setLearningBadgeCount] = useState(0)
+  const [userName, setUserName] = useState<string | null>(null)
+
+  const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>(() => ({
+    applications: true,
+  }))
+
+  useEffect(() => {
+    getPersonal()
+      .then((data) => setUserName(data.name))
+      .catch(() => { /* profile not available */ })
+  }, [])
 
   useEffect(() => {
     setMobileSidebarOpen(false)
   }, [location.pathname, setMobileSidebarOpen])
 
-  function isActive(href: string) {
-    if (href === '/dashboard') return location.pathname === '/dashboard'
-    if (href.startsWith('  ')) {
-      return location.pathname === href.trim()
+  useEffect(() => {
+    let cancelled = false
+    const poll = () => {
+      getSuggestions()
+        .then(s => { if (!cancelled) setLearningBadgeCount(s.count) })
+        .catch(() => { /* non-critical */ })
     }
-    return location.pathname.startsWith(href)
+    poll()
+    const intervalId = setInterval(poll, 30_000)
+    return () => {
+      cancelled = true
+      clearInterval(intervalId)
+    }
+  }, [])
+
+  function isActive(item: NavItem): boolean {
+    if (item.href === '/dashboard') {
+      return location.pathname === '/dashboard'
+    }
+    if (item.children) {
+      return item.children.some((child) => location.pathname === child.href || location.pathname.startsWith(`${child.href}/`))
+    }
+    return location.pathname === item.href || location.pathname.startsWith(`${item.href}/`)
+  }
+
+  function isChildActive(child: SubNavItem): boolean {
+    return location.pathname === child.href || location.pathname.startsWith(`${child.href}/`)
   }
 
   function handleNav(href: string) {
     navigate(href)
   }
 
-  function renderItem(item: NavItem) {
+  function toggleParent(id: string) {
+    setExpandedParents((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  function renderNavItem(item: NavItem) {
     const Icon = item.icon
-    const active = isActive(item.href)
-    const isSubItem = item.label.startsWith('  ')
+    const active = isActive(item)
+    const hasChildren = item.children && item.children.length > 0
+    const isExpanded = expandedParents[item.id] ?? false
+
+    const shouldAutoExpand = hasChildren && item.children!.some((child) => isChildActive(child))
+    const effectiveExpanded = shouldAutoExpand || isExpanded
+
+    const effectiveBadgeCount = item.id === 'learning' ? learningBadgeCount : (item.badgeCount ?? 0)
+    const showBadge = item.badge === 'unread' || (item.badge === 'count' && effectiveBadgeCount > 0)
+    const showCountBadge = item.badge === 'count' && effectiveBadgeCount > 0
+
+    if (sidebarCollapsed) {
+      return (
+        <a
+          key={item.id}
+          href={item.href}
+          onClick={e => {
+            e.preventDefault()
+            handleNav(item.href)}
+          }
+          className={`group flex items-center justify-center w-10 h-10 mx-auto rounded-lg cursor-pointer transition-colors ${active ? 'bg-surface-secondary text-primary' : 'text-text-secondary hover:bg-surface-secondary hover:text-text-primary'}`}
+          aria-current={active ? 'page' : undefined}
+          aria-label={item.label}
+          title={item.label}
+        >
+          <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+        </a>
+      )
+    }
+
+    if (!hasChildren) {
+      return (
+        <a
+          key={item.id}
+          href={item.href}
+          onClick={e => {
+            e.preventDefault()
+            handleNav(item.href)
+          }}
+          className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors ${active ? 'bg-surface-secondary text-primary font-semibold' : 'text-text-secondary hover:bg-surface-secondary hover:text-text-primary'}`}
+          aria-current={active ? 'page' : undefined}
+        >
+          <div className={`w-0.5 h-5 rounded-full shrink-0 ${active ? 'bg-primary' : 'bg-transparent'}`} />
+          <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+          <span className="text-body-sm truncate flex-1">{item.label}</span>
+          {showBadge && (showCountBadge ? (
+            <Tooltip content={`${effectiveBadgeCount} ${item.id === 'learning' ? 'active suggestion' : 'active'}${effectiveBadgeCount !== 1 ? 's' : ''}`} position="top">
+              <span
+                aria-label={`${effectiveBadgeCount} active`}
+                className="ml-auto inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white text-[11px] font-bold shrink-0"
+              >
+                {effectiveBadgeCount > 9 ? '9+' : effectiveBadgeCount}
+              </span>
+            </Tooltip>
+          ) : (
+            <span
+              aria-label="unread"
+              className="ml-auto inline-block w-2 h-2 rounded-full bg-primary shrink-0"
+            />
+          ))}
+        </a>
+      )
+    }
+
     return (
-      <a
-        key={item.href}
-        href={item.href}
-        onClick={e => { e.preventDefault(); handleNav(item.href) }}
-        className={`group flex items-center gap-3 px-3 py-2 rounded cursor-pointer transition-colors ${
-          sidebarCollapsed && !isSubItem ? 'justify-center px-0' : ''
-        } ${sidebarCollapsed && isSubItem ? 'hidden' : ''} ${
-          active
-            ? 'bg-surface-container-low text-primary font-semibold border-l-4 border-primary'
-            : isSubItem
-              ? 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface border-l-4 border-transparent pl-8'
-              : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface border-l-4 border-transparent'
-        }`}
-        aria-current={active ? 'page' : undefined}
-        aria-label={item.label.trim()}
-      >
-        <Icon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform duration-150" aria-hidden="true" />
-        {!sidebarCollapsed && (
-          <span className="text-body-md truncate">{item.label.trim()}</span>
+      <div key={item.id}>
+        <div
+          className={`group flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${active ? 'bg-surface-secondary text-primary font-semibold' : 'text-text-secondary hover:bg-surface-secondary hover:text-text-primary'}`}
+        >
+          <div className={`w-0.5 h-5 rounded-full shrink-0 ${active ? 'bg-primary' : 'bg-transparent'}`} />
+          <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+          <button
+            onClick={() => handleNav(item.href)}
+            className="flex-1 text-left text-body-sm truncate cursor-pointer"
+          >
+            {item.label}
+          </button>
+
+          {showBadge && (showCountBadge ? (
+            <Tooltip content={`${effectiveBadgeCount} ${item.id === 'learning' ? 'active suggestion' : 'active'}${effectiveBadgeCount !== 1 ? 's' : ''}`} position="top">
+              <span
+                aria-label={`${effectiveBadgeCount} active`}
+                className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-white text-[11px] font-bold shrink-0"
+              >
+                {effectiveBadgeCount > 9 ? '9+' : effectiveBadgeCount}
+              </span>
+            </Tooltip>
+          ) : (
+            <span
+              aria-label="unread"
+              className="inline-block w-2 h-2 rounded-full bg-primary shrink-0"
+            />
+          ))}
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              toggleParent(item.id)
+            }}
+            className="shrink-0 p-0.5 rounded hover:bg-surface-tertiary transition-colors"
+            aria-label={effectiveExpanded ? `Collapse ${item.label}` : `Expand ${item.label}`}
+            aria-expanded={effectiveExpanded}
+          >
+            <ChevronRight
+              className={`w-4 h-4 transition-transform duration-200 ${effectiveExpanded ? 'rotate-90' : ''}`}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+
+        {effectiveExpanded && (
+          <div className="ml-3 mt-0.5 space-y-0.5 pl-3 border-l border-border">
+            {item.children!.map((child) => {
+              const childActive = isChildActive(child)
+              const ChildIcon = child.icon
+              return (
+                <a
+                  key={child.id}
+                  href={child.href}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    handleNav(child.href)
+                  }}
+                  className={`group flex items-center gap-3 px-3 py-1.5 rounded-lg cursor-pointer transition-colors ${childActive ? 'bg-surface-secondary text-primary font-medium' : 'text-text-secondary/80 hover:bg-surface-secondary hover:text-text-primary'}`}
+                  aria-current={childActive ? 'page' : undefined}
+                >
+                  <div className={`w-0.5 h-4 rounded-full shrink-0 ${childActive ? 'bg-primary' : 'bg-transparent'}`} />
+                  <ChildIcon className="w-4 h-4 shrink-0 opacity-60" aria-hidden="true" />
+                  <span className="text-body-sm truncate">{child.label}</span>
+                </a>
+              )
+            })}
+          </div>
         )}
-      </a>
+      </div>
+    )
+  }
+
+  function renderSection(section: Section, isFirst: boolean) {
+    const showLabel = !sidebarCollapsed && section.label.length > 0
+
+    const visibleItems = sidebarCollapsed
+      ? section.items.filter(i => i.visibleWhenCollapsed)
+      : section.items
+
+    if (visibleItems.length === 0) return null
+
+    return (
+      <div key={section.id}>
+        {!isFirst && showLabel && (
+          <div className="px-3 pt-4 pb-1">
+            <span className="text-meta text-text-tertiary font-semibold uppercase tracking-wider">
+              {section.label}
+            </span>
+          </div>
+        )}
+        <div className="space-y-0.5">
+          {visibleItems.map(item => renderNavItem(item))}
+        </div>
+      </div>
     )
   }
 
@@ -110,48 +335,42 @@ export function Sidebar() {
       )}
 
       <aside
-        className={`
-          fixed lg:static inset-y-0 left-0 z-50
-          flex flex-col
-          bg-surface border-r border-outline-variant
-          sidebar-transition
-          ${sidebarCollapsed ? 'w-[72px]' : 'w-60'}
-          ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
+        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-border ${sidebarCollapsed ? 'w-[72px]' : 'w-60'} ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-200`}
         aria-label="Main navigation"
+        data-sidebar-collapsed={sidebarCollapsed}
       >
-        <div className="flex items-center gap-3 h-16 px-4 border-b border-outline-variant shrink-0">
+        <div className="flex items-center gap-3 h-14 px-4 border-b border-border shrink-0">
           <div
-            className="w-8 h-8 bg-primary-container text-white rounded-full flex items-center justify-center text-label-md font-bold shrink-0"
+            className="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-caption font-bold shrink-0"
             aria-hidden="true"
           >
             A
           </div>
           {!sidebarCollapsed && (
             <div className="flex flex-col overflow-hidden">
-              <span className="text-headline-md text-on-surface truncate">
+              <span className="text-body-sm font-semibold text-text-primary truncate">
                 ApplyFlow AI
               </span>
-              <span className="text-label-sm text-on-surface-variant truncate">
+              <span className="text-meta text-text-tertiary truncate">
                 Career Workspace
               </span>
             </div>
           )}
         </div>
 
-        <div className="px-3 pt-4 pb-2 shrink-0">
+        <div className="px-3 pt-3 pb-2 shrink-0">
           {sidebarCollapsed ? (
             <button
               onClick={() => handleNav('/applications?new=true')}
-              className="w-10 h-10 bg-primary-container text-white rounded-xl flex items-center justify-center mx-auto hover:opacity-90 transition-opacity"
+              className="w-10 h-10 bg-primary text-white rounded-lg flex items-center justify-center mx-auto hover:opacity-90 transition-opacity"
               aria-label="New Application"
             >
               <Plus className="w-5 h-5" />
             </button>
           ) : (
             <Button
-              variant="secondary"
-              className="w-full gap-2 rounded-lg"
+              variant="primary"
+              className="w-full"
               onClick={() => handleNav('/applications?new=true')}
             >
               <Plus className="w-4 h-4" />
@@ -160,68 +379,52 @@ export function Sidebar() {
           )}
         </div>
 
-        <nav className="flex-1 px-2 py-2 space-y-1 overflow-y-auto">
-          {navItems.map(item => renderItem(item))}
-          {!sidebarCollapsed && (
-            <div className="pt-3 pb-1 px-3">
-              <div className="h-px bg-outline-variant" />
-            </div>
-          )}
-          {communityItems.map(item => renderItem(item))}
+        <nav className="flex-1 px-2 py-2 overflow-y-auto">
+          {sections.map((section, index) => renderSection(section, index === 0))}
         </nav>
 
-        <div className="border-t border-outline-variant px-2 py-2 space-y-1 shrink-0">
-          {bottomItems.map(item => {
-            const Icon = item.icon
-            const active = isActive(item.href)
-            return (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={e => {
-                  e.preventDefault()
-                  handleNav(item.href)
-                }}
-                className={`group
-                  flex items-center gap-3 px-3 py-2 rounded cursor-pointer
-                  transition-colors
-                  ${sidebarCollapsed ? 'justify-center px-0' : ''}
-                  ${active
-                    ? 'bg-surface-container-low text-primary font-semibold border-l-4 border-primary'
-                    : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface border-l-4 border-transparent'
-                  }
-                `}
-                aria-current={active ? 'page' : undefined}
-                aria-label={item.label}
-              >
-                <Icon className="w-5 h-5 shrink-0 group-hover:scale-110 transition-transform duration-150" aria-hidden="true" />
-                {!sidebarCollapsed && (
-                  <span className="text-body-md truncate">{item.label}</span>
-                )}
-              </a>
-            )
-          })}
-
+        <div className="border-t border-border px-2 py-2 space-y-0.5 shrink-0">
           <button
             onClick={toggleSidebar}
-            className={`
-              flex items-center gap-3 px-3 py-2 rounded w-full cursor-pointer
-              transition-colors text-on-surface-variant hover:bg-surface-container hover:text-on-surface
-              ${sidebarCollapsed ? 'justify-center px-0' : ''}
-            `}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg w-full cursor-pointer transition-colors text-text-secondary hover:bg-surface-secondary hover:text-text-primary ${sidebarCollapsed ? 'justify-center' : ''}`}
             aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {sidebarCollapsed ? (
-              <ChevronRight className="w-5 h-5" aria-hidden="true" />
+              <ChevronRight className="w-5 h-5" />
             ) : (
               <>
-                <ChevronLeft className="w-5 h-5 shrink-0" aria-hidden="true" />
-                <span className="text-body-md">Collapse</span>
+                <ChevronLeft className="w-5 h-5 shrink-0" />
+                <span className="text-body-sm">Collapse</span>
               </>
             )}
           </button>
+          <a
+            href="/settings"
+            onClick={(e) => { e.preventDefault(); handleNav('/settings') }}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-text-secondary hover:bg-surface-secondary hover:text-text-primary ${sidebarCollapsed ? 'justify-center' : ''}`}
+            aria-label="Settings"
+          >
+            <Settings className="w-5 h-5 shrink-0" />
+            {!sidebarCollapsed && <span className="text-body-sm">Settings</span>}
+          </a>
+          <div
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary"
+            title={sidebarCollapsed ? userName || 'User' : undefined}
+          >
+            <div
+              className="w-8 h-8 rounded-full bg-surface-tertiary text-text-primary flex items-center justify-center text-caption font-semibold shrink-0"
+              aria-label={userName || 'User avatar'}
+            >
+              {userName ? getInitials(userName) : '?'}
+            </div>
+            {!sidebarCollapsed && (
+              <span className="text-body-sm truncate text-text-primary">{userName || 'User'}</span>
+            )}
+          </div>
         </div>
       </aside>
     </>
   )
 }
+
+export type { NavItem as SidebarNavItem }

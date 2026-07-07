@@ -158,7 +158,6 @@ export function ResumeStrategyPage() {
                         <Chip
                           key={skill}
                           label={skill}
-                          variant={selectedSkills.includes(skill) ? 'primary' : 'default'}
                           onRemove={
                             selectedSkills.includes(skill)
                               ? () => toggleSkill(skill)
@@ -174,7 +173,7 @@ export function ResumeStrategyPage() {
                     {selectedSkills.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
                         {selectedSkills.map((skill) => (
-                          <Badge key={skill} variant="success" size="sm">
+                          <Badge key={skill} variant="success">
                             {skill}
                           </Badge>
                         ))}

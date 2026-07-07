@@ -22,8 +22,8 @@ export function ApplicationCard({ application: app, onClick, pendingTaskCount }:
     <Card onClick={onClick} hover className="space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-0.5 min-w-0">
-          <p className="text-headline-md font-semibold text-on-surface truncate">{app.company}</p>
-          <p className="text-body-md text-on-surface-variant truncate">{app.role}</p>
+          <p className="text-heading-3 text-text-primary truncate">{app.company}</p>
+          <p className="text-body-sm text-text-secondary truncate">{app.role}</p>
         </div>
         <StatusBadge status={app.status} className="shrink-0" />
       </div>
@@ -31,19 +31,19 @@ export function ApplicationCard({ application: app, onClick, pendingTaskCount }:
       {app.scores && (
         <div className="flex items-center gap-3">
           <div className="flex-1">
-            <p className="text-label-sm text-on-surface-variant mb-1">Match Score</p>
+            <p className="text-meta text-text-tertiary mb-1">Match Score</p>
             <ProgressBar value={score} size="sm" color={score >= 80 ? 'success' : score >= 60 ? 'warning' : 'error'} />
           </div>
-          <span className="text-label-sm font-medium text-on-surface shrink-0">{score}%</span>
+          <span className="text-meta font-medium text-text-primary shrink-0">{score}%</span>
         </div>
       )}
 
       <div className="flex items-center justify-between gap-2">
-        <span className="text-label-sm text-on-surface-variant whitespace-nowrap">{formatDate(app.updatedAt)}</span>
+        <span className="text-meta text-text-tertiary whitespace-nowrap">{formatDate(app.updatedAt)}</span>
         <div className="flex items-center gap-2">
           {typeof pendingTaskCount === 'number' && pendingTaskCount > 0 && (
             <span
-              className="inline-flex items-center gap-1 text-label-sm text-on-surface-variant"
+                className="inline-flex items-center gap-1 text-meta text-text-tertiary"
               data-testid="pending-task-count"
             >
               <ListChecks className="h-3.5 w-3.5" />
@@ -53,10 +53,10 @@ export function ApplicationCard({ application: app, onClick, pendingTaskCount }:
           {app.tags.length > 0 && (
             <div className="flex items-center gap-1 flex-wrap justify-end">
               {app.tags.slice(0, 3).map((tag) => (
-                <Badge key={tag} size="sm">{tag}</Badge>
+                <Badge key={tag}>{tag}</Badge>
               ))}
               {app.tags.length > 3 && (
-                <span className="text-label-sm text-on-surface-variant">+{app.tags.length - 3}</span>
+                <span className="text-meta text-text-tertiary">+{app.tags.length - 3}</span>
               )}
             </div>
           )}

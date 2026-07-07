@@ -1,15 +1,30 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Loader2 } from '../../lib/icons';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'inline' | 'icon' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: ReactNode;
   loading?: boolean;
 }
+
+const variantStyles: Record<ButtonVariant, string> = {
+  primary: 'bg-primary text-white hover:bg-primary-hover shadow-sm active:shadow-none',
+  secondary: 'bg-white text-text-primary border border-border hover:border-border-hover hover:bg-surface-secondary active:bg-surface-tertiary',
+  ghost: 'text-text-secondary hover:text-text-primary hover:bg-surface-secondary active:bg-surface-tertiary',
+  inline: 'text-primary hover:text-primary-hover underline-offset-2 hover:underline p-0',
+  icon: 'text-text-secondary hover:text-text-primary hover:bg-surface-secondary active:bg-surface-tertiary',
+  danger: 'bg-danger text-white hover:bg-red-700 shadow-sm active:shadow-none',
+};
+
+const sizeStyles: Record<ButtonSize, string> = {
+  sm: 'h-8 px-3 gap-1.5 text-caption rounded-md',
+  md: 'h-10 px-4 gap-2 text-body-sm rounded-lg',
+  lg: 'h-12 px-6 gap-2.5 rounded-lg text-body-sm',
+};
 
 export function Button({
   variant = 'primary',
@@ -21,27 +36,16 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const variantStyles: Record<ButtonVariant, string> = {
-    primary: 'bg-primary-container text-on-primary hover:bg-primary',
-    secondary: 'bg-white border border-outline text-on-surface hover:bg-surface-container-low',
-    ghost: 'text-on-surface-variant hover:bg-surface-container',
-    danger: 'bg-error text-on-error hover:bg-red-700',
-  };
-
-  const sizeStyles: Record<ButtonSize, string> = {
-    sm: 'h-8 px-3 gap-1.5 text-label-sm rounded',
-    md: 'h-10 px-4 gap-2 rounded-lg',
-    lg: 'h-12 px-6 gap-2.5 rounded-lg',
-  };
+  const isIconOnly = variant === 'icon';
 
   return (
     <button
-      className={`inline-flex items-center justify-center font-label-md transition-all duration-150 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center justify-center font-medium transition-all duration-150 active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 ${variantStyles[variant]} ${isIconOnly ? 'h-10 w-10 p-0' : ''} ${sizeStyles[size]} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
       {loading && <Loader2 className="h-4 w-4 animate-spin shrink-0" />}
-      {!loading && icon}
+      {!loading && icon && <span className="shrink-0">{icon}</span>}
       {children}
     </button>
   );

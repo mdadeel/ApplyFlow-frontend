@@ -11,14 +11,14 @@ interface InterviewPrepCardProps {
   researchLoading?: boolean;
 }
 
-const questionTypeVariant: Record<string, 'info' | 'warning' | 'default'> = {
-  technical: 'info',
+const questionTypeVariant: Record<string, 'default' | 'warning'> = {
+  technical: 'default',
   behavioral: 'warning',
   situational: 'default',
 };
 
-function getTypeVariant(type: string): 'info' | 'warning' | 'default' {
-  return questionTypeVariant[type.toLowerCase()] || 'info';
+function getTypeVariant(type: string): 'default' | 'warning' {
+  return questionTypeVariant[type.toLowerCase()] || 'default';
 }
 
 export function InterviewPrepCard({ prep, loading, onRefreshResearch, researchLoading }: InterviewPrepCardProps) {
@@ -45,7 +45,7 @@ export function InterviewPrepCard({ prep, loading, onRefreshResearch, researchLo
               <div key={i} className="pb-3 border-b border-outline-variant last:border-b-0 last:pb-0">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-body-md text-on-surface flex-1">{q.question}</p>
-                  <Badge variant={getTypeVariant(q.type)} size="sm" className="shrink-0 capitalize">
+                  <Badge variant={getTypeVariant(q.type)} className="shrink-0 capitalize">
                     {q.type}
                   </Badge>
                 </div>

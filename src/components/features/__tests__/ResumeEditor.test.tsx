@@ -36,7 +36,7 @@ describe('ResumeEditor', () => {
       .getAllByText('TypeScript')
       .map((el) => el.closest('span'))
       .find((el) => el?.className.includes('rounded-full'))
-    expect(tsBadge?.className).toMatch(/emerald/)
+    expect(tsBadge?.className).toMatch(/green/)
 
     const k8sBadge = screen
       .getAllByText('Kubernetes')

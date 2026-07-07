@@ -10,6 +10,16 @@ export type CommunityNotificationType =
   | 'workspace_generated'
   | 'contribution_added'
   | 'referral_claimed'
+  | 'referral_accepted'
+  | 'referral_match'
+  | 'referral_completed'
+  | 'referral_withdrawn'
+  | 'referral_expiring'
+  | 'new_comment'
+  | 'resume_feedback'
+  | 'company_hiring'
+  | 'mention'
+  | 'application_collaboration'
 
 export interface CommunityNotification {
   _id: string

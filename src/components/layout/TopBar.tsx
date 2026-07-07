@@ -115,11 +115,11 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
   }
 
   return (
-    <header className="h-14 border-b border-outline-variant bg-surface flex items-center justify-between px-lg shrink-0">
+    <header className="h-14 border-b border-border bg-white flex items-center justify-between px-4 shrink-0">
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <button
           onClick={() => setMobileSidebarOpen(true)}
-          className="lg:hidden p-1 rounded hover:bg-surface-container text-on-surface-variant transition-colors shrink-0"
+          className="lg:hidden p-1 rounded hover:bg-surface-secondary text-text-secondary transition-colors shrink-0"
           aria-label="Open navigation menu"
         >
           <Menu className="w-5 h-5" />
@@ -130,14 +130,14 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface-variant focus-within:border-primary focus-within:text-on-surface transition-colors">
+        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-secondary border border-border text-text-secondary focus-within:border-primary focus-within:text-text-primary transition-colors">
           <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
           <input
             type="search"
             placeholder="Search..."
             value={localSearch}
             onChange={handleSearchChange}
-            className="bg-transparent border-none outline-none text-body-md text-on-surface placeholder:text-on-surface-variant w-48"
+            className="bg-transparent border-none outline-none text-body-sm text-text-primary placeholder:text-text-tertiary w-48"
             aria-label="Search"
           />
         </div>
@@ -145,7 +145,7 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
         <div className="relative" ref={notificationRef}>
           <button
             onClick={handleNotificationsToggle}
-            className="relative p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"
+            className="relative p-1.5 rounded hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors"
             aria-label="Notifications"
             aria-expanded={notificationsOpen}
             aria-haspopup="dialog"
@@ -153,7 +153,7 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
               <span
-                className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center pointer-events-none"
+                className="absolute top-0.5 right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center pointer-events-none"
                 aria-label={`${unreadCount} unread notifications`}
               >
                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -171,7 +171,7 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
         <div className="relative" ref={helpRef}>
           <button
             onClick={() => setHelpOpen((prev) => !prev)}
-            className="p-1.5 rounded hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors"
+            className="p-1.5 rounded hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors"
             aria-label="Help"
             aria-expanded={helpOpen}
             aria-haspopup="menu"
@@ -186,12 +186,6 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
           )}
         </div>
 
-        <div
-          className="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center text-label-md font-semibold shrink-0 cursor-default"
-          aria-label="User avatar"
-        >
-          SA
-        </div>
       </div>
 
       <ShortcutsModal

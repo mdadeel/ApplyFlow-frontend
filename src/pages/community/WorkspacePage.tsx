@@ -6,6 +6,7 @@ import {
   getWorkspace, generateContent, analyzeWorkspace, submitWorkspace,
 } from '../../services/community/workspaces'
 import type { ApplicationWorkspace, WorkspaceStatus } from '../../services/community/workspaces'
+import { WorkspaceExportActions } from '../../components/community/WorkspaceExportActions'
 import {
   ArrowLeft, Loader2, Sparkles, CheckCircle, FileText, Mail, BrainCircuit, Target, Code
 } from '../../lib/icons'
@@ -111,15 +112,25 @@ export function WorkspacePage() {
             </span>
           </div>
         </div>
-        {workspace.status === 'ready' && (
-          <button
-            onClick={handleSubmit}
-            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-label-md font-medium hover:opacity-90 transition-opacity"
-          >
-            <CheckCircle className="w-4 h-4" />
-            Mark as Submitted
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          <WorkspaceExportActions
+            workspaceId={workspace._id}
+            tailoredResume={workspace.tailoredResume}
+            coverLetter={workspace.coverLetter}
+            email={workspace.recruiterEmail}
+            interviewPrep={workspace.interviewPrep}
+            disabled={workspace.status === 'submitted'}
+          />
+          {workspace.status === 'ready' && (
+            <button
+              onClick={handleSubmit}
+              className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-label-md font-medium hover:opacity-90 transition-opacity"
+            >
+              <CheckCircle className="w-4 h-4" />
+              Mark as Submitted
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-1 mb-xl overflow-x-auto pb-2 border-b border-outline-variant">

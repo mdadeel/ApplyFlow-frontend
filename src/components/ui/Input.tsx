@@ -1,51 +1,33 @@
-import type { InputHTMLAttributes, ReactNode } from 'react';
+import { forwardRef, type InputHTMLAttributes } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
-  icon?: ReactNode;
-  helperText?: string;
 }
 
-export function Input({
-  label,
-  error,
-  icon,
-  helperText,
-  className = '',
-  id,
-  ...props
-}: InputProps) {
-  const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, error, className = '', id, ...props }, ref) => {
+    const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
-  return (
-    <div className="flex flex-col gap-1.5">
-      {label && (
-        <label htmlFor={inputId} className="font-label-md text-on-surface">
-          {label}
-        </label>
-      )}
-      <div className="relative">
-        {icon && (
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">
-            {icon}
-          </div>
+    return (
+      <div className="space-y-1.5">
+        {label && (
+          <label htmlFor={inputId} className="block text-caption text-text-secondary font-medium">
+            {label}
+          </label>
         )}
         <input
+          ref={ref}
           id={inputId}
-          className={`w-full h-10 rounded-lg border bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors duration-150
-            ${icon ? 'pl-10' : 'pl-3'} pr-3
-            ${error
-              ? 'border-error focus:border-error focus:ring-2 focus:ring-error/20'
-              : 'border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20'
-            }
-            disabled:bg-surface-container-low disabled:cursor-not-allowed disabled:opacity-50
-            ${className}`}
+          className={`w-full h-10 px-3 rounded-lg border bg-white text-text-primary text-body-sm placeholder:text-text-tertiary outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-surface-secondary ${error ? 'border-danger' : 'border-border hover:border-border-hover'} ${className}`}
           {...props}
         />
+        {error && (
+          <p className="text-meta text-danger">{error}</p>
+        )}
       </div>
-      {error && <p className="text-label-sm text-error">{error}</p>}
-      {helperText && !error && <p className="text-label-sm text-on-surface-variant">{helperText}</p>}
-    </div>
-  );
-}
+    );
+  },
+);
+
+Input.displayName = 'Input';

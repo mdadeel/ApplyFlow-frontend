@@ -276,9 +276,9 @@ export function AnalyticsPage() {
       {!loading && !hasApplications ? (
         <Card className="mb-xl">
           <div className="py-xl text-center">
-            <Briefcase className="h-12 w-12 text-on-surface-variant mx-auto mb-md opacity-50" />
-            <h3 className="text-headline-md text-on-surface mb-2">No applications yet</h3>
-            <p className="text-body-md text-on-surface-variant">
+            <Briefcase className="h-12 w-12 text-text-tertiary mx-auto mb-md opacity-50" />
+            <h3 className="text-heading-2 text-text-primary mb-2">No applications yet</h3>
+            <p className="text-body text-text-secondary">
               Start tracking applications to see analytics.
             </p>
           </div>
@@ -287,7 +287,7 @@ export function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-lg mb-xl">
         <Card>
-          <h3 className="text-headline-md text-on-surface mb-md">Applications by Status</h3>
+          <h3 className="text-heading-2 text-text-primary mb-md">Applications by Status</h3>
           {loading ? (
             <div className="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -303,10 +303,10 @@ export function AnalyticsPage() {
               {statusDistribution.map((item) => (
                 <div key={item.label} className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-body-md text-on-surface">{item.label}</span>
-                    <span className="text-label-sm text-on-surface-variant">{item.count}</span>
+                    <span className="text-body text-text-primary">{item.label}</span>
+                    <span className="text-label text-text-tertiary">{item.count}</span>
                   </div>
-                  <div className="w-full bg-surface-container-high rounded-full h-2.5 overflow-hidden">
+                    <div className="w-full bg-surface-secondary rounded-full h-2.5 overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${item.color}`}
                       style={{ width: `${(item.count / total) * 100}%` }}
@@ -319,7 +319,7 @@ export function AnalyticsPage() {
         </Card>
 
         <Card>
-          <h3 className="text-headline-md text-on-surface mb-md">Conversion Metrics</h3>
+          <h3 className="text-heading-2 text-text-primary mb-md">Conversion Metrics</h3>
           {loading ? (
             <div className="flex items-center justify-center py-xl">
               <Skeleton variant="circular" width={120} height={120} />
@@ -329,40 +329,40 @@ export function AnalyticsPage() {
               <div className="flex items-center gap-xl">
                 <div className="text-center">
                   <ProgressCircle value={interviewRate} size={100} strokeWidth={8} color="warning" />
-                  <p className="text-label-sm text-on-surface-variant mt-2">Interview Rate</p>
+                  <p className="text-label text-text-tertiary mt-2">Interview Rate</p>
                 </div>
                 <div className="text-center">
                   <ProgressCircle value={offerRate} size={100} strokeWidth={8} color="success" />
-                  <p className="text-label-sm text-on-surface-variant mt-2">Offer Rate</p>
+                  <p className="text-label text-text-tertiary mt-2">Offer Rate</p>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-lg w-full mt-md">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low">
-                  <FileText className="h-5 w-5 text-blue-500" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary">
+                  <FileText className="h-5 w-5 text-text-tertiary" />
                   <div>
-                    <p className="text-label-sm text-on-surface-variant">Applied</p>
-                    <p className="text-headline-sm font-semibold text-on-surface">{summary?.byStatus?.applied ?? 0}</p>
+                    <p className="text-label text-text-tertiary">Applied</p>
+                    <p className="text-heading-3 font-semibold text-text-primary">{summary?.byStatus?.applied ?? 0}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low">
-                  <CheckCircle className="h-5 w-5 text-emerald-500" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary">
+                  <CheckCircle className="h-5 w-5 text-success" />
                   <div>
-                    <p className="text-label-sm text-on-surface-variant">Offers</p>
-                    <p className="text-headline-sm font-semibold text-on-surface">{summary?.byStatus?.offer ?? 0}</p>
+                    <p className="text-label text-text-tertiary">Offers</p>
+                    <p className="text-heading-3 font-semibold text-text-primary">{summary?.byStatus?.offer ?? 0}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low">
-                  <Clock className="h-5 w-5 text-amber-500" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary">
+                  <Clock className="h-5 w-5 text-warning" />
                   <div>
-                    <p className="text-label-sm text-on-surface-variant">In Progress</p>
-                    <p className="text-headline-sm font-semibold text-on-surface">{summary?.byStatus?.interview ?? 0}</p>
+                    <p className="text-label text-text-tertiary">In Progress</p>
+                    <p className="text-heading-3 font-semibold text-text-primary">{summary?.byStatus?.interview ?? 0}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low">
-                  <XCircle className="h-5 w-5 text-red-500" />
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary">
+                  <XCircle className="h-5 w-5 text-danger" />
                   <div>
-                    <p className="text-label-sm text-on-surface-variant">Rejected</p>
-                    <p className="text-headline-sm font-semibold text-on-surface">{summary?.byStatus?.rejected ?? 0}</p>
+                    <p className="text-label text-text-tertiary">Rejected</p>
+                    <p className="text-heading-3 font-semibold text-text-primary">{summary?.byStatus?.rejected ?? 0}</p>
                   </div>
                 </div>
               </div>
@@ -372,7 +372,7 @@ export function AnalyticsPage() {
       </div>
 
       <Card className="mb-xl">
-        <h3 className="text-headline-md text-on-surface mb-md">Applications Over Time</h3>
+        <h3 className="text-heading-2 text-text-primary mb-md">Applications Over Time</h3>
         {loading ? (
           <div className="space-y-2">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -384,7 +384,7 @@ export function AnalyticsPage() {
             ))}
           </div>
         ) : appsOverTime.length === 0 ? (
-          <p className="text-body-md text-on-surface-variant py-md text-center">
+          <p className="text-body text-text-secondary py-md text-center">
             No applications tracked yet.
           </p>
         ) : (
@@ -395,19 +395,19 @@ export function AnalyticsPage() {
       <Card className="hover:border-primary/50 transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md">
           <div className="flex items-start gap-3">
-            <div className="p-2.5 bg-amber-500/10 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
+            <div className="p-2.5 bg-warning/10 rounded-xl text-warning shrink-0">
               <Lightbulb className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-headline-md text-on-surface font-semibold">AI Insights & Recommendations</h3>
-              <p className="text-body-md text-on-surface-variant mt-1">
+              <h3 className="text-heading-2 text-text-primary font-semibold">AI Insights & Recommendations</h3>
+              <p className="text-body text-text-secondary mt-1">
                 Unlock personalized, actionable strategies based on your applications, conversion rates, and match scores.
               </p>
             </div>
           </div>
           <button
             onClick={() => navigate('/insights')}
-            className="text-label-md text-primary hover:underline flex items-center gap-1 self-start sm:self-center bg-primary/5 hover:bg-primary/10 px-4 py-2 rounded-xl transition-all font-medium border border-primary/20 shrink-0"
+            className="text-label text-primary hover:underline flex items-center gap-1 self-start sm:self-center bg-primary/5 hover:bg-primary/10 px-4 py-2 rounded-xl transition-all font-medium border border-primary/20 shrink-0"
           >
             View All Insights
             <ChevronRight className="h-4 w-4" />

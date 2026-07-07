@@ -220,7 +220,10 @@ export function ApplicationsPage() {
   return (
     <AppLayout onSearch={setSearchValue} searchValue={searchValue}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-md mb-lg">
-        <h2 className="text-headline-md text-on-surface">All Applications</h2>
+        <div>
+          <h1 className="text-heading-2 text-text-primary">Applications</h1>
+          <p className="text-body-sm text-text-secondary mt-0.5">Track and manage all your submissions</p>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <Select
             options={apiStatusOptions}
@@ -228,17 +231,17 @@ export function ApplicationsPage() {
             onChange={setStatusFilter}
             className="w-full sm:w-44"
           />
-          <div className="hidden sm:flex items-center border border-outline-variant rounded-lg">
+          <div className="hidden sm:flex items-center border border-border rounded-lg">
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-l-lg transition-colors ${viewMode === 'list' ? 'bg-surface-container text-primary' : 'text-on-surface-variant hover:bg-surface-container'}`}
+              className={`p-2 rounded-l-lg transition-colors ${viewMode === 'list' ? 'bg-surface-secondary text-primary' : 'text-text-tertiary hover:bg-surface-secondary'}`}
               aria-label="List view"
             >
               <LayoutList className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-r-lg transition-colors ${viewMode === 'grid' ? 'bg-surface-container text-primary' : 'text-on-surface-variant hover:bg-surface-container'}`}
+              className={`p-2 rounded-r-lg transition-colors ${viewMode === 'grid' ? 'bg-surface-secondary text-primary' : 'text-text-tertiary hover:bg-surface-secondary'}`}
               aria-label="Grid view"
             >
               <LayoutGrid className="h-4 w-4" />
@@ -253,7 +256,7 @@ export function ApplicationsPage() {
       <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-lg" />
 
       {error && !loading && (
-        <div className="rounded-xl border border-error/20 bg-red-50 p-4 text-body-md text-error mb-lg">
+        <div className="rounded-lg border border-danger/20 bg-red-50 p-4 text-body-sm text-danger mb-lg">
           {error}
         </div>
       )}
@@ -271,7 +274,7 @@ export function ApplicationsPage() {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-surface border border-outline-variant p-md rounded-xl space-y-3">
+                <div key={i} className="bg-white border border-border p-md rounded-lg space-y-3">
                   <Skeleton variant="text" width="60%" />
                   <Skeleton variant="text" width="80%" />
                   <Skeleton variant="text" width="40%" />
@@ -323,10 +326,10 @@ export function ApplicationsPage() {
             placeholder="e.g. Frontend Engineer"
           />
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <label className="font-label-md text-on-surface" htmlFor="jd-text">
-                Job Description
-              </label>
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-caption text-text-primary font-medium" htmlFor="jd-text">
+                  Job Description
+                </label>
               <Button
                 variant="secondary"
                 size="sm"
@@ -344,7 +347,7 @@ export function ApplicationsPage() {
               onChange={(e) => setNewJdText(e.target.value)}
               placeholder="Paste the job description here..."
               rows={8}
-              className="w-full rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors duration-150 focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none"
+              className="w-full rounded-lg border border-border bg-white text-body-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors duration-150 focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none"
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">

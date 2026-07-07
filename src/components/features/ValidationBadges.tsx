@@ -24,7 +24,7 @@ function ScoreRing({ value, label, color }: { value: number; label: string; colo
     <div className="flex flex-col items-center gap-1">
       <div className="relative h-12 w-12">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 40 40">
-          <circle cx="20" cy="20" r="18" className="fill-none stroke-surface-container-highest" strokeWidth="4" />
+          <circle cx="20" cy="20" r="18" className="fill-none stroke-surface-tertiary" strokeWidth="4" />
           <circle
             cx="20"
             cy="20"
@@ -36,11 +36,11 @@ function ScoreRing({ value, label, color }: { value: number; label: string; colo
             strokeLinecap="round"
           />
         </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-caption font-bold text-on-surface">
+        <span className="absolute inset-0 flex items-center justify-center text-caption font-bold text-text-primary">
           {value}
         </span>
       </div>
-      <span className="text-caption text-on-surface-variant">{label}</span>
+      <span className="text-caption text-text-tertiary">{label}</span>
     </div>
   )
 }
@@ -65,7 +65,7 @@ export function ValidationBadges({ scores, hints, atsKeywords }: ValidationBadge
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-primary" />
-          <h3 className="text-headline-sm text-on-surface">Validation</h3>
+          <h3 className="text-heading-3 text-text-primary">Validation</h3>
         </div>
         <button
           onClick={() => setExpanded(!expanded)}
@@ -86,15 +86,13 @@ export function ValidationBadges({ scores, hints, atsKeywords }: ValidationBadge
       <div className="mt-4 flex flex-wrap gap-2">
         <Badge
           variant={truthPassed ? 'success' : 'warning'}
-          size="sm"
           className="flex items-center gap-1"
         >
           {truthPassed ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
           Truth {truthPassed ? 'Passed' : `${hints.truthFlags.length} issue${hints.truthFlags.length > 1 ? 's' : ''}`}
         </Badge>
         <Badge
-          variant={humanizationIssues === 0 ? 'success' : humanizationIssues <= 2 ? 'warning' : 'error'}
-          size="sm"
+          variant={humanizationIssues === 0 ? 'success' : humanizationIssues <= 2 ? 'warning' : 'danger'}
           className="flex items-center gap-1"
         >
           {humanizationIssues === 0 ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
@@ -103,13 +101,13 @@ export function ValidationBadges({ scores, hints, atsKeywords }: ValidationBadge
       </div>
 
       {expanded && (
-        <div className="mt-4 space-y-4 border-t border-outline-variant pt-4">
+        <div className="mt-4 space-y-4 border-t border-border pt-4">
           {atsKeywords.length > 0 && (
             <div>
-              <h4 className="text-body-md font-medium text-on-surface mb-2">ATS Keywords</h4>
+              <h4 className="text-body font-medium text-text-primary mb-2">ATS Keywords</h4>
               <div className="flex flex-wrap gap-1.5">
                 {atsKeywords.map((keyword) => (
-                  <Badge key={keyword} variant="info" size="sm">
+                  <Badge key={keyword} variant="default">
                     {keyword}
                   </Badge>
                 ))}
@@ -119,10 +117,10 @@ export function ValidationBadges({ scores, hints, atsKeywords }: ValidationBadge
 
           {hints.atsKeywordsToInclude.length > 0 && (
             <div>
-              <h4 className="text-body-md font-medium text-on-surface mb-2">Keywords to Include</h4>
+              <h4 className="text-body font-medium text-text-primary mb-2">Keywords to Include</h4>
               <div className="flex flex-wrap gap-1.5">
                 {hints.atsKeywordsToInclude.map((keyword) => (
-                  <Badge key={keyword} variant="warning" size="sm">
+                  <Badge key={keyword} variant="warning">
                     {keyword}
                   </Badge>
                 ))}
@@ -132,10 +130,10 @@ export function ValidationBadges({ scores, hints, atsKeywords }: ValidationBadge
 
           {hints.truthFlags.length > 0 && (
             <div>
-              <h4 className="text-body-md font-medium text-on-surface mb-2">Truth Checks</h4>
+              <h4 className="text-body font-medium text-text-primary mb-2">Truth Checks</h4>
               <ul className="space-y-1.5">
                 {hints.truthFlags.map((flag, index) => (
-                  <li key={index} className="flex items-start gap-2 text-body-sm text-on-surface-variant">
+                  <li key={index} className="flex items-start gap-2 text-body-sm text-text-secondary">
                     <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                     <span>{flag}</span>
                   </li>
@@ -146,10 +144,10 @@ export function ValidationBadges({ scores, hints, atsKeywords }: ValidationBadge
 
           {hints.humanizationTips.length > 0 && (
             <div>
-              <h4 className="text-body-md font-medium text-on-surface mb-2">Humanization Tips</h4>
+              <h4 className="text-body font-medium text-text-primary mb-2">Humanization Tips</h4>
               <ul className="space-y-1.5">
                 {hints.humanizationTips.map((tip, index) => (
-                  <li key={index} className="flex items-start gap-2 text-body-sm text-on-surface-variant">
+                  <li key={index} className="flex items-start gap-2 text-body-sm text-text-secondary">
                     <Sparkles className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                     <span>{tip}</span>
                   </li>

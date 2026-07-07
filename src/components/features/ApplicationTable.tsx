@@ -27,12 +27,12 @@ export function ApplicationTable({
 }: ApplicationTableProps) {
   if (loading) {
     return (
-      <div className="overflow-x-auto rounded-xl border border-outline-variant">
+      <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-surface-container-low">
+            <tr className="bg-surface-secondary">
               {['Company', 'Role', 'Status', 'Match Score', 'Updated', 'Actions'].map((col) => (
-                <th key={col} className="px-4 py-3 text-left text-label-sm font-medium text-on-surface-variant">
+                <th key={col} className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">
                   {col}
                 </th>
               ))}
@@ -40,7 +40,7 @@ export function ApplicationTable({
           </thead>
           <tbody>
             {Array.from({ length: 5 }).map((_, i) => (
-              <tr key={i} className="border-t border-outline-variant">
+              <tr key={i} className="border-t border-border">
                 {Array.from({ length: 6 }).map((_, j) => (
                   <td key={j} className="px-4 py-3">
                     <Skeleton variant="text" width="80%" />
@@ -56,7 +56,7 @@ export function ApplicationTable({
 
   if (applications.length === 0) {
     return (
-      <div className="rounded-xl border border-outline-variant">
+      <div className="rounded-lg border border-border">
         <EmptyState
           icon={<Briefcase className="h-8 w-8" />}
           title="No applications yet"
@@ -67,16 +67,16 @@ export function ApplicationTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-outline-variant">
+    <div className="overflow-x-auto rounded-lg border border-border">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-surface-container-low">
-            <th className="px-4 py-3 text-left text-label-sm font-medium text-on-surface-variant">Company</th>
-            <th className="px-4 py-3 text-left text-label-sm font-medium text-on-surface-variant">Role</th>
-            <th className="px-4 py-3 text-left text-label-sm font-medium text-on-surface-variant">Status</th>
-            <th className="px-4 py-3 text-left text-label-sm font-medium text-on-surface-variant">Match Score</th>
-            <th className="px-4 py-3 text-left text-label-sm font-medium text-on-surface-variant">Updated</th>
-            <th className="px-4 py-3 text-left text-label-sm font-medium text-on-surface-variant">Actions</th>
+          <tr className="bg-surface-secondary">
+            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Company</th>
+            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Role</th>
+            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Status</th>
+            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Match Score</th>
+            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Updated</th>
+            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -85,15 +85,15 @@ export function ApplicationTable({
             return (
               <tr
                 key={app._id}
-                className="border-t border-outline-variant hover:bg-surface-container-low transition-colors cursor-pointer"
+                className="border-t border-border hover:bg-surface-secondary transition-colors cursor-pointer"
                 onClick={() => onRowClick?.(app)}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') onRowClick?.(app);
                 }}
               >
-                <td className="px-4 py-3 text-body-md font-medium text-on-surface">{app.company}</td>
-                <td className="px-4 py-3 text-body-md text-on-surface">{app.role}</td>
+                <td className="px-4 py-3 text-body font-medium text-text-primary">{app.company}</td>
+                <td className="px-4 py-3 text-body text-text-primary">{app.role}</td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <Dropdown
                     align="left"
@@ -151,7 +151,7 @@ export function ApplicationTable({
                     showLabel
                   />
                 </td>
-                <td className="px-4 py-3 text-body-md text-on-surface-variant whitespace-nowrap">
+                <td className="px-4 py-3 text-body-sm text-text-secondary whitespace-nowrap">
                   {formatDate(app.updatedAt)}
                 </td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
@@ -160,7 +160,7 @@ export function ApplicationTable({
                     trigger={
                       <button
                         type="button"
-                        className="p-1 rounded hover:bg-surface-container text-on-surface-variant transition-colors flex items-center justify-center"
+                        className="p-1 rounded hover:bg-surface-secondary text-text-tertiary transition-colors flex items-center justify-center"
                         aria-label={`Actions for ${app.company}`}
                       >
                         <MoreHorizontal className="h-4 w-4" />

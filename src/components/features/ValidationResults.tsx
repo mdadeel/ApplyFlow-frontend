@@ -59,9 +59,9 @@ export function ValidationResults({ report, loading }: ValidationResultsProps) {
               <div className="flex items-center gap-2">
                 <p className="text-body-md font-medium text-on-surface">{result.name}</p>
                 {result.passed ? (
-                  <Badge variant="success" size="sm">Passed</Badge>
+                  <Badge variant="success">Passed</Badge>
                 ) : (
-                  <Badge variant="error" size="sm">Failed</Badge>
+                  <Badge variant="danger">Failed</Badge>
                 )}
               </div>
               <span className="text-label-sm text-on-surface-variant">{Math.round(result.score)}%</span>

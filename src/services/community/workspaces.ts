@@ -1,4 +1,5 @@
 import { get, post, del } from '../api'
+import type { Application } from '../../types'
 
 export type WorkspaceStatus = 'idle' | 'analyzing' | 'tailoring' | 'ready' | 'submitted'
 
@@ -84,4 +85,18 @@ export function submitWorkspace(id: string): Promise<ApplicationWorkspace> {
 
 export function deleteWorkspace(id: string): Promise<void> {
   return del<void>(`/workspaces/${id}`)
+}
+
+export type ExportFormat = 'pdf' | 'docx' | 'markdown'
+
+export function sendToResumeLibrary(workspaceId: string): Promise<void> {
+  return post<void>(`/workspaces/${workspaceId}/send-to-resume-library`)
+}
+
+export function sendToExportCenter(workspaceId: string, format: ExportFormat): Promise<void> {
+  return post<void>(`/workspaces/${workspaceId}/export`, { format })
+}
+
+export function createApplicationFromWorkspace(workspaceId: string): Promise<Application> {
+  return post<Application>(`/workspaces/${workspaceId}/create-application`)
 }

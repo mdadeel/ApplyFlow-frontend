@@ -1,14 +1,5 @@
 import { get } from '../api'
-
-export interface CommunityDashboard {
-  totalOpportunities: number
-  totalContributions: number
-  activeUsers: number
-  averageMatchScore: number
-  topCompanies: Array<{ company: string; count: number }>
-  trendingSkills: Array<{ skill: string; count: number }>
-  lastUpdated: string
-}
+import type { Opportunity } from './opportunities'
 
 export interface SuccessRateData {
   totalApplications: number
@@ -27,10 +18,6 @@ export interface SkillTrend {
   totalOpportunities: number
 }
 
-export function getCommunityDashboard(): Promise<CommunityDashboard> {
-  return get<CommunityDashboard>('/analytics/community/dashboard')
-}
-
 export function getSuccessRate(filters?: { roleLevel?: string; company?: string; days?: number }): Promise<SuccessRateData> {
   return get<SuccessRateData>('/analytics/community/success-rate', filters as Record<string, string | number | undefined>)
 }
@@ -41,4 +28,45 @@ export function getCommunityImpact(): Promise<CommunityImpactData> {
 
 export function getSkillTrends(limit?: number): Promise<SkillTrend> {
   return get<SkillTrend>('/analytics/community/skill-trends', { limit })
+}
+
+// ── Feed Analytics (Chunk 4 / Chunk 13) ──────────────────────────────────
+
+export interface FeedTrendingCompany {
+  company: string
+  count: number
+}
+
+export interface FeedTrendingSkill {
+  skill: string
+  count: number
+  byLevel: Record<string, number>
+}
+
+export interface FeedSalaryBand {
+  roleLevel: string
+  min: number
+  max: number
+  count: number
+}
+
+export interface FeedHiringVelocityPoint {
+  week: string
+  count: number
+}
+
+export interface FeedAnalytics {
+  recommendedOpportunities: Opportunity[]
+  trendingCompanies: FeedTrendingCompany[]
+  trendingSkills: FeedTrendingSkill[]
+  salaryBands: FeedSalaryBand[]
+  hiringVelocity: FeedHiringVelocityPoint[]
+}
+
+/**
+ * Returns the analytics payload used by the Feed page's Trending tab.
+ * The backend is expected to power this with `GET /analytics/community/feed`.
+ */
+export function getFeedAnalytics(): Promise<FeedAnalytics> {
+  return get<FeedAnalytics>('/analytics/community/feed')
 }

@@ -40,7 +40,7 @@ function ResumeSectionExperiences({ data }: { data: Record<string, any>[] }) {
               <h4 className="text-headline-sm text-on-surface">{exp.company || 'Unknown Company'}</h4>
               {exp.role && <p className="text-body-md text-on-surface-variant">{exp.role}</p>}
             </div>
-            <Badge variant={exp.current ? 'success' : 'default'} size="sm">
+            <Badge variant={exp.current ? 'success' : 'default'}>
               {exp.current ? 'Current' : formatDate(exp.endDate)}
             </Badge>
           </div>
@@ -57,7 +57,7 @@ function ResumeSectionExperiences({ data }: { data: Record<string, any>[] }) {
           {exp.technologies?.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {exp.technologies.map((t: string) => (
-                <Chip key={t} label={t} size="sm" />
+                <Chip key={t} label={t} />
               ))}
             </div>
           )}
@@ -85,7 +85,7 @@ function ResumeSectionProjects({ data }: { data: Record<string, any>[] }) {
           {proj.technologies?.length > 0 && (
             <div className="flex flex-wrap gap-1 pt-1">
               {proj.technologies.map((t: string) => (
-                <Chip key={t} label={t} size="sm" />
+                <Chip key={t} label={t} />
               ))}
             </div>
           )}
@@ -104,8 +104,8 @@ function ResumeSectionSkills({ data }: { data: Record<string, any>[] }) {
     acc[cat].push(s)
     return acc
   }, {})
-  const levelColor: Record<string, 'default' | 'info' | 'warning' | 'success'> = {
-    Beginner: 'default', Intermediate: 'info', Advanced: 'warning', Expert: 'success',
+  const levelColor: Record<string, 'default' | 'warning' | 'success'> = {
+    Beginner: 'default', Intermediate: 'default', Advanced: 'warning', Expert: 'success',
   }
   return (
     <div className="space-y-4">
@@ -116,7 +116,7 @@ function ResumeSectionSkills({ data }: { data: Record<string, any>[] }) {
             {skills.map((s, i) => (
               <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-surface-container-low">
                 <span className="text-body-md text-on-surface">{s.name}</span>
-                <Badge variant={levelColor[s.level] || 'default'} size="sm">{s.level}</Badge>
+                <Badge variant={levelColor[s.level] || 'default'}>{s.level}</Badge>
               </div>
             ))}
           </div>

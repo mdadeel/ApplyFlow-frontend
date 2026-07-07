@@ -22,6 +22,8 @@ export interface Opportunity {
   averageMatchScore: number
   totalContributions: number
   totalWorkspaces: number
+  referralAvailable?: boolean
+  referralCount?: number
   deadline?: string
   isExpired: boolean
   pipelineStatus: string
@@ -31,6 +33,8 @@ export interface Opportunity {
   updatedAt: string
 }
 
+export type OpportunitySort = 'relevance' | 'newest' | 'deadline' | 'salary' | 'match'
+
 export interface OpportunitySearchParams {
   q?: string
   locationType?: string
@@ -39,10 +43,12 @@ export interface OpportunitySearchParams {
   salaryMin?: number
   salaryMax?: number
   skills?: string[]
-  sort?: string
+  sort?: OpportunitySort
   page?: number
   limit?: number
+  saved?: boolean
   deadlineSoon?: boolean
+  recency?: '24h' | 'week' | 'month'
 }
 
 export interface OpportunityInput {
@@ -71,7 +77,16 @@ export function getOpportunity(id: string): Promise<Opportunity> {
 }
 
 export function searchOpportunities(params: OpportunitySearchParams): Promise<{ items: Opportunity[]; total: number; suggestions: string[] }> {
-  return get<{ items: Opportunity[]; total: number; suggestions: string[] }>('/opportunities/search', params as Record<string, string | number | undefined>)
+  const flat: Record<string, string | number | undefined> = {}
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === null || v === '') continue
+    if (Array.isArray(v)) {
+      if (v.length > 0) flat[k] = v.join(',')
+    } else {
+      flat[k] = v as string | number
+    }
+  }
+  return get<{ items: Opportunity[]; total: number; suggestions: string[] }>('/opportunities/search', flat)
 }
 
 export function createOpportunity(data: OpportunityInput): Promise<Opportunity> {

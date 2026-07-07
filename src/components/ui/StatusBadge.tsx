@@ -1,32 +1,25 @@
-import type { ApplicationStatus } from '../../types';
-import { Badge } from './Badge';
-
-const statusConfig: Record<ApplicationStatus, { label: string; variant: 'default' | 'warning' | 'success' | 'error' | 'info' }> = {
-  draft: { label: 'Draft', variant: 'default' },
-  analyzing: { label: 'Analyzing', variant: 'default' },
-  planning: { label: 'Planning', variant: 'default' },
-  generating: { label: 'Generating', variant: 'default' },
-  reviewing: { label: 'Reviewing', variant: 'info' },
-  ready: { label: 'Ready', variant: 'info' },
-  exported: { label: 'Exported', variant: 'default' },
-  applied: { label: 'Applied', variant: 'default' },
-  interview: { label: 'Interview', variant: 'warning' },
-  assessment: { label: 'Assessment', variant: 'warning' },
-  offer: { label: 'Offer', variant: 'success' },
-  rejected: { label: 'Rejected', variant: 'error' },
-  ghosted: { label: 'Ghosted', variant: 'error' },
-};
-
 interface StatusBadgeProps {
-  status: ApplicationStatus;
+  status: string;
+  label?: string;
   className?: string;
 }
 
-export function StatusBadge({ status, className = '' }: StatusBadgeProps) {
-  const config = statusConfig[status];
+const dotColors: Record<string, string> = {
+  submitted: 'bg-success',
+  draft: 'bg-warning',
+  interview: 'bg-primary',
+  offer: 'bg-success',
+  rejected: 'bg-danger',
+  expired: 'bg-neutral-300',
+};
+
+export function StatusBadge({ status, label, className = '' }: StatusBadgeProps) {
+  const dotColor = dotColors[status] || 'bg-neutral-300';
+
   return (
-    <Badge variant={config.variant} className={className}>
-      {config.label}
-    </Badge>
+    <span className={`inline-flex items-center gap-1.5 text-caption text-text-secondary ${className}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} aria-hidden="true" />
+      {label || status}
+    </span>
   );
 }

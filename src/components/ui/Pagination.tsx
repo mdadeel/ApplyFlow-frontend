@@ -34,31 +34,31 @@ export function Pagination({ page, pages: totalPages, total, onChange, className
 
   return (
     <div className={`flex items-center justify-between ${className}`}>
-      <p className="text-label-sm text-on-surface-variant">
+      <p className="text-meta text-text-tertiary">
         {total} result{total !== 1 ? 's' : ''}
       </p>
       <div className="flex items-center gap-1">
         <button
           onClick={() => onChange(page - 1)}
           disabled={page <= 1}
-          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-on-surface-variant hover:bg-surface-container disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-text-tertiary hover:bg-surface-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           aria-label="Previous page"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
         {pageNumbers.map((p, i) =>
           p === 'ellipsis' ? (
-            <span key={`ellipsis-${i}`} className="inline-flex items-center justify-center h-8 w-8 text-label-sm text-on-surface-variant">
+            <span key={`ellipsis-${i}`} className="inline-flex items-center justify-center h-8 w-8 text-meta text-text-tertiary">
               ...
             </span>
           ) : (
             <button
               key={p}
               onClick={() => onChange(p)}
-              className={`inline-flex items-center justify-center h-8 w-8 rounded-lg text-label-sm font-medium transition-colors
+              className={`inline-flex items-center justify-center h-8 w-8 rounded-lg text-meta font-medium transition-colors
                 ${p === page
-                  ? 'bg-primary-container text-on-primary'
-                  : 'text-on-surface-variant hover:bg-surface-container'
+                  ? 'bg-primary text-white'
+                  : 'text-text-tertiary hover:bg-surface-secondary'
                 }`}
             >
               {p}
@@ -68,7 +68,7 @@ export function Pagination({ page, pages: totalPages, total, onChange, className
         <button
           onClick={() => onChange(page + 1)}
           disabled={page >= totalPages}
-          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-on-surface-variant hover:bg-surface-container disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-text-tertiary hover:bg-surface-secondary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
           aria-label="Next page"
         >
           <ChevronRight className="h-4 w-4" />

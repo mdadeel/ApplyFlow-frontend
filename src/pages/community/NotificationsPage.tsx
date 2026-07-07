@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '../../components/layout/AppLayout'
 import { Card } from '../../components/ui/Card'
+import { CommunityEmptyState } from '../../components/community/CommunityEmptyState'
+import { NotificationActions } from '../../components/community/NotificationActions'
+import { useToast } from '../../components/layout/useToast'
 import type { CommunityNotification } from '../../services/community/notifications'
 import {
   getNotifications, markAsRead, markAllAsRead,
 } from '../../services/community/notifications'
-import { Bell, Check, Loader2, ArrowRight } from '../../lib/icons'
+import { Bell, Check, Loader2 } from '../../lib/icons'
 
 const TYPE_ICONS: Record<string, string> = {
   deadline_approaching: '⏰',
@@ -14,6 +17,12 @@ const TYPE_ICONS: Record<string, string> = {
   workspace_generated: '✨',
   contribution_added: '📝',
   referral_claimed: '🤝',
+  referral_accepted: '🤝',
+  new_comment: '💬',
+  resume_feedback: '📄',
+  company_hiring: '🏢',
+  mention: '💬',
+  application_collaboration: '👥',
   status_change: '🔄',
   interview_reminder: '📅',
   feature: '🚀',
@@ -22,6 +31,7 @@ const TYPE_ICONS: Record<string, string> = {
 
 export function NotificationsPage() {
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [notifications, setNotifications] = useState<CommunityNotification[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -42,6 +52,40 @@ export function NotificationsPage() {
   const handleMarkAllRead = async () => {
     setNotifications(prev => prev.map(x => ({ ...x, read: true })))
     try { await markAllAsRead() } catch { /* ignore */ }
+  }
+
+  // Navigation handler used by NotificationActions "View" buttons.
+  const handleView = (link: string) => {
+    navigate(link)
+  }
+
+  // Placeholder referral acceptance — logs for now until the backend
+  // endpoint lands (per Chunk 10 spec, no backend implementation here).
+  const handleAcceptReferral = (id: string) => {
+    // eslint-disable-next-line no-console
+    console.info('[notifications] accept referral', id)
+    showToast('Referral accepted', 'success')
+  }
+
+  const handleDismissJob = (id: string) => {
+    // eslint-disable-next-line no-console
+    console.info('[notifications] dismiss job', id)
+    showToast('Dismissed', 'info')
+  }
+
+  const handleReply = (id: string) => {
+    const target = notifications.find(n => n._id === id)
+    if (target?.link) {
+      navigate(`${target.link}${target.link.includes('?') ? '&' : '?'}reply=1`)
+    } else {
+      navigate(`/community/notifications?reply=${id}`)
+    }
+  }
+
+  const handleSaveOpportunity = (id: string) => {
+    // eslint-disable-next-line no-console
+    console.info('[notifications] save opportunity', id)
+    showToast('Opportunity saved', 'success')
   }
 
   const unread = notifications.filter(n => !n.read).length
@@ -68,24 +112,30 @@ export function NotificationsPage() {
         </div>
       ) : notifications.length === 0 ? (
         <Card>
-          <div className="py-20 text-center">
-            <Bell className="w-12 h-12 text-on-surface-variant mx-auto mb-3 opacity-50" />
-            <h3 className="text-headline-md text-on-surface mb-1">All caught up</h3>
-            <p className="text-body-md text-on-surface-variant">No new notifications</p>
-          </div>
+          <CommunityEmptyState
+            icon={Bell}
+            title="All caught up"
+            description="No new notifications"
+            primaryAction={{
+              label: 'Browse opportunities',
+              href: '/community/opportunities',
+            }}
+          />
         </Card>
       ) : (
         <div className="space-y-2">
           {notifications.map(n => (
             <Card
               key={n._id}
+              data-testid="notification-row"
+              data-notification-type={n.type}
               className={`transition-colors ${!n.read ? 'border-primary/30 bg-primary/[0.02]' : ''}`}
             >
               <div className="flex items-start gap-3">
                 <span className="text-lg mt-0.5">{TYPE_ICONS[n.type] || 'ℹ️'}</span>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
+                    <div className="min-w-0">
                       <p className={`text-body-md text-on-surface ${!n.read ? 'font-semibold' : ''}`}>{n.title}</p>
                       <p className="text-body-sm text-on-surface-variant mt-0.5">{n.message}</p>
                     </div>
@@ -95,14 +145,17 @@ export function NotificationsPage() {
                           <Check className="w-4 h-4" />
                         </button>
                       )}
-                      {n.link && (
-                        <button onClick={() => navigate(n.link!)} className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant" aria-label="View">
-                          <ArrowRight className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
                   </div>
                   <p className="text-label-xs text-on-surface-variant mt-1">{new Date(n.createdAt).toLocaleString()}</p>
+                  <NotificationActions
+                    notification={n}
+                    onAcceptReferral={handleAcceptReferral}
+                    onDismissJob={handleDismissJob}
+                    onReply={handleReply}
+                    onSaveOpportunity={handleSaveOpportunity}
+                    onView={handleView}
+                  />
                 </div>
               </div>
             </Card>

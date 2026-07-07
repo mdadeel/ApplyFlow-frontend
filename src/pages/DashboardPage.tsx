@@ -1,25 +1,47 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
-import { StatCard } from '../components/features/StatCard'
-import { ActivityFeed } from '../components/features/ActivityFeed'
-import { BentoGrid } from '../components/layout/BentoGrid'
 import { Card } from '../components/ui/Card'
 import { StatusBadge } from '../components/ui/StatusBadge'
 import { Skeleton } from '../components/ui/Skeleton'
+import { EmptyState } from '../components/ui/EmptyState'
 import { applicationsService } from '../services/applications'
 import type { Application } from '../types'
 import {
   Briefcase,
-  Activity,
-  Calendar,
-  Award,
   FileText,
   BarChart3,
   User,
   MessageSquare,
   ChevronRight,
+  Sparkles,
+  Clock,
 } from '../lib/icons'
+
+function timeBasedGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
+function timeAgo(dateStr: string): string {
+  const diffMs = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diffMs / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return `${Math.floor(days / 7)}w ago`
+}
+
+const AI_SUGGESTIONS = [
+  { text: 'Analyze a new job description to see how your resume matches up', action: 'Analyze a JD', path: '/jd-analysis' },
+  { text: 'Your interview prep materials are ready for the next round', action: 'Start preparing', path: '/interview' },
+  { text: 'Update your career profile to improve match scores', action: 'Update profile', path: '/profile' },
+]
 
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -71,130 +93,212 @@ export function DashboardPage() {
     fetchData()
   }, [])
 
-  const quickActions = [
-    { label: 'Analyze New Job', desc: 'Paste a job description and get AI-powered insights', icon: FileText, path: '/jd-analysis', color: 'bg-blue-500' },
-    { label: 'View Applications', desc: 'Track and manage all your job applications', icon: BarChart3, path: '/applications', color: 'bg-emerald-500' },
-    { label: 'Update Profile', desc: 'Keep your career profile up to date', icon: User, path: '/profile', color: 'bg-amber-500' },
-    { label: 'Prepare for Interview', desc: 'Generate interview questions and talking points', icon: MessageSquare, path: '/interview', color: 'bg-purple-500' },
+  const resumePoints = [
+    { label: 'Analyze a JD', desc: 'Paste a job description to get started', icon: FileText, path: '/jd-analysis' },
+    { label: 'View Applications', desc: 'Track your progress', icon: BarChart3, path: '/applications' },
+    { label: 'Update Profile', desc: 'Keep your career profile current', icon: User, path: '/profile' },
+    { label: 'Prepare for Interview', desc: 'Generate talking points', icon: MessageSquare, path: '/interview' },
   ]
 
   return (
     <AppLayout>
-      <div className="mb-xl">
-        <Section title="Quick Actions" description="Jump to any part of the workflow" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
-          {quickActions.map((action) => {
-            const Icon = action.icon
-            return (
-              <button
-                key={action.path}
-                onClick={() => navigate(action.path)}
-                className="w-full text-left bg-surface border border-outline-variant p-md rounded-xl hover:bg-surface-container hover:border-primary/40 hover:shadow-sm transition-all duration-200 group"
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-xl ${action.color} text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform`}>
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-body-md font-semibold text-on-surface group-hover:text-primary transition-colors">
-                      {action.label}
-                    </h4>
-                    <p className="text-label-sm text-on-surface-variant mt-1">{action.desc}</p>
-                  </div>
+      <div className="animate-fade-up">
+        {/* Greeting + Today's Progress */}
+        <div className="mb-10">
+          <h1 className="text-display text-text-primary">
+            {loading ? 'Welcome back' : `${timeBasedGreeting()}!`}
+          </h1>
+          <p className="text-body text-text-secondary mt-2">
+            {loading
+              ? 'Loading your progress...'
+              : stats.total > 0
+                ? `You've applied to ${stats.total} positions${stats.active > 0 ? `, ${stats.active} in progress` : ''}.`
+                : 'Ready to start your job search journey?'}
+          </p>
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+          <Card variant="stat">
+            <p className="text-meta text-text-tertiary uppercase tracking-wide mb-1">Total</p>
+            <p className="text-heading-2 text-text-primary">{loading ? '—' : stats.total}</p>
+          </Card>
+          <Card variant="stat">
+            <p className="text-meta text-text-tertiary uppercase tracking-wide mb-1">Active</p>
+            <p className="text-heading-2 text-text-primary">{loading ? '—' : stats.active}</p>
+          </Card>
+          <Card variant="stat">
+            <p className="text-meta text-text-tertiary uppercase tracking-wide mb-1">Interviews</p>
+            <p className="text-heading-2 text-text-primary">{loading ? '—' : stats.interviews}</p>
+          </Card>
+          <Card variant="stat">
+            <p className="text-meta text-text-tertiary uppercase tracking-wide mb-1">Offers</p>
+            <p className="text-heading-2 text-text-primary">{loading ? '—' : stats.offers}</p>
+          </Card>
+        </div>
+
+        {/* AI Suggestions */}
+        <div className="mb-10">
+          <Card variant="ai">
+            <div className="flex items-start gap-4">
+              <Sparkles className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div className="min-w-0 flex-1">
+                <h2 className="text-heading-3 text-text-primary mb-1">Things you can do</h2>
+                <div className="space-y-2">
+                  {AI_SUGGESTIONS.map((suggestion, i) => (
+                    <div key={i} className="flex items-center justify-between gap-4">
+                      <p className="text-body-sm text-text-secondary">{suggestion.text}</p>
+                      <button
+                        onClick={() => navigate(suggestion.path)}
+                        className="text-body-sm text-primary hover:text-primary-hover whitespace-nowrap shrink-0 transition-colors"
+                      >
+                        {suggestion.action} →
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              </button>
-            )
-          })}
-        </div>
-        <hr className="border-t border-outline-variant my-xl" />
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg mb-xl">
-        <StatCard title="Total Applications" value={loading ? '-' : stats.total} icon={Briefcase} accentColor="info" />
-        <StatCard title="Active Applications" value={loading ? '-' : stats.active} icon={Activity} accentColor="success" />
-        <StatCard title="Interviews Scheduled" value={loading ? '-' : stats.interviews} icon={Calendar} accentColor="warning" />
-        <StatCard title="Offers Received" value={loading ? '-' : stats.offers} icon={Award} accentColor="success" />
-      </div>
-
-      <BentoGrid cols={12} className="mb-xl">
-        <div className="md:col-span-8">
-          <Card className="h-full">
-            <div className="flex items-center justify-between mb-md">
-              <h3 className="text-headline-md text-on-surface">Recent Applications</h3>
-              <button
-                onClick={() => navigate('/applications')}
-                className="text-label-md text-primary hover:underline flex items-center gap-1"
-              >
-                View All <ChevronRight className="h-4 w-4" />
-              </button>
+              </div>
             </div>
+          </Card>
+        </div>
 
-            {loading ? (
-              <div className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <Skeleton variant="text" width="200px" />
-                      <Skeleton variant="text" width="140px" height={12} />
-                    </div>
-                    <Skeleton variant="text" width={80} height={24} />
-                  </div>
-                ))}
-              </div>
-            ) : applications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-xl text-center">
-                <Briefcase className="h-10 w-10 text-on-surface-variant mb-3" />
-                <p className="text-body-md text-on-surface-variant">No applications yet</p>
+        {/* Continue Where You Left Off */}
+        <div className="mb-10">
+          <div className="mb-4">
+            <h2 className="text-heading-3 text-text-primary">Continue where you left off</h2>
+            <p className="text-body-sm text-text-secondary mt-0.5">Jump back into your workflow</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {resumePoints.map((point) => {
+              const Icon = point.icon
+              return (
                 <button
-                  onClick={() => navigate('/jd-analysis')}
-                  className="text-label-md text-primary hover:underline mt-2"
+                  key={point.path}
+                  onClick={() => navigate(point.path)}
+                  className="flex items-center gap-3 w-full text-left bg-white border border-border rounded-lg p-4 hover:border-border-hover hover:shadow-card-hover transition-all duration-200 group"
                 >
-                  Analyze your first job description
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {applications.map((app) => (
-                  <div
-                    key={app._id}
-                    className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
-                    onClick={() => navigate(`/applications/${app._id}`)}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-body-md font-medium text-on-surface truncate">
-                        {app.role}
-                      </p>
-                      <p className="text-label-sm text-on-surface-variant">{app.company}</p>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0 ml-3">
-                      <StatusBadge status={app.status} />
-                      <span className="text-label-sm text-on-surface-variant">
-                        {new Date(app.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
+                  <Icon className="h-5 w-5 text-text-tertiary shrink-0 group-hover:text-primary transition-colors" />
+                  <div className="min-w-0">
+                    <p className="text-body-sm font-medium text-text-primary">{point.label}</p>
+                    <p className="text-meta text-text-tertiary mt-0.5">{point.desc}</p>
                   </div>
-                ))}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Recent Applications + Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card variant="default">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-heading-3 text-text-primary">Recent applications</h2>
+                  <p className="text-body-sm text-text-secondary mt-0.5">Your latest submissions</p>
+                </div>
+                {!loading && applications.length > 0 && (
+                  <button
+                    onClick={() => navigate('/applications')}
+                    className="flex items-center gap-1 text-body-sm text-primary hover:text-primary-hover transition-colors"
+                  >
+                    View all <ChevronRight className="h-4 w-4" />
+                  </button>
+                )}
               </div>
-            )}
-          </Card>
-        </div>
 
-        <div className="md:col-span-4">
-          <Card className="h-full">
-            <h3 className="text-headline-md text-on-surface mb-md">Activity Feed</h3>
-            <ActivityFeed items={activityItems} loading={loading} />
-          </Card>
+              {loading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between py-2">
+                      <div className="space-y-1.5">
+                        <Skeleton variant="text" />
+                        <Skeleton variant="text" className="w-1/2" />
+                      </div>
+                      <Skeleton variant="text" />
+                    </div>
+                  ))}
+                </div>
+              ) : applications.length === 0 ? (
+                <EmptyState
+                  icon={<Briefcase className="h-8 w-8" />}
+                  title="No applications yet"
+                  description="Start by analyzing a job description — we'll help you tailor your resume and track every application."
+                  action={{ label: 'Analyze a job', onClick: () => navigate('/jd-analysis') }}
+                />
+              ) : (
+                <div className="divide-y divide-border">
+                  {applications.map((app) => (
+                    <div
+                      key={app._id}
+                      className="flex items-center justify-between py-3 px-1 rounded-md hover:bg-surface-secondary transition-colors cursor-pointer -mx-1 first:-mt-1"
+                      onClick={() => navigate(`/applications/${app._id}`)}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="text-body-sm font-medium text-text-primary truncate">{app.role}</p>
+                        <p className="text-meta text-text-tertiary mt-0.5">{app.company}</p>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0 ml-3">
+                        <StatusBadge status={app.status} />
+                        <span className="text-meta text-text-tertiary whitespace-nowrap">
+                          {new Date(app.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          <div>
+            <Card variant="default">
+              <div className="mb-4">
+                <h2 className="text-heading-3 text-text-primary">Activity</h2>
+                <p className="text-body-sm text-text-secondary mt-0.5">What's been happening</p>
+              </div>
+
+              {loading ? (
+                <div className="space-y-3">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <Skeleton variant="text" className="!w-2 !h-2 rounded-full mt-1.5" />
+                      <div className="flex-1 space-y-1">
+                        <Skeleton variant="text" />
+                        <Skeleton variant="text" className="w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : activityItems.length === 0 || (activityItems.length === 1 && activityItems[0].action === 'Welcome to') && stats.total === 0 ? (
+                <EmptyState
+                  icon={<Clock className="h-8 w-8" />}
+                  title="No activity yet"
+                  description="Your recent actions will show up here as you start applying."
+                  action={{ label: 'Analyze a job', onClick: () => navigate('/jd-analysis') }}
+                />
+              ) : (
+                <div className="space-y-1 max-h-80 overflow-y-auto">
+                  {activityItems.map((item) => {
+                    const dotColor = item.type === 'interview' ? 'bg-primary' : item.type === 'note' ? 'bg-success' : 'bg-warning'
+                    return (
+                      <div key={item.id} className="flex items-start gap-3 py-2 rounded-md hover:bg-surface-secondary transition-colors -mx-1 px-1">
+                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${dotColor}`} />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-body-sm text-text-primary">
+                            {item.action} <span className="font-medium">{item.target}</span>
+                          </p>
+                          <p className="text-meta text-text-tertiary mt-0.5">{timeAgo(item.date)}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
         </div>
-      </BentoGrid>
+      </div>
     </AppLayout>
-  )
-}
-
-function Section({ title, description }: { title: string; description?: string }) {
-  return (
-    <div className="mb-md">
-      <h2 className="text-headline-md text-on-surface">{title}</h2>
-      {description && <p className="text-body-md text-on-surface-variant mt-0.5">{description}</p>}
-    </div>
   )
 }

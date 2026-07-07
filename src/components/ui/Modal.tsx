@@ -40,13 +40,13 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="fixed inset-0 bg-black/30 animate-fadeIn" />
-      <div className={`relative w-full ${sizeStyles[size]} bg-surface rounded-2xl shadow-xl max-h-[90vh] flex flex-col animate-scaleIn`}>
+      <div className={`relative w-full ${sizeStyles[size]} bg-white rounded-lg shadow-modal max-h-[90vh] flex flex-col animate-scaleIn`}>
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant shrink-0">
-            <h2 className="font-headline-md text-on-surface">{title}</h2>
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+            <h2 className="text-heading-3 text-text-primary">{title}</h2>
             <button
               onClick={onClose}
-              className="text-on-surface-variant hover:text-on-surface transition-colors"
+              className="text-text-tertiary hover:text-text-primary transition-colors"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
@@ -56,7 +56,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
         {!title && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface transition-colors z-10"
+            className="absolute top-4 right-4 text-text-tertiary hover:text-text-primary transition-colors z-10"
             aria-label="Close"
           >
             <X className="h-5 w-5" />

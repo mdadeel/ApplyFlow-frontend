@@ -1,3 +1,5 @@
+import { getInitials } from '../../lib/format'
+
 type AvatarSize = 'sm' | 'md' | 'lg';
 
 interface AvatarProps {
@@ -5,15 +7,6 @@ interface AvatarProps {
   name: string;
   size?: AvatarSize;
   className?: string;
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 export function Avatar({ src, name, size = 'md', className = '' }: AvatarProps) {

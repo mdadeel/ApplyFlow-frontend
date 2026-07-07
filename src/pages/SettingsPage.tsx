@@ -12,7 +12,6 @@ import { authService } from '../services/auth'
 import { getNotifications, markAsRead, dismiss, type NotificationItem } from '../services/notifications'
 import { useToast } from '../components/layout/useToast'
 import {
-  User,
   Save,
   AlertTriangle,
   Shield,
@@ -448,14 +447,15 @@ export function SettingsPage() {
             label="Full Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            icon={<User className="h-4 w-4" />}
           />
-          <Input
-            label="Email Address"
-            value={user?.email ?? ''}
-            disabled
-            helperText="Email cannot be changed"
-          />
+          <div>
+            <Input
+              label="Email Address"
+              value={user?.email ?? ''}
+              disabled
+            />
+            <p className="text-meta text-text-tertiary mt-1">Email cannot be changed</p>
+          </div>
           <div className="flex justify-end">
             <Button onClick={handleSaveProfile} loading={profileSaving} icon={<Save className="h-4 w-4" />}>
               Save Changes

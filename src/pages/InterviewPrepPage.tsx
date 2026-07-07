@@ -281,7 +281,7 @@ export function InterviewPrepPage() {
                           <span className="text-label-sm text-on-surface-variant">
                             Question {i + 1}
                           </span>
-                          <Badge variant="info" size="sm">
+                          <Badge variant="default">
                             {q.type}
                           </Badge>
                         </div>

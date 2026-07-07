@@ -22,15 +22,15 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'underline', classNa
           <button
             key={tab.id}
             onClick={() => onChange(tab.id)}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-label-sm font-medium transition-colors duration-150
+            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-meta font-medium transition-colors duration-150
               ${activeTab === tab.id
-                ? 'bg-primary-container text-on-primary'
-                : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
+                ? 'bg-primary text-white'
+                : 'bg-surface-secondary text-text-tertiary hover:bg-surface-tertiary'
               }`}
           >
             {tab.label}
             {tab.count !== undefined && (
-              <span className={`px-1.5 py-0.5 rounded-full text-label-sm ${activeTab === tab.id ? 'text-on-primary' : 'bg-surface-container-highest text-on-surface-variant'}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-meta ${activeTab === tab.id ? 'text-white' : 'bg-surface-tertiary text-text-tertiary'}`}>
                 {tab.count}
               </span>
             )}
@@ -41,20 +41,20 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'underline', classNa
   }
 
   return (
-    <div className={`flex border-b border-outline-variant ${className}`}>
+    <div className={`flex border-b border-border ${className}`}>
       {tabs.map((tab) => (
         <button
           key={tab.id}
           onClick={() => onChange(tab.id)}
-          className={`inline-flex items-center gap-2 px-4 py-3 text-label-md font-medium transition-colors duration-150 border-b-2 -mb-px relative
+          className={`inline-flex items-center gap-2 px-4 py-3 text-caption font-medium transition-colors duration-150 border-b-2 -mb-px relative
             ${activeTab === tab.id
               ? 'border-primary text-primary'
-              : 'border-transparent text-on-surface-variant hover:text-on-surface'
+              : 'border-transparent text-text-tertiary hover:text-text-primary'
             }`}
         >
           {tab.label}
           {tab.count !== undefined && (
-            <span className={`px-1.5 py-0.5 rounded-full text-label-sm ${activeTab === tab.id ? 'bg-primary-fixed text-primary' : 'bg-surface-container-highest text-on-surface-variant'}`}>
+            <span className={`px-1.5 py-0.5 rounded-full text-meta ${activeTab === tab.id ? 'bg-surface-tertiary text-primary' : 'bg-surface-tertiary text-text-tertiary'}`}>
               {tab.count}
             </span>
           )}

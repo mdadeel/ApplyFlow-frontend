@@ -16,16 +16,16 @@ const statusLabels: Record<Task['status'], string> = {
   done: 'Done',
 }
 
-const statusVariants: Record<Task['status'], 'default' | 'info' | 'success'> = {
+const statusVariants: Record<Task['status'], 'default' | 'success'> = {
   todo: 'default',
-  in_progress: 'info',
+  in_progress: 'default',
   done: 'success',
 }
 
-const priorityVariants: Record<Task['priority'], 'default' | 'warning' | 'error'> = {
+const priorityVariants: Record<Task['priority'], 'default' | 'warning' | 'danger'> = {
   low: 'default',
   medium: 'warning',
-  high: 'error',
+  high: 'danger',
 }
 
 function formatDate(dateStr?: string): string | null {
@@ -72,10 +72,10 @@ export function TaskCard({ task, onEdit, onDelete }: TaskCardProps) {
       )}
 
       <div className="flex items-center gap-2 flex-wrap">
-        <Badge variant={statusVariants[task.status]} size="sm">
+        <Badge variant={statusVariants[task.status]}>
           {statusLabels[task.status]}
         </Badge>
-        <Badge variant={priorityVariants[task.priority]} size="sm">
+        <Badge variant={priorityVariants[task.priority]}>
           {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)} priority
         </Badge>
         {dueDateLabel && (

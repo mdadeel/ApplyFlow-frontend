@@ -42,7 +42,7 @@ export function JDSummary({ analysis }: JDSummaryProps) {
             <p className="text-label-sm text-on-surface-variant mb-2">Required Skills</p>
             <div className="flex flex-wrap gap-1.5">
               {analysis.requiredSkills.map((skill) => (
-                <Badge key={skill} variant="info" size="sm">{skill}</Badge>
+                <Badge key={skill} variant="default">{skill}</Badge>
               ))}
               {analysis.requiredSkills.length === 0 && (
                 <span className="text-body-md text-on-surface-variant italic">None specified</span>
@@ -55,7 +55,7 @@ export function JDSummary({ analysis }: JDSummaryProps) {
               <p className="text-label-sm text-on-surface-variant mb-2">Nice-to-Have</p>
               <div className="flex flex-wrap gap-1.5">
                 {analysis.niceToHaveSkills.map((skill) => (
-                  <Badge key={skill} variant="default" size="sm">{skill}</Badge>
+                  <Badge key={skill} variant="default">{skill}</Badge>
                 ))}
               </div>
             </div>
@@ -66,7 +66,7 @@ export function JDSummary({ analysis }: JDSummaryProps) {
               <p className="text-label-sm text-on-surface-variant mb-2">ATS Keywords</p>
               <div className="flex flex-wrap gap-1.5">
                 {analysis.atsTerms.map((term) => (
-                  <Badge key={term} variant="default" size="sm">{term}</Badge>
+                  <Badge key={term} variant="default">{term}</Badge>
                 ))}
               </div>
             </div>

@@ -78,11 +78,12 @@ async function handleResponse<T>(response: Response): Promise<T> {
   return (body?.data ?? body) as T
 }
 
-export async function get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
+export async function get<T>(path: string, params?: Record<string, string | number | undefined>, signal?: AbortSignal): Promise<T> {
   const response = await fetch(buildUrl(path, params), {
     method: 'GET',
     headers: buildHeaders(),
     credentials: 'include',
+    ...(signal ? { signal } : {}),
   })
   return handleResponse<T>(response)
 }

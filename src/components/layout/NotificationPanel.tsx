@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Bell, Check, X, Loader2 } from '../../lib/icons'
+import { useNavigate } from 'react-router-dom'
+import { Bell, Check, X, Loader2, ArrowRight } from '../../lib/icons'
 import {
   getNotifications,
   markAsRead,
@@ -29,6 +30,7 @@ function formatTime(dateStr: string): string {
 }
 
 export function NotificationPanel({ onClose, onUnreadCountChange }: NotificationPanelProps) {
+  const navigate = useNavigate()
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -171,6 +173,20 @@ export function NotificationPanel({ onClose, onUnreadCountChange }: Notification
             ))}
           </ul>
         )}
+      </div>
+
+      {/* Footer with link to full notifications page */}
+      <div className="border-t border-outline-variant">
+        <button
+          onClick={() => {
+            onClose()
+            navigate('/community/notifications')
+          }}
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 text-label-sm text-primary hover:bg-primary-container/10 transition-colors font-medium"
+        >
+          <ArrowRight className="w-4 h-4" />
+          All Notifications
+        </button>
       </div>
     </div>
   )
