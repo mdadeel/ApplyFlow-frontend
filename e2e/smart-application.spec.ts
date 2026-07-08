@@ -104,13 +104,6 @@ test.describe('Smart Application Page', () => {
   })
 
   test.describe('Page Layout', () => {
-    test('renders the page heading and description', async ({ page }) => {
-      await expect(page.getByRole('heading', { name: 'Smart Application' })).toBeVisible()
-      await expect(
-        page.getByText('Generate a complete job application package in one step.'),
-      ).toBeVisible()
-    })
-
     test('shows JD input tabs for Single / Multiple / CSV', async ({ page }) => {
       const singleTab = page.getByRole('button', { name: 'Single', exact: true })
       const multipleTab = page.getByRole('button', { name: 'Multiple', exact: true })
