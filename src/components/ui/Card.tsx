@@ -11,12 +11,12 @@ interface CardProps {
 }
 
 const variantStyles: Record<CardVariant, string> = {
-  default: 'bg-white border border-border rounded-lg p-5',
-  hero: 'bg-white border border-border rounded-xl p-8',
-  compact: 'bg-white border border-border rounded-md p-3',
-  stat: 'bg-white border border-border rounded-lg p-5',
-  timeline: 'bg-white border-l-2 border-primary pl-5 py-4 pr-4',
-  ai: 'bg-gradient-to-br from-blue-50 to-white border border-primary/20 rounded-lg p-5',
+  default: 'bg-white border border-border rounded-lg p-6 shadow-card hover:shadow-card-hover transition-all duration-300',
+  hero: 'bg-white border border-border rounded-xl p-8 shadow-card hover:shadow-card-hover transition-all duration-300',
+  compact: 'bg-white border border-border rounded-lg p-4 shadow-card hover:shadow-card-hover transition-all duration-300',
+  stat: 'bg-white border border-border rounded-lg p-6 shadow-card hover:shadow-card-hover transition-all duration-300',
+  timeline: 'bg-white border-y border-r border-border border-l-4 border-l-primary rounded-r-lg pl-6 py-5 pr-5 shadow-card hover:shadow-card-hover transition-all duration-300',
+  ai: 'bg-gradient-to-br from-blue-50/40 to-white/95 border border-primary/10 rounded-lg p-6 shadow-card hover:shadow-card-hover transition-all duration-300',
 };
 
 export function Card({ children, variant = 'default', className = '', hover = false, onClick }: CardProps) {

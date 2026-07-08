@@ -12,6 +12,8 @@ interface SectionProps {
   children: ReactNode
   action?: SectionAction
   className?: string
+  titleClassName?: string
+  descriptionClassName?: string
 }
 
 export function Section({
@@ -20,6 +22,8 @@ export function Section({
   children,
   action,
   className = '',
+  titleClassName = 'text-heading-3',
+  descriptionClassName = 'text-body-sm',
 }: SectionProps) {
   return (
     <section className={`space-y-md ${className}`}>
@@ -27,10 +31,10 @@ export function Section({
         <div className="flex items-center justify-between gap-4">
           <div className="space-y-0.5">
             {title && (
-              <h2 className="text-headline-md text-on-surface">{title}</h2>
+              <h2 className={`${titleClassName} text-text-primary`}>{title}</h2>
             )}
             {description && (
-              <p className="text-body-md text-on-surface-variant">
+              <p className={`${descriptionClassName} text-text-secondary`}>
                 {description}
               </p>
             )}

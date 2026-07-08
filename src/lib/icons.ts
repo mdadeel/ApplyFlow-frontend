@@ -110,4 +110,6 @@ export const Sparkles = P.Sparkle
 export const ThumbsUp = P.ThumbsUp
 export const Trash2 = P.Trash
 export const Zap = P.Lightning
+export const Filter = P.Funnel
+export const ListFilter = P.FunnelSimple
 

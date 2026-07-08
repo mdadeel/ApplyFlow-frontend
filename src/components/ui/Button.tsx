@@ -13,17 +13,17 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-white hover:bg-primary-hover shadow-sm active:shadow-none',
-  secondary: 'bg-white text-text-primary border border-border hover:border-border-hover hover:bg-surface-secondary active:bg-surface-tertiary',
-  ghost: 'text-text-secondary hover:text-text-primary hover:bg-surface-secondary active:bg-surface-tertiary',
+  secondary: 'bg-white text-text-primary border border-border hover:border-primary hover:bg-primary hover:text-white active:bg-primary-hover shadow-sm',
+  ghost: 'text-text-secondary hover:text-white hover:bg-primary active:bg-primary-hover',
   inline: 'text-primary hover:text-primary-hover underline-offset-2 hover:underline p-0',
-  icon: 'text-text-secondary hover:text-text-primary hover:bg-surface-secondary active:bg-surface-tertiary',
+  icon: 'text-text-secondary hover:text-white hover:bg-primary active:bg-primary-hover',
   danger: 'bg-danger text-white hover:bg-red-700 shadow-sm active:shadow-none',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
   sm: 'h-8 px-3 gap-1.5 text-caption rounded-md',
-  md: 'h-10 px-4 gap-2 text-body-sm rounded-lg',
-  lg: 'h-12 px-6 gap-2.5 rounded-lg text-body-sm',
+  md: 'h-10 px-4 gap-2 text-body-sm rounded-md',
+  lg: 'h-12 px-6 gap-2.5 rounded-md text-body-sm',
 };
 
 export function Button({

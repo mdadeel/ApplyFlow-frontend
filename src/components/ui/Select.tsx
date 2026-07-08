@@ -30,10 +30,10 @@ export function Select({ label, options, value, onChange, error, placeholder, cl
           id={selectId}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full h-10 appearance-none rounded-lg border bg-white text-body-sm text-text-primary outline-none transition-colors duration-150 pl-3 pr-10 cursor-pointer
+          className={`w-full h-10 appearance-none rounded-lg border bg-neutral-50 border-neutral-300 text-body-sm text-text-primary outline-none transition-colors duration-150 pl-3 pr-10 cursor-pointer
             ${error
               ? 'border-danger focus:border-danger focus:ring-2 focus:ring-danger/20'
-              : 'border-border focus:border-primary focus:ring-2 focus:ring-primary/20'
+              : 'focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 hover:border-neutral-400'
             }
             disabled:bg-surface-secondary disabled:cursor-not-allowed disabled:opacity-50`}
         >
