@@ -9,17 +9,12 @@ import { communityEmptyStates } from '../../components/community/communityEmptyS
 import { useToast } from '../../components/layout/useToast'
 import {
   FileText,
-  Filter,
-  Grid,
-  ListFilter,
   Star,
   Download,
   Loader2,
 } from '../../lib/icons'
 import {
   listTemplates,
-  getTemplate,
-  createTemplate,
   likeTemplate,
   downloadTemplate,
   type CommunityTemplate,

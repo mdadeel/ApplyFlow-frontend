@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Avatar } from '../layout/Avatar'
 import { useAuthStore } from '../../stores/authStore'
 import { authService } from '../../services/auth'
-import { Button } from '../../ui/Button'
+import { Button } from '../ui/Button'
 
 export function AvatarUploader() {
   const { user, setUser } = useAuthStore()
