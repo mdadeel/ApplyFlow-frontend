@@ -3,13 +3,78 @@ import { AppLayout } from '../components/layout/AppLayout'
 import { Card } from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton'
 import { analyticsService } from '../services/analytics'
-import { Lightbulb, Info, AlertTriangle, CheckCircle, Sparkles } from '../lib/icons'
+import { Lightbulb, AlertTriangle, Sparkles, Award, TrendingUp } from '../lib/icons'
 
-function insightSeverity(message: string): 'positive' | 'warning' | 'info' {
+interface InsightTypeConfig {
+  icon: any
+  label: string
+  bgClass: string
+  borderClass: string
+  textClass: string
+  iconBgClass: string
+  iconTextClass: string
+}
+
+function getInsightConfig(message: string): InsightTypeConfig {
   const lower = message.toLowerCase()
-  if (lower.includes('offer') || lower.includes('great') || lower.includes('progress')) return 'positive'
-  if (lower.includes('consider') || lower.includes('practicing') || lower.includes('tailoring')) return 'warning'
-  return 'info'
+  
+  if (lower.includes('offer') || lower.includes('great progress') || lower.includes('success') || lower.includes('achieved')) {
+    return {
+      icon: Award,
+      label: 'Achievement',
+      bgClass: 'bg-emerald-50/40',
+      borderClass: 'border-emerald-500/20',
+      textClass: 'text-emerald-800',
+      iconBgClass: 'bg-emerald-100',
+      iconTextClass: 'text-emerald-700',
+    }
+  }
+  
+  if (lower.includes('low match') || lower.includes('missing') || lower.includes('attention') || lower.includes('critical') || lower.includes('improve')) {
+    return {
+      icon: AlertTriangle,
+      label: 'Attention Required',
+      bgClass: 'bg-red-50/40',
+      borderClass: 'border-red-500/20',
+      textClass: 'text-red-800',
+      iconBgClass: 'bg-red-100',
+      iconTextClass: 'text-red-700',
+    }
+  }
+
+  if (lower.includes('predict') || lower.includes('likely') || lower.includes('chance') || lower.includes('outlook') || lower.includes('probability')) {
+    return {
+      icon: TrendingUp,
+      label: 'AI Prediction',
+      bgClass: 'bg-indigo-50/40',
+      borderClass: 'border-indigo-500/20',
+      textClass: 'text-indigo-800',
+      iconBgClass: 'bg-indigo-100',
+      iconTextClass: 'text-indigo-700',
+    }
+  }
+
+  if (lower.includes('consider') || lower.includes('practicing') || lower.includes('tailoring') || lower.includes('try') || lower.includes('recommend')) {
+    return {
+      icon: Sparkles,
+      label: 'AI Suggestion',
+      bgClass: 'bg-violet-50/40',
+      borderClass: 'border-violet-500/20',
+      textClass: 'text-violet-800',
+      iconBgClass: 'bg-violet-100',
+      iconTextClass: 'text-violet-700',
+    }
+  }
+
+  return {
+    icon: Lightbulb,
+    label: 'Insight Tip',
+    bgClass: 'bg-blue-50/40',
+    borderClass: 'border-blue-500/20',
+    textClass: 'text-blue-800',
+    iconBgClass: 'bg-blue-100',
+    iconTextClass: 'text-blue-700',
+  }
 }
 
 export function AIInsightsPage() {
@@ -83,57 +148,23 @@ export function AIInsightsPage() {
           </Card>
         ) : (
           insights.map((message, i) => {
-            const severity = insightSeverity(message)
+            const config = getInsightConfig(message)
+            const Icon = config.icon
             return (
               <Card
                 key={i}
-                className={`flex items-start gap-4 p-md transition-all duration-300 border hover:shadow-sm
-                  ${
-                    severity === 'positive'
-                      ? 'bg-emerald-50/30 border-emerald-500/20 dark:bg-emerald-500/5'
-                      : severity === 'warning'
-                      ? 'bg-amber-50/30 border-amber-500/20 dark:bg-amber-500/5'
-                      : 'bg-blue-50/30 border-blue-500/20 dark:bg-blue-500/5'
-                  }`}
+                className={`flex items-start gap-5 p-6 transition-all duration-300 border ${config.bgClass} ${config.borderClass}`}
               >
-                <div
-                  className={`p-2 rounded-lg shrink-0
-                    ${
-                      severity === 'positive'
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'
-                        : severity === 'warning'
-                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
-                    }`}
-                >
-                  {severity === 'positive' ? (
-                    <CheckCircle className="h-5 w-5" />
-                  ) : severity === 'warning' ? (
-                    <AlertTriangle className="h-5 w-5" />
-                  ) : (
-                    <Info className="h-5 w-5" />
-                  )}
+                <div className={`p-2.5 rounded-xl shrink-0 ${config.iconBgClass} ${config.iconTextClass} shadow-sm`}>
+                  <Icon className="h-5 w-5" />
                 </div>
                 <div className="flex-1 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span
-                      className={`text-label font-semibold tracking-wide uppercase
-                        ${
-                          severity === 'positive'
-                            ? 'text-emerald-700 dark:text-emerald-400'
-                            : severity === 'warning'
-                            ? 'text-amber-700 dark:text-amber-400'
-                            : 'text-blue-700 dark:text-blue-400'
-                        }`}
-                    >
-                      {severity === 'positive'
-                        ? 'Success Path'
-                        : severity === 'warning'
-                        ? 'Attention Needed'
-                        : 'Info / Tip'}
+                    <span className={`text-caption font-bold tracking-wider uppercase ${config.textClass}`}>
+                      {config.label}
                     </span>
                   </div>
-                  <p className="text-body text-text-primary leading-relaxed">{message}</p>
+                  <p className="text-body-sm text-text-primary leading-relaxed">{message}</p>
                 </div>
               </Card>
             )

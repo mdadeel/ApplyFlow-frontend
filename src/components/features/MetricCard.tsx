@@ -22,21 +22,21 @@ interface MetricCardProps {
 
 export function MetricCard({ title, value, subtitle, icon: Icon, color = 'primary', children }: MetricCardProps) {
   return (
-    <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden">
-      <div className="p-md">
-        <div className="flex items-start justify-between mb-3">
-          <div className="space-y-1">
-            <p className="text-label-md text-on-surface-variant">{title}</p>
-            <p className="text-headline-lg font-semibold text-on-surface">{value}</p>
-            {subtitle && <p className="text-body-md text-on-surface-variant">{subtitle}</p>}
+    <div className="bg-white border border-border rounded-xl shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden">
+      <div className="p-6">
+        <div className="flex items-start justify-between">
+          <div className="space-y-1.5">
+            <p className="text-caption text-text-secondary uppercase tracking-wider font-semibold">{title}</p>
+            <p className="text-headline-lg font-bold text-text-primary">{value}</p>
+            {subtitle && <p className="text-body-sm text-text-tertiary">{subtitle}</p>}
           </div>
-          <div className={`p-2.5 rounded-xl ${iconBgAccents[color]} text-white shrink-0`}>
+          <div className={`p-3 rounded-xl ${iconBgAccents[color]} text-white shrink-0 shadow-sm`}>
             <Icon className="h-5 w-5" />
           </div>
         </div>
       </div>
       {children && (
-        <div className="border-t border-outline-variant p-md bg-surface-container-low">
+        <div className="border-t border-border p-5 bg-surface-secondary">
           {children}
         </div>
       )}

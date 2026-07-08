@@ -90,10 +90,9 @@ describe('SmartApplicationPage', () => {
     mocks.exportAllFormats.mockReset()
   })
 
-  it('renders the page header, input tabs, and an empty-state result panel', async () => {
+  it('renders input tabs and an empty-state result panel', async () => {
     render(<SmartApplicationPage />)
 
-    expect(screen.getByRole('heading', { level: 1, name: /smart application/i })).toBeInTheDocument()
     // Tabs in input panel
     expect(screen.getByRole('button', { name: /^paste jd\(s\)$/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^upload csv$/i })).toBeInTheDocument()

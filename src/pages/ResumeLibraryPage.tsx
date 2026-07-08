@@ -401,24 +401,24 @@ export function ResumeLibraryPage() {
           {/* Resume Detail Panel */}
           <div className="min-h-0">
             {detailLoading ? (
-              <div className="space-y-4">
+              <Card className="p-6 space-y-4">
                 <Skeleton variant="rectangular" height={40} />
                 <Skeleton variant="rectangular" height={200} />
-              </div>
+              </Card>
             ) : selectedResume ? (
-              <div className="space-y-4">
+              <Card className="p-6 space-y-6">
                 {/* Resume header */}
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-3 border-b border-border pb-4">
                   <div>
-                    <h3 className="text-headline-sm text-on-surface">{selectedResume.fileName}</h3>
-                    <p className="text-label-sm text-on-surface-variant">
+                    <h3 className="text-heading-2 font-bold text-text-primary">{selectedResume.fileName}</h3>
+                    <p className="text-caption text-text-tertiary mt-1.5 font-medium">
                       {selectedResume.fileType.toUpperCase()} · Uploaded {new Date(selectedResume.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
 
                 {/* Section tabs */}
-                <div className="flex flex-wrap gap-1 border-b border-outline-variant pb-1">
+                <div className="flex flex-wrap gap-1 border-b border-border pb-1">
                   {sectionTabs.map((tab) => {
                     const count = sectionCount(tab.id)
                     const Icon = tab.icon
@@ -426,17 +426,17 @@ export function ResumeLibraryPage() {
                       <button
                         key={tab.id}
                         onClick={() => setActiveSection(tab.id)}
-                        className={`flex items-center gap-1.5 px-3 py-2 rounded-t-lg text-label-sm font-medium transition-colors ${
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-t-lg text-caption font-semibold transition-colors ${
                           activeSection === tab.id
                             ? 'text-primary border-b-2 border-primary'
-                            : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
+                            : 'text-text-secondary hover:text-text-primary hover:bg-neutral-50'
                         }`}
                       >
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-4 w-4 shrink-0" />
                         {tab.label}
                         {count > 0 && (
-                          <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[11px] ${
-                            activeSection === tab.id ? 'bg-primary/10 text-primary' : 'bg-surface-container-high text-on-surface-variant'
+                          <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            activeSection === tab.id ? 'bg-primary/10 text-primary' : 'bg-neutral-100 text-text-tertiary'
                           }`}>
                             {count}
                           </span>
@@ -447,14 +447,14 @@ export function ResumeLibraryPage() {
                 </div>
 
                 {/* Section content */}
-                <div className="pb-lg">
+                <div className="bg-surface-secondary border border-border rounded-xl p-6 min-h-[360px] shadow-sm">
                   {renderSectionContent()}
                 </div>
-              </div>
+              </Card>
             ) : (
-              <div className="flex items-center justify-center h-48">
-                <p className="text-body-md text-on-surface-variant">Select a resume to view details.</p>
-              </div>
+              <Card className="flex items-center justify-center h-64">
+                <p className="text-body-sm text-text-tertiary font-semibold">Select a resume to view details.</p>
+              </Card>
             )}
           </div>
         </div>

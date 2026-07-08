@@ -102,13 +102,13 @@ export function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="animate-fade-up">
+      <div className="animate-fade-up space-y-12">
         {/* Greeting + Today's Progress */}
-        <div className="mb-10">
-          <h1 className="text-display text-text-primary">
+        <div>
+          <h1 className="text-display text-text-primary tracking-tight">
             {loading ? 'Welcome back' : `${timeBasedGreeting()}!`}
           </h1>
-          <p className="text-body text-text-secondary mt-2">
+          <p className="text-body-md text-text-secondary mt-3">
             {loading
               ? 'Loading your progress...'
               : stats.total > 0
@@ -118,39 +118,61 @@ export function DashboardPage() {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
-          <Card variant="stat">
-            <p className="text-meta text-text-tertiary uppercase tracking-wide mb-1">Total</p>
-            <p className="text-heading-2 text-text-primary">{loading ? '—' : stats.total}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card variant="stat" className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-caption text-text-tertiary uppercase tracking-wider font-semibold">Total</p>
+              <p className="text-headline-lg font-bold text-text-primary">{loading ? '—' : stats.total}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-blue-50/60 text-blue-600 flex items-center justify-center shrink-0">
+              <Briefcase className="h-5 w-5" />
+            </div>
           </Card>
-          <Card variant="stat">
-            <p className="text-meta text-text-tertiary uppercase tracking-wide mb-1">Active</p>
-            <p className="text-heading-2 text-text-primary">{loading ? '—' : stats.active}</p>
+          <Card variant="stat" className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-caption text-text-tertiary uppercase tracking-wider font-semibold">Active</p>
+              <p className="text-headline-lg font-bold text-text-primary">{loading ? '—' : stats.active}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-indigo-50/60 text-indigo-600 flex items-center justify-center shrink-0">
+              <Clock className="h-5 w-5" />
+            </div>
           </Card>
-          <Card variant="stat">
-            <p className="text-meta text-text-tertiary uppercase tracking-wide mb-1">Interviews</p>
-            <p className="text-heading-2 text-text-primary">{loading ? '—' : stats.interviews}</p>
+          <Card variant="stat" className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-caption text-text-tertiary uppercase tracking-wider font-semibold">Interviews</p>
+              <p className="text-headline-lg font-bold text-text-primary">{loading ? '—' : stats.interviews}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-amber-50/60 text-amber-600 flex items-center justify-center shrink-0">
+              <MessageSquare className="h-5 w-5" />
+            </div>
           </Card>
-          <Card variant="stat">
-            <p className="text-meta text-text-tertiary uppercase tracking-wide mb-1">Offers</p>
-            <p className="text-heading-2 text-text-primary">{loading ? '—' : stats.offers}</p>
+          <Card variant="stat" className="flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-caption text-text-tertiary uppercase tracking-wider font-semibold">Offers</p>
+              <p className="text-headline-lg font-bold text-text-primary">{loading ? '—' : stats.offers}</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50/60 text-emerald-600 flex items-center justify-center shrink-0">
+              <Sparkles className="h-5 w-5" />
+            </div>
           </Card>
         </div>
 
         {/* AI Suggestions */}
-        <div className="mb-10">
-          <Card variant="ai">
+        <div>
+          <Card variant="ai" className="p-6">
             <div className="flex items-start gap-4">
-              <Sparkles className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <Sparkles className="h-5 w-5" />
+              </div>
               <div className="min-w-0 flex-1">
-                <h2 className="text-heading-3 text-text-primary mb-1">Things you can do</h2>
-                <div className="space-y-2">
+                <h2 className="text-heading-3 text-text-primary font-bold mb-3">AI Suggestions</h2>
+                <div className="space-y-3">
                   {AI_SUGGESTIONS.map((suggestion, i) => (
-                    <div key={i} className="flex items-center justify-between gap-4">
-                      <p className="text-body-sm text-text-secondary">{suggestion.text}</p>
+                    <div key={i} className="flex items-center justify-between gap-4 py-1.5 border-b border-border last:border-0">
+                      <p className="text-body-sm text-text-secondary leading-relaxed">{suggestion.text}</p>
                       <button
                         onClick={() => navigate(suggestion.path)}
-                        className="text-body-sm text-primary hover:text-primary-hover whitespace-nowrap shrink-0 transition-colors"
+                        className="text-body-sm font-semibold text-primary hover:text-primary-hover whitespace-nowrap shrink-0 transition-colors"
                       >
                         {suggestion.action} →
                       </button>
@@ -163,24 +185,26 @@ export function DashboardPage() {
         </div>
 
         {/* Continue Where You Left Off */}
-        <div className="mb-10">
+        <div>
           <div className="mb-4">
-            <h2 className="text-heading-3 text-text-primary">Continue where you left off</h2>
-            <p className="text-body-sm text-text-secondary mt-0.5">Jump back into your workflow</p>
+            <h2 className="text-heading-2 text-text-primary font-semibold">Continue where you left off</h2>
+            <p className="text-body-sm text-text-secondary mt-1">Jump back into your active job search flow</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {resumePoints.map((point) => {
               const Icon = point.icon
               return (
                 <button
                   key={point.path}
                   onClick={() => navigate(point.path)}
-                  className="flex items-center gap-3 w-full text-left bg-white border border-border rounded-lg p-4 hover:border-border-hover hover:shadow-card-hover transition-all duration-200 group"
+                  className="flex items-center gap-4 w-full text-left bg-white border border-border rounded-xl p-5 hover:border-border-hover hover:shadow-card-hover transition-all duration-300 group shadow-card"
                 >
-                  <Icon className="h-5 w-5 text-text-tertiary shrink-0 group-hover:text-primary transition-colors" />
+                  <div className="w-10 h-10 rounded-xl bg-neutral-50 text-text-secondary flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300">
+                    <Icon className="h-5 w-5" />
+                  </div>
                   <div className="min-w-0">
-                    <p className="text-body-sm font-medium text-text-primary">{point.label}</p>
-                    <p className="text-meta text-text-tertiary mt-0.5">{point.desc}</p>
+                    <p className="text-body-sm font-semibold text-text-primary group-hover:text-primary transition-colors">{point.label}</p>
+                    <p className="text-caption text-text-tertiary mt-1 leading-normal">{point.desc}</p>
                   </div>
                 </button>
               )
@@ -191,16 +215,16 @@ export function DashboardPage() {
         {/* Recent Applications + Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <Card variant="default">
-              <div className="flex items-center justify-between mb-4">
+            <Card variant="default" className="h-full flex flex-col">
+              <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-heading-3 text-text-primary">Recent applications</h2>
-                  <p className="text-body-sm text-text-secondary mt-0.5">Your latest submissions</p>
+                  <h2 className="text-heading-2 text-text-primary font-semibold">Recent applications</h2>
+                  <p className="text-body-sm text-text-secondary mt-1">Status of your latest submissions</p>
                 </div>
                 {!loading && applications.length > 0 && (
                   <button
                     onClick={() => navigate('/applications')}
-                    className="flex items-center gap-1 text-body-sm text-primary hover:text-primary-hover transition-colors"
+                    className="flex items-center gap-1 text-body-sm font-semibold text-primary hover:text-primary-hover transition-colors"
                   >
                     View all <ChevronRight className="h-4 w-4" />
                   </button>
@@ -210,37 +234,40 @@ export function DashboardPage() {
               {loading ? (
                 <div className="space-y-3">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex items-center justify-between py-2">
-                      <div className="space-y-1.5">
-                        <Skeleton variant="text" />
-                        <Skeleton variant="text" className="w-1/2" />
+                    <div key={i} className="flex items-center justify-between py-2.5">
+                      <div className="space-y-1.5 flex-1 mr-4">
+                        <Skeleton variant="text" width="60%" />
+                        <Skeleton variant="text" width="40%" />
                       </div>
-                      <Skeleton variant="text" />
+                      <Skeleton variant="text" width="60px" />
                     </div>
                   ))}
                 </div>
               ) : applications.length === 0 ? (
-                <EmptyState
-                  icon={<Briefcase className="h-8 w-8" />}
-                  title="No applications yet"
-                  description="Start by analyzing a job description — we'll help you tailor your resume and track every application."
-                  action={{ label: 'Analyze a job', onClick: () => navigate('/jd-analysis') }}
-                />
+                <div className="flex-1 flex items-center justify-center py-6">
+                  <EmptyState
+                    icon={<Briefcase className="h-8 w-8" />}
+                    title="No applications yet"
+                    description="Start by analyzing a job description — we'll help you tailor your resume and track every application."
+                    action={{ label: 'Analyze a job', onClick: () => navigate('/jd-analysis') }}
+                    noCard
+                  />
+                </div>
               ) : (
-                <div className="divide-y divide-border">
+                <div className="divide-y divide-border -mx-2">
                   {applications.map((app) => (
                     <div
                       key={app._id}
-                      className="flex items-center justify-between py-3 px-1 rounded-md hover:bg-surface-secondary transition-colors cursor-pointer -mx-1 first:-mt-1"
+                      className="flex items-center justify-between py-4 px-3 rounded-xl hover:bg-surface-secondary/70 transition-all duration-200 cursor-pointer border border-transparent hover:border-border"
                       onClick={() => navigate(`/applications/${app._id}`)}
                     >
-                      <div className="min-w-0 flex-1">
-                        <p className="text-body-sm font-medium text-text-primary truncate">{app.role}</p>
-                        <p className="text-meta text-text-tertiary mt-0.5">{app.company}</p>
+                      <div className="min-w-0 flex-1 mr-4">
+                        <p className="text-body-sm font-semibold text-text-primary truncate">{app.role}</p>
+                        <p className="text-caption text-text-tertiary mt-1 font-medium">{app.company}</p>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0 ml-3">
+                      <div className="flex items-center gap-4 shrink-0">
                         <StatusBadge status={app.status} />
-                        <span className="text-meta text-text-tertiary whitespace-nowrap">
+                        <span className="text-caption text-text-tertiary whitespace-nowrap font-medium">
                           {new Date(app.createdAt).toLocaleDateString()}
                         </span>
                       </div>
@@ -252,17 +279,17 @@ export function DashboardPage() {
           </div>
 
           <div>
-            <Card variant="default">
-              <div className="mb-4">
-                <h2 className="text-heading-3 text-text-primary">Activity</h2>
-                <p className="text-body-sm text-text-secondary mt-0.5">What's been happening</p>
+            <Card variant="default" className="h-full flex flex-col">
+              <div className="mb-6">
+                <h2 className="text-heading-2 text-text-primary font-semibold">Activity</h2>
+                <p className="text-body-sm text-text-secondary mt-1">Timeline of recent events</p>
               </div>
 
               {loading ? (
                 <div className="space-y-3">
                   {Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="flex items-start gap-3">
-                      <Skeleton variant="text" className="!w-2 !h-2 rounded-full mt-1.5" />
+                      <Skeleton variant="text" className="!w-2 !h-2 rounded-full mt-2" />
                       <div className="flex-1 space-y-1">
                         <Skeleton variant="text" />
                         <Skeleton variant="text" className="w-1/3" />
@@ -271,24 +298,27 @@ export function DashboardPage() {
                   ))}
                 </div>
               ) : activityItems.length === 0 || (activityItems.length === 1 && activityItems[0].action === 'Welcome to') && stats.total === 0 ? (
-                <EmptyState
-                  icon={<Clock className="h-8 w-8" />}
-                  title="No activity yet"
-                  description="Your recent actions will show up here as you start applying."
-                  action={{ label: 'Analyze a job', onClick: () => navigate('/jd-analysis') }}
-                />
+                <div className="flex-1 flex items-center justify-center py-6">
+                  <EmptyState
+                    icon={<Clock className="h-8 w-8" />}
+                    title="No activity yet"
+                    description="Your recent actions will show up here as you start applying."
+                    action={{ label: 'Analyze a job', onClick: () => navigate('/jd-analysis') }}
+                    noCard
+                  />
+                </div>
               ) : (
-                <div className="space-y-1 max-h-80 overflow-y-auto">
+                <div className="space-y-1 overflow-y-auto max-h-[360px] pr-1 -mx-2">
                   {activityItems.map((item) => {
                     const dotColor = item.type === 'interview' ? 'bg-primary' : item.type === 'note' ? 'bg-success' : 'bg-warning'
                     return (
-                      <div key={item.id} className="flex items-start gap-3 py-2 rounded-md hover:bg-surface-secondary transition-colors -mx-1 px-1">
-                        <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${dotColor}`} />
+                      <div key={item.id} className="flex items-start gap-4 py-3.5 px-3 rounded-xl hover:bg-surface-secondary/70 transition-all duration-200 border border-transparent hover:border-border">
+                        <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${dotColor}`} />
                         <div className="min-w-0 flex-1">
-                          <p className="text-body-sm text-text-primary">
-                            {item.action} <span className="font-medium">{item.target}</span>
+                          <p className="text-body-sm text-text-primary leading-relaxed">
+                            {item.action} <span className="font-semibold text-text-primary">{item.target}</span>
                           </p>
-                          <p className="text-meta text-text-tertiary mt-0.5">{timeAgo(item.date)}</p>
+                          <p className="text-caption text-text-tertiary mt-1 font-medium">{timeAgo(item.date)}</p>
                         </div>
                       </div>
                     )

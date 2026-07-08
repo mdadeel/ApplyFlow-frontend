@@ -19,13 +19,6 @@ const iconColors: Record<AccentColor, string> = {
   info: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-500/20',
 };
 
-const hoverGlows: Record<AccentColor, string> = {
-  primary: 'hover:shadow-[0_0_20px_-3px_rgba(0,74,198,0.15)] hover:border-primary/40',
-  success: 'hover:shadow-[0_0_20px_-3px_rgba(16,185,129,0.15)] hover:border-emerald-500/40',
-  warning: 'hover:shadow-[0_0_20px_-3px_rgba(245,158,11,0.15)] hover:border-amber-500/40',
-  error: 'hover:shadow-[0_0_20px_-3px_rgba(239,68,68,0.15)] hover:border-red-500/40',
-  info: 'hover:shadow-[0_0_20px_-3px_rgba(59,130,246,0.15)] hover:border-blue-500/40',
-};
 
 interface StatCardProps {
   title: string;
@@ -38,18 +31,18 @@ interface StatCardProps {
 
 export function StatCard({ title, value, change, icon: Icon, description, accentColor = 'primary' }: StatCardProps) {
   return (
-    <div className={`bg-surface border border-outline-variant rounded-xl p-sm border-l-4 ${borderAccents[accentColor]} ${hoverGlows[accentColor]} transition-all duration-300 hover:bg-gradient-to-br hover:from-surface hover:to-surface-container-low/30 group`}>
+    <div className={`bg-white border border-border rounded-xl p-5 border-l-4 ${borderAccents[accentColor]} shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 group`}>
       <div className="flex items-start justify-between">
-        <div className="space-y-0.5">
-          <p className="text-label-sm text-on-surface-variant font-medium tracking-wide uppercase">{title}</p>
-          <p className="text-headline-md font-bold text-on-surface tracking-tight">{value}</p>
+        <div className="space-y-1">
+          <p className="text-caption text-text-secondary uppercase tracking-wider font-semibold">{title}</p>
+          <p className="text-headline-md font-bold text-text-primary tracking-tight">{value}</p>
         </div>
-        <div className={`p-3 rounded-xl ${iconColors[accentColor]} transition-transform duration-300 group-hover:scale-110`}>
+        <div className={`p-2.5 rounded-xl ${iconColors[accentColor]} transition-transform duration-300 group-hover:scale-105 shrink-0 shadow-sm`}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
       {change && (
-        <div className="flex items-center gap-1.5 mt-3 pt-2 border-t border-outline-variant/30">
+        <div className="flex items-center gap-1.5 mt-4 pt-3 border-t border-border">
           {change.trend === 'up' ? (
             <ArrowUp className="h-3.5 w-3.5 text-emerald-500" />
           ) : (
@@ -58,7 +51,7 @@ export function StatCard({ title, value, change, icon: Icon, description, accent
           <span className={`text-label-sm font-semibold ${change.trend === 'up' ? 'text-emerald-600' : 'text-red-600'}`}>
             {change.value}%
           </span>
-          {description && <span className="text-label-sm text-on-surface-variant/80 ml-1">{description}</span>}
+          {description && <span className="text-caption text-text-tertiary ml-1 font-medium">{description}</span>}
         </div>
       )}
     </div>

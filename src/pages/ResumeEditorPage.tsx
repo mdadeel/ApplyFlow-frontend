@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { AppLayout } from '../components/layout/AppLayout'
-import { Section } from '../components/layout/Section'
+import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Select } from '../components/ui/Select'
 import { ResumePreview } from '../components/features/ResumePreview'
@@ -125,116 +125,118 @@ export function ResumeEditorPage() {
 
   return (
     <AppLayout>
-      <div className="flex flex-col lg:flex-row gap-lg">
-        <div className="w-full lg:w-72 shrink-0 space-y-md">
-          <Section title="Template">
-            <Select
-              options={TEMPLATES}
-              value={template}
-              onChange={setTemplate}
-            />
-          </Section>
+      <div className="max-w-7xl mx-auto mb-6">
+        <h1 className="text-heading-1 text-text-primary">Resume Editor</h1>
+        <p className="text-body text-text-secondary mt-1">
+          Review, customize, and refine your tailored resume.
+        </p>
+      </div>
 
-          <Section title="Sections">
-            <div className="space-y-1.5">
-              {SECTION_LIST.map((section) => (
-                <label
-                  key={section.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container-low cursor-pointer transition-colors duration-150"
-                >
-                  <input
-                    type="checkbox"
-                    checked={visibleSections.includes(section.id)}
-                    onChange={() => toggleSection(section.id)}
-                    className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary"
-                  />
-                  <span className="text-body-md text-on-surface">{section.label}</span>
-                </label>
-              ))}
-            </div>
-          </Section>
-
-          <Button
-            onClick={handleGenerate}
-            loading={loading}
-            className="w-full"
-            icon={<Sparkles className="h-4 w-4" />}
-          >
-            Generate Resume
-          </Button>
-        </div>
-
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* Main Document Preview (Left) */}
         <div className="flex-1 min-w-0">
           {loading ? (
-            <Skeleton variant="rectangular" width="100%" height={600} />
+            <Card className="p-8 flex items-center justify-center min-h-[500px]">
+              <Skeleton variant="rectangular" width="100%" height={500} />
+            </Card>
           ) : generated ? (
             <ResumePreview content={content} />
           ) : (
-            <EmptyState
-              icon={<Eye className="h-12 w-12" />}
-              title="No Resume Yet"
-              description="Select a template, choose sections, and click 'Generate Resume' to see a preview."
-            />
+            <Card className="p-8 flex items-center justify-center min-h-[400px]">
+              <EmptyState
+                icon={<Eye className="h-12 w-12 text-text-tertiary" />}
+                title="No Resume Yet"
+                description="Select a template, choose your sections, and click 'Generate Resume' to see a preview."
+              />
+            </Card>
           )}
         </div>
 
-        <div className="w-full lg:w-64 shrink-0 space-y-md">
-          <Section title="Tools">
+        {/* Sidebar Controls (Right) */}
+        <div className="w-full lg:w-80 shrink-0 space-y-4">
+          {/* Card 1: Configuration */}
+          <Card className="p-4 space-y-4">
+            <div>
+              <h3 className="text-body-sm font-semibold text-text-primary uppercase tracking-wider mb-2">Resume Template</h3>
+              <Select
+                options={TEMPLATES}
+                value={template}
+                onChange={setTemplate}
+              />
+            </div>
+
+            <div className="border-t border-border pt-3">
+              <h3 className="text-body-sm font-semibold text-text-primary uppercase tracking-wider mb-2">Visible Sections</h3>
+              <div className="space-y-1">
+                {SECTION_LIST.map((section) => (
+                  <label
+                    key={section.id}
+                    className="flex items-center gap-2 p-1.5 rounded-md hover:bg-neutral-50 cursor-pointer transition-colors text-body-sm text-text-primary"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleSections.includes(section.id)}
+                      onChange={() => toggleSection(section.id)}
+                      className="h-4 w-4 rounded border-neutral-300 text-primary focus:ring-primary"
+                    />
+                    <span>{section.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <Button
+              onClick={handleGenerate}
+              loading={loading}
+              className="w-full gap-2"
+              icon={<Sparkles className="h-4 w-4" />}
+            >
+              {generated ? 'Regenerate Resume' : 'Generate Resume'}
+            </Button>
+          </Card>
+
+          {/* Card 2: AI Tools */}
+          <Card className="p-4 space-y-3">
+            <h3 className="text-body-sm font-semibold text-text-primary uppercase tracking-wider">AI Copilot Tools</h3>
             <div className="space-y-2">
               <Button
                 variant="secondary"
-                className="w-full justify-start"
+                className="w-full justify-start gap-2"
                 onClick={() => handleRegenerateSection('summary')}
                 disabled={!generated}
                 icon={<RefreshCw className="h-4 w-4" />}
               >
-                Regenerate Section
+                Regenerate Summary
               </Button>
               <Button
                 variant="secondary"
-                className="w-full justify-start"
+                className="w-full justify-start gap-2"
                 onClick={handleValidate}
                 disabled={!generated}
                 icon={<FileCheck className="h-4 w-4" />}
               >
-                Check ATS
+                Check ATS Score
               </Button>
               <Button
                 variant="secondary"
-                className="w-full justify-start"
+                className="w-full justify-start gap-2"
                 onClick={handleHumanize}
                 disabled={!generated}
                 icon={<Sparkles className="h-4 w-4" />}
               >
-                Humanize
+                Humanize Summary
               </Button>
               <Button
                 variant="secondary"
-                className="w-full justify-start"
+                className="w-full justify-start gap-2"
                 onClick={handleExport}
                 disabled={!generated}
                 icon={<Download className="h-4 w-4" />}
               >
-                Export
+                Export / Download
               </Button>
             </div>
-          </Section>
-
-          {generated && (
-            <div className="flex flex-col gap-2">
-              <Button onClick={handleValidate} className="w-full" icon={<FileCheck className="h-4 w-4" />}>
-                Validate
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={handleExport}
-                className="w-full"
-                icon={<Download className="h-4 w-4" />}
-              >
-                Export
-              </Button>
-            </div>
-          )}
+          </Card>
         </div>
       </div>
     </AppLayout>

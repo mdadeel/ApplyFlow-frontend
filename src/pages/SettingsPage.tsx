@@ -7,6 +7,7 @@ import { Select } from '../components/ui/Select'
 import { Dialog } from '../components/ui/Dialog'
 import { Tabs } from '../components/ui/Tabs'
 import { Toggle } from '../components/ui/Toggle'
+import { Card } from '../components/ui/Card'
 import { useAuthStore } from '../stores/authStore'
 import { authService } from '../services/auth'
 import { getNotifications, markAsRead, dismiss, type NotificationItem } from '../services/notifications'
@@ -438,166 +439,169 @@ export function SettingsPage() {
 
   function renderProfileTab() {
     return (
-      <div className="space-y-md">
-        <div>
-          <h3 className="text-body-md font-semibold text-on-surface">Account Settings</h3>
-          <p className="text-label-md text-on-surface-variant">Update your personal information and public profile.</p>
-        </div>
-        <div className="space-y-3 max-w-xl">
-          <div className="flex items-center gap-4">
-            <AvatarUploader />
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="mb-6">
+            <h3 className="text-heading-2 font-bold text-text-primary">Account Settings</h3>
+            <p className="text-body-sm text-text-secondary mt-1">Update your personal information and public profile.</p>
+          </div>
+          <div className="space-y-6 max-w-xl">
+            <div className="flex items-center gap-4">
+              <AvatarUploader />
+              <div>
+                <p className="text-body-sm font-semibold text-text-primary">Profile Picture</p>
+                <p className="text-caption text-text-tertiary mt-1">Upload a profile photo. JPG or PNG, max 5MB.</p>
+              </div>
+            </div>
+            <Input
+              label="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
             <div>
-              <p className="text-body-md font-medium text-on-surface">Profile Picture</p>
-              <p className="text-label-sm text-on-surface-variant">Upload a profile photo. JPG or PNG, max 5MB.</p>
+              <Input
+                label="Email Address"
+                value={user?.email ?? ''}
+                disabled
+              />
+              <p className="text-caption text-text-tertiary mt-1">Email cannot be changed</p>
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button onClick={handleSaveProfile} loading={profileSaving} icon={<Save className="h-4 w-4" />}>
+                Save Changes
+              </Button>
             </div>
           </div>
-          <Input
-            label="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <div>
-            <Input
-              label="Email Address"
-              value={user?.email ?? ''}
-              disabled
-            />
-            <p className="text-meta text-text-tertiary mt-1">Email cannot be changed</p>
-          </div>
-          <div className="flex justify-end">
-            <Button onClick={handleSaveProfile} loading={profileSaving} icon={<Save className="h-4 w-4" />}>
-              Save Changes
-            </Button>
-          </div>
-        </div>
+        </Card>
 
-        <hr className="border-outline-variant" />
-
-        <div>
-          <h4 className="text-body-md font-semibold text-on-surface mb-2">Danger Zone</h4>
-          <div className="flex items-center justify-between gap-4 p-md rounded-lg border border-red-200 bg-red-50">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="p-1.5 rounded-md bg-red-100 text-red-600 shrink-0">
-                <AlertTriangle className="h-4 w-4" />
+        <Card className="border-red-200 bg-red-50/10 p-6">
+          <div className="mb-4">
+            <h3 className="text-heading-2 font-bold text-danger">Danger Zone</h3>
+            <p className="text-body-sm text-text-secondary mt-1">Irreversible actions regarding your account.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-red-200/50 bg-red-50/20">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="p-2 rounded-xl bg-red-100 text-red-600 shrink-0 shadow-sm">
+                <AlertTriangle className="h-5 w-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-body-md font-medium text-on-surface">Delete Account</p>
-                <p className="text-label-sm text-on-surface-variant">Permanently delete your account and all data.</p>
+                <p className="text-body-sm font-semibold text-text-primary">Delete Account</p>
+                <p className="text-caption text-text-secondary mt-0.5">Permanently delete your account and all data.</p>
               </div>
             </div>
             <Button variant="danger" size="sm" onClick={() => setShowDeleteDialog(true)} className="shrink-0">
-              Delete
+              Delete Account
             </Button>
           </div>
-        </div>
+        </Card>
       </div>
     )
   }
 
   function renderAIPreferencesTab() {
     return (
-      <div className="space-y-md">
-        <div>
-          <h3 className="text-body-md font-semibold text-on-surface">AI Preferences</h3>
-          <p className="text-label-md text-on-surface-variant">Configure how ApplyFlow AI interacts with your data.</p>
-        </div>
-        <div className="space-y-3 max-w-2xl">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Select
-              label="AI Provider"
-              value={preferences.aiProvider}
-              onChange={(v) => {
-                const providerDefaults: Record<string, { model: string }> = {
-                  openai: { model: 'gpt-4o' },
-                  anthropic: { model: 'claude-3-sonnet' },
-                  gemini: { model: 'gemini-pro' },
-                }
-                const defaults = providerDefaults[v] ?? { model: preferences.model }
-                setPreferences(prev => ({ ...prev, aiProvider: v, model: defaults.model }))
-              }}
-              options={[
-                { value: 'openai', label: 'OpenAI' },
-                { value: 'anthropic', label: 'Anthropic' },
-                { value: 'gemini', label: 'Google Gemini' },
-              ]}
-            />
-            <Select
-              label="Model"
-              value={preferences.model}
-              onChange={(v) => setPreferences(prev => ({ ...prev, model: v }))}
-              options={[
-                { value: 'gpt-4', label: 'GPT-4' },
-                { value: 'gpt-4o', label: 'GPT-4o' },
-                { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-                { value: 'claude-3-opus', label: 'Claude 3 Opus' },
-                { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' },
-                { value: 'gemini-pro', label: 'Gemini Pro' },
-              ]}
-            />
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="mb-6">
+            <h3 className="text-heading-2 font-bold text-text-primary">AI Preferences</h3>
+            <p className="text-body-sm text-text-secondary mt-1">Configure how ApplyFlow AI interacts with your data.</p>
           </div>
+          <div className="space-y-6 max-w-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Select
+                label="AI Provider"
+                value={preferences.aiProvider}
+                onChange={(v) => {
+                  const providerDefaults: Record<string, { model: string }> = {
+                    openai: { model: 'gpt-4o' },
+                    anthropic: { model: 'claude-3-sonnet' },
+                    gemini: { model: 'gemini-pro' },
+                  }
+                  const defaults = providerDefaults[v] ?? { model: preferences.model }
+                  setPreferences(prev => ({ ...prev, aiProvider: v, model: defaults.model }))
+                }}
+                options={[
+                  { value: 'openai', label: 'OpenAI' },
+                  { value: 'anthropic', label: 'Anthropic' },
+                  { value: 'gemini', label: 'Google Gemini' },
+                ]}
+              />
+              <Select
+                label="Model"
+                value={preferences.model}
+                onChange={(v) => setPreferences(prev => ({ ...prev, model: v }))}
+                options={[
+                  { value: 'gpt-4', label: 'GPT-4' },
+                  { value: 'gpt-4o', label: 'GPT-4o' },
+                  { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+                  { value: 'claude-3-opus', label: 'Claude 3 Opus' },
+                  { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet' },
+                  { value: 'gemini-pro', label: 'Gemini Pro' },
+                ]}
+              />
+            </div>
 
-          <div className="space-y-1">
-            <label className="font-label-md text-on-surface">
-              Temperature: {preferences.temperature.toFixed(1)}
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={preferences.temperature}
-              onChange={(e) => setPreferences(prev => ({ ...prev, temperature: parseFloat(e.target.value) }))}
-              className="w-full h-1.5 bg-surface-container-high rounded-full appearance-none cursor-pointer accent-primary"
-            />
-            <div className="flex justify-between text-label-sm text-on-surface-variant">
-              <span>Precise</span>
-              <span>Creative</span>
+            <div className="space-y-2">
+              <label className="text-body-sm font-semibold text-text-primary">
+                Temperature: {preferences.temperature.toFixed(1)}
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={preferences.temperature}
+                onChange={(e) => setPreferences(prev => ({ ...prev, temperature: parseFloat(e.target.value) }))}
+                className="w-full h-1.5 bg-neutral-200 rounded-full appearance-none cursor-pointer accent-primary"
+              />
+              <div className="flex justify-between text-caption text-text-tertiary font-semibold">
+                <span>Precise</span>
+                <span>Creative</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Select
+                label="Writing Tone"
+                value={preferences.writingTone}
+                onChange={(v) => setPreferences(prev => ({ ...prev, writingTone: v }))}
+                options={[
+                  { value: 'professional', label: 'Professional' },
+                  { value: 'confident', label: 'Confident' },
+                  { value: 'friendly', label: 'Friendly' },
+                  { value: 'enthusiastic', label: 'Enthusiastic' },
+                  { value: 'formal', label: 'Formal' },
+                ]}
+              />
+              <Select
+                label="Default Export Format"
+                value={preferences.defaultExportFormat}
+                onChange={(v) => setPreferences(prev => ({ ...prev, defaultExportFormat: v }))}
+                options={[
+                  { value: 'pdf', label: 'PDF' },
+                  { value: 'docx', label: 'DOCX' },
+                  { value: 'md', label: 'Markdown' },
+                ]}
+              />
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button onClick={handleSavePreferences} loading={prefSaving} icon={<Save className="h-4 w-4" />}>
+                Save Preferences
+              </Button>
             </div>
           </div>
+        </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Select
-              label="Writing Tone"
-              value={preferences.writingTone}
-              onChange={(v) => setPreferences(prev => ({ ...prev, writingTone: v }))}
-              options={[
-                { value: 'professional', label: 'Professional' },
-                { value: 'confident', label: 'Confident' },
-                { value: 'friendly', label: 'Friendly' },
-                { value: 'enthusiastic', label: 'Enthusiastic' },
-                { value: 'formal', label: 'Formal' },
-              ]}
-            />
-            <Select
-              label="Default Export Format"
-              value={preferences.defaultExportFormat}
-              onChange={(v) => setPreferences(prev => ({ ...prev, defaultExportFormat: v }))}
-              options={[
-                { value: 'pdf', label: 'PDF' },
-                { value: 'docx', label: 'DOCX' },
-                { value: 'md', label: 'Markdown' },
-              ]}
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <Button onClick={handleSavePreferences} loading={prefSaving} icon={<Save className="h-4 w-4" />}>
-              Save Preferences
-            </Button>
-          </div>
-        </div>
-
-        <hr className="border-outline-variant" />
-
-        <div className="space-y-3">
-          <div>
-            <h4 className="text-body-md font-semibold text-on-surface">Provider API Keys</h4>
-            <p className="text-label-md text-on-surface-variant">
+        <Card className="p-6">
+          <div className="mb-6">
+            <h3 className="text-heading-2 font-bold text-text-primary">Provider API Keys</h3>
+            <p className="text-body-sm text-text-secondary mt-1">
               Store your own keys so ApplyFlow AI can call providers on your behalf. Encrypted at rest, never displayed back.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {apiKeyProviders.map((provider) => {
               const configured = apiKeyConfigured[provider]
               const labelMap: Record<ApiKeyProvider, string> = {
@@ -609,13 +613,13 @@ export function SettingsPage() {
               const maskedPreview = configured ? `${provider.slice(0, 2)}-****` : 'Not configured'
               const inputId = `api-key-${provider}`
               return (
-                <div key={provider} className="rounded-lg border border-outline-variant p-3 space-y-2">
+                <div key={provider} className="rounded-xl border border-border p-4 space-y-3 bg-surface-secondary">
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <label htmlFor={inputId} className="text-body-md font-medium text-on-surface block truncate">
+                      <label htmlFor={inputId} className="text-body-sm font-semibold text-text-primary block truncate">
                         {labelMap[provider]}
                       </label>
-                      <p className="text-label-sm text-on-surface-variant font-mono">
+                      <p className="text-caption text-text-tertiary mt-0.5 font-mono font-medium">
                         {maskedPreview}
                       </p>
                     </div>
@@ -639,6 +643,7 @@ export function SettingsPage() {
                       placeholder={configured ? 'New key to replace' : `Paste ${labelMap[provider]} key`}
                       value={apiKeyInputs[provider]}
                       onChange={(e) => setApiKeyInputs(prev => ({ ...prev, [provider]: e.target.value }))}
+                      className="bg-white"
                     />
                     <Button
                       size="sm"
@@ -653,60 +658,67 @@ export function SettingsPage() {
               )
             })}
           </div>
-        </div>
+        </Card>
       </div>
     )
   }
 
   function renderSecurityTab() {
     return (
-      <div className="space-y-md">
-        <div>
-          <h3 className="text-body-md font-semibold text-on-surface">Security</h3>
-          <p className="text-label-md text-on-surface-variant">Manage your credentials and authentication.</p>
-        </div>
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="mb-4">
+            <h3 className="text-heading-2 font-bold text-text-primary">Two-Factor Authentication</h3>
+            <p className="text-body-sm text-text-secondary mt-1">Add an extra layer of security to your account.</p>
+          </div>
+          <div className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border bg-surface-secondary">
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="p-2 rounded-xl bg-neutral-100 text-text-secondary shrink-0 shadow-sm">
+                <Key className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-body-sm font-semibold text-text-primary">Enable Two-Factor Authentication</p>
+                <p className="text-caption text-text-tertiary mt-0.5">Use an authenticator app to secure your sign-in details.</p>
+              </div>
+            </div>
+            <Toggle checked={twoFactorEnabled} onChange={handleToggle2FA} disabled={twoFactorSaving} />
+          </div>
+        </Card>
 
-        <div className="flex items-center justify-between gap-4 p-3 rounded-lg border border-outline-variant bg-surface-container-low">
-          <div className="flex items-center gap-3 min-w-0">
-            <Key className="h-4 w-4 text-on-surface-variant shrink-0" />
-            <div className="min-w-0">
-              <p className="text-body-md font-medium text-on-surface">Two-factor authentication (2FA)</p>
-              <p className="text-label-sm text-on-surface-variant">Adds an extra layer of security.</p>
+        <Card className="p-6">
+          <div className="mb-4">
+            <h3 className="text-heading-2 font-bold text-text-primary">Change Password</h3>
+            <p className="text-body-sm text-text-secondary mt-1">Update your password regularly to keep your credentials safe.</p>
+          </div>
+          <div className="space-y-4 max-w-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Current Password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="Enter current password"
+              />
+              <Input
+                label="New Password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 8 characters"
+              />
+            </div>
+            <div className="flex justify-end pt-2">
+              <Button
+                onClick={handleChangePassword}
+                loading={passwordSaving}
+                icon={<Shield className="h-4 w-4" />}
+                disabled={!currentPassword || !newPassword}
+              >
+                Update Password
+              </Button>
             </div>
           </div>
-          <Toggle checked={twoFactorEnabled} onChange={handleToggle2FA} disabled={twoFactorSaving} />
-        </div>
-
-        <div className="rounded-lg border border-outline-variant p-3 space-y-3 max-w-2xl">
-          <h4 className="text-body-md font-medium text-on-surface">Change Password</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input
-              label="Current Password"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Enter current password"
-            />
-            <Input
-              label="New Password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="At least 8 characters"
-            />
-          </div>
-          <div className="flex justify-end">
-            <Button
-              size="sm"
-              onClick={handleChangePassword}
-              loading={passwordSaving}
-              icon={<Shield className="h-4 w-4" />}
-              disabled={!currentPassword || !newPassword}
-            >
-              Update Password
-            </Button>
-          </div>
-        </div>
+        </Card>
       </div>
     )
   }
@@ -762,57 +774,61 @@ export function SettingsPage() {
     ]
 
     return (
-      <div className="space-y-md">
-        <div>
-          <h3 className="text-body-md font-semibold text-on-surface">Integrations</h3>
-          <p className="text-label-md text-on-surface-variant">Connect third-party tools to streamline your applications.</p>
-        </div>
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="mb-6">
+            <h3 className="text-heading-2 font-bold text-text-primary">Integrations</h3>
+            <p className="text-body-sm text-text-secondary mt-1">Connect third-party tools to streamline your applications.</p>
+          </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {integrations.map((integration) => {
-            const Icon = integration.icon
-            const isConnected = connectedSet.has(integration.key)
-            const isOAuth = integration.oauthProvider !== undefined
-            return (
-              <div
-                key={integration.name}
-                className="flex items-center gap-3 p-3 rounded-lg border border-outline-variant hover:border-primary transition-colors"
-              >
-                <div className={`w-9 h-9 ${integration.iconBg} flex items-center justify-center rounded-md ${integration.iconColor} shrink-0`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-body-md font-medium text-on-surface truncate">{integration.name}</p>
-                  <p className="text-label-sm text-on-surface-variant truncate">{integration.description}</p>
-                </div>
-                {isConnected ? (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-primary text-label-sm font-medium">
-                    <CheckCircle className="h-3.5 w-3.5" />
-                    Connected
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {integrations.map((integration) => {
+              const Icon = integration.icon
+              const isConnected = connectedSet.has(integration.key)
+              const isOAuth = integration.oauthProvider !== undefined
+              return (
+                <div
+                  key={integration.name}
+                  className="flex items-center gap-4 p-4 rounded-xl border border-border bg-surface-secondary hover:border-border-hover hover:shadow-card-hover transition-all duration-300"
+                >
+                  <div className={`w-10 h-10 ${integration.iconBg} flex items-center justify-center rounded-xl ${integration.iconColor} shrink-0 shadow-sm`}>
+                    <Icon className="h-5 w-5" />
                   </div>
-                ) : isOAuth ? (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => openOAuthPopup(integration.oauthProvider!)}
-                  >
-                    <Link className="h-3.5 w-3.5" />
-                    Connect
-                  </Button>
-                ) : (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => toast.showToast(`${integration.name} integration coming soon`, 'info')}
-                  >
-                    <Link className="h-3.5 w-3.5" />
-                    Connect
-                  </Button>
-                )}
-              </div>
-            )
-          })}
-        </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-body-sm font-semibold text-text-primary truncate">{integration.name}</p>
+                    <p className="text-caption text-text-tertiary font-medium truncate mt-0.5">{integration.description}</p>
+                  </div>
+                  {isConnected ? (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 text-caption font-bold shrink-0">
+                      <CheckCircle className="h-3.5 w-3.5" />
+                      Connected
+                    </div>
+                  ) : isOAuth ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => openOAuthPopup(integration.oauthProvider!)}
+                      className="shrink-0"
+                    >
+                      <Link className="h-3.5 w-3.5" />
+                      Connect
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => toast.showToast(`${integration.name} integration coming soon`, 'info')}
+                      className="shrink-0"
+                    >
+                      <Link className="h-3.5 w-3.5" />
+                      Connect
+                    </Button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </Card>
       </div>
     )
   }
@@ -827,32 +843,32 @@ export function SettingsPage() {
     ]
 
     return (
-      <div className="space-y-md">
-        <div>
-          <h3 className="text-body-md font-semibold text-on-surface">Notifications</h3>
-          <p className="text-label-md text-on-surface-variant">Manage what notifications you receive.</p>
-        </div>
-
+      <div className="space-y-6">
         {notifications.length > 0 && (
-          <div className="space-y-2 max-w-2xl">
-            <h4 className="text-body-md font-medium text-on-surface">Recent Notifications</h4>
-            <div className="divide-y divide-outline-variant rounded-lg border border-outline-variant overflow-hidden">
+          <Card className="p-6">
+            <div className="mb-4">
+              <h3 className="text-heading-2 font-bold text-text-primary">Recent Notifications</h3>
+              <p className="text-body-sm text-text-secondary mt-1">Status logs from your active job search.</p>
+            </div>
+            <div className="divide-y divide-border border border-border rounded-xl overflow-hidden bg-surface-secondary">
               {notifications.map((n) => (
                 <div
                   key={n._id}
-                  className="flex items-start justify-between gap-3 px-3 py-2.5 hover:bg-surface-container-low transition-colors"
+                  className="flex items-start justify-between gap-4 p-4 hover:bg-neutral-50/50 transition-colors"
                 >
-                  <div className="flex items-start gap-2 min-w-0 flex-1">
-                    <Bell className="h-4 w-4 text-on-surface-variant mt-0.5 shrink-0" />
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <div className="p-1.5 rounded-lg bg-neutral-100 border border-border text-text-secondary mt-0.5 shrink-0">
+                      <Bell className="h-4 w-4" />
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-body-md font-medium text-on-surface truncate">{n.title}</p>
-                      <p className="text-label-sm text-on-surface-variant line-clamp-2">{n.message}</p>
-                      <p className="text-label-sm text-on-surface-variant">
+                      <p className="text-body-sm font-semibold text-text-primary truncate">{n.title}</p>
+                      <p className="text-caption text-text-secondary mt-0.5 line-clamp-2 leading-relaxed">{n.message}</p>
+                      <p className="text-[11px] text-text-tertiary font-medium mt-1">
                         {new Date(n.createdAt).toLocaleString()}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
                     {!n.read && (
                       <Button
                         variant="ghost"
@@ -877,37 +893,44 @@ export function SettingsPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
-        <div className="divide-y divide-outline-variant rounded-lg border border-outline-variant overflow-hidden max-w-2xl">
-          {notificationItems.map((item) => (
-            <div
-              key={item.key}
-              className="flex items-center justify-between gap-4 px-3 py-2.5 hover:bg-surface-container-low transition-colors"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="text-body-md font-medium text-on-surface">{item.label}</p>
-                <p className="text-label-sm text-on-surface-variant">{item.desc}</p>
-              </div>
-              <Toggle
-                checked={emailNotifications[item.key]}
-                onChange={(v) => setEmailNotifications(prev => ({ ...prev, [item.key]: v }))}
-              />
-            </div>
-          ))}
-        </div>
+        <Card className="p-6">
+          <div className="mb-6">
+            <h3 className="text-heading-2 font-bold text-text-primary">Notification Preferences</h3>
+            <p className="text-body-sm text-text-secondary mt-1">Choose how and when you receive updates.</p>
+          </div>
 
-        <div className="flex justify-end max-w-2xl">
-          <Button
-            size="sm"
-            onClick={handleSaveNotificationPreferences}
-            loading={savingNotifications}
-            icon={<Save className="h-4 w-4" />}
-          >
-            Save Preferences
-          </Button>
-        </div>
+          <div className="divide-y divide-border border border-border rounded-xl overflow-hidden bg-surface-secondary max-w-2xl mb-6">
+            {notificationItems.map((item) => (
+              <div
+                key={item.key}
+                className="flex items-center justify-between gap-4 p-4 hover:bg-neutral-50/50 transition-colors"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-body-sm font-semibold text-text-primary">{item.label}</p>
+                  <p className="text-caption text-text-secondary mt-0.5 leading-relaxed">{item.desc}</p>
+                </div>
+                <Toggle
+                  checked={emailNotifications[item.key]}
+                  onChange={(v) => setEmailNotifications(prev => ({ ...prev, [item.key]: v }))}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex justify-end max-w-2xl">
+            <Button
+              size="sm"
+              onClick={handleSaveNotificationPreferences}
+              loading={savingNotifications}
+              icon={<Save className="h-4 w-4" />}
+            >
+              Save Preferences
+            </Button>
+          </div>
+        </Card>
       </div>
     )
   }
@@ -922,21 +945,21 @@ export function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-md">
+      <div className="space-y-10 max-w-4xl">
         <div>
-          <h1 className="text-headline-md text-on-surface">Settings</h1>
-          <p className="text-label-md text-on-surface-variant">Manage your account and preferences.</p>
+          <h1 className="text-display text-text-primary tracking-tight">Settings</h1>
+          <p className="text-body-md text-text-secondary mt-1">Manage your workspace account preferences and API integrations.</p>
         </div>
 
-        <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden">
-          <div className="px-md">
+        <div className="flex flex-col gap-8">
+          <div className="border-b border-border pb-1">
             <Tabs
               tabs={tabs}
               activeTab={activeTab}
               onChange={(id) => setActiveTab(id as SettingsTab)}
             />
           </div>
-          <div className="p-md min-h-[280px]">
+          <div className="min-h-[280px]">
             {tabContent[activeTab]()}
           </div>
         </div>

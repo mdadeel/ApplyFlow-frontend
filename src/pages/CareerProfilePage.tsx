@@ -76,49 +76,49 @@ function ExperienceCard({
   onDelete?: () => void
 }) {
   return (
-    <Card className="p-md space-y-3 group hover:border-primary/30 transition-colors">
+    <Card className="p-6 space-y-4 group hover:border-primary/30 transition-all duration-300 shadow-card">
       <div className="flex items-start gap-4">
-        <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0 text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+        <div className="w-12 h-12 rounded-xl bg-neutral-50 border border-border flex items-center justify-center shrink-0 text-text-secondary group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 transition-all duration-300 shadow-sm">
           <Briefcase className="h-6 w-6" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <div className="space-y-0.5 min-w-0">
-              <h3 className="text-headline-sm text-on-surface">{item.role}</h3>
-              <p className="text-body-md text-on-surface-variant font-medium">{item.company}</p>
+            <div className="space-y-1 min-w-0">
+              <h3 className="text-heading-3 font-bold text-text-primary leading-snug">{item.role}</h3>
+              <p className="text-body-sm text-text-secondary font-semibold">{item.company}</p>
             </div>
-            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus-within:opacity-100">
               <button
                 onClick={onEdit}
-                className="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant"
+                className="p-1.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-border transition-all text-text-secondary hover:text-text-primary"
                 aria-label="Edit"
               >
                 <Pencil className="h-4 w-4" />
               </button>
               <button
                 onClick={onDelete}
-                className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-error"
+                className="p-1.5 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-100 transition-all text-danger"
                 aria-label="Delete"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
           </div>
-          <p className="text-label-sm text-on-surface-variant mt-1">
+          <p className="text-caption text-text-tertiary font-medium mt-1.5">
             {formatDate(item.startDate)} – {item.current ? 'Present' : formatDate(item.endDate || '')}
           </p>
           {item.responsibilities.length > 0 && (
-            <ul className="list-disc list-outside ml-4 mt-3 space-y-1">
+            <ul className="list-disc list-outside ml-4 mt-3.5 space-y-1.5">
               {item.responsibilities.slice(0, 3).map((r, i) => (
-                <li key={i} className="text-body-sm text-on-surface">{r}</li>
+                <li key={i} className="text-body-sm text-text-secondary leading-relaxed">{r}</li>
               ))}
               {item.responsibilities.length > 3 && (
-                <li className="text-label-sm text-on-surface-variant list-none -ml-4 mt-2">+{item.responsibilities.length - 3} more</li>
+                <li className="text-caption text-text-tertiary list-none -ml-4 mt-2">+{item.responsibilities.length - 3} more</li>
               )}
             </ul>
           )}
           {item.technologies.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
+            <div className="flex flex-wrap gap-1.5 mt-4">
               {item.technologies.map((t) => (
                 <Chip key={t} label={t} />
               ))}
@@ -140,35 +140,35 @@ function ProjectCard({
   onDelete?: () => void
 }) {
   return (
-    <Card className="p-md space-y-3 group hover:border-primary/30 transition-colors">
+    <Card className="p-6 space-y-4 group hover:border-primary/30 transition-all duration-300 shadow-card">
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center shrink-0 text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors mt-0.5">
-            <Code className="h-5 w-5" />
+        <div className="flex items-start gap-4 min-w-0">
+          <div className="w-12 h-12 rounded-xl bg-neutral-50 border border-border flex items-center justify-center shrink-0 text-text-secondary group-hover:bg-primary/10 group-hover:text-primary group-hover:border-primary/20 transition-all duration-300 shadow-sm">
+            <Code className="h-6 w-6" />
           </div>
           <div className="space-y-1 min-w-0">
-            <h3 className="text-headline-sm text-on-surface truncate">{item.title}</h3>
-            <p className="text-body-md text-on-surface-variant line-clamp-2">{item.description}</p>
+            <h3 className="text-heading-3 font-bold text-text-primary leading-snug truncate">{item.title}</h3>
+            <p className="text-body-sm text-text-secondary leading-relaxed line-clamp-2">{item.description}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus-within:opacity-100">
           <button
             onClick={onEdit}
-            className="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant"
+            className="p-1.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-border transition-all text-text-secondary hover:text-text-primary"
             aria-label="Edit"
           >
             <Pencil className="h-4 w-4" />
           </button>
           <button
             onClick={onDelete}
-            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-error"
+            className="p-1.5 rounded-lg hover:bg-red-50 border border-transparent hover:border-red-100 transition-all text-danger"
             aria-label="Delete"
           >
             <Trash2 className="h-4 w-4" />
           </button>
         </div>
       </div>
-      <div className="ml-13 space-y-3 pl-0.5">
+      <div className="ml-16 space-y-3.5 pl-0.5">
         {item.technologies.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {item.technologies.map((t) => (
@@ -177,23 +177,23 @@ function ProjectCard({
           </div>
         )}
         {item.features.length > 0 && (
-          <ul className="list-disc list-outside ml-4 mt-3 space-y-1">
+          <ul className="list-disc list-outside ml-4 mt-2 space-y-1.5">
             {item.features.slice(0, 3).map((f, i) => (
-              <li key={i} className="text-body-sm text-on-surface">{f}</li>
+              <li key={i} className="text-body-sm text-text-secondary leading-relaxed">{f}</li>
             ))}
             {item.features.length > 3 && (
-              <li className="text-label-sm text-on-surface-variant list-none -ml-4 mt-2">+{item.features.length - 3} more</li>
+              <li className="text-caption text-text-tertiary list-none -ml-4 mt-2">+{item.features.length - 3} more</li>
             )}
           </ul>
         )}
-        <div className="flex items-center gap-4 pt-1">
+        <div className="flex items-center gap-3 pt-1">
           {item.github && (
-            <a href={item.github} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-label-sm text-primary hover:underline bg-primary/5 px-2.5 py-1 rounded-md transition-colors hover:bg-primary/10">
+            <a href={item.github} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-caption font-semibold text-primary hover:text-primary-hover bg-primary/5 hover:bg-primary/10 border border-primary/10 px-3 py-1.5 rounded-md transition-colors">
               <Code2 className="h-3.5 w-3.5" /> Source Code
             </a>
           )}
           {item.demo && (
-            <a href={item.demo} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-label-sm text-primary hover:underline bg-primary/5 px-2.5 py-1 rounded-md transition-colors hover:bg-primary/10">
+            <a href={item.demo} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-caption font-semibold text-primary hover:text-primary-hover bg-primary/5 hover:bg-primary/10 border border-primary/10 px-3 py-1.5 rounded-md transition-colors">
               <ExternalLink className="h-3.5 w-3.5" /> Live Demo
             </a>
           )}

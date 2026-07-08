@@ -20,8 +20,8 @@ import {
   ChevronRight,
 } from '../lib/icons'
 
-const CHART_HEIGHT = 220
-const CHART_PADDING = { top: 20, right: 16, bottom: 32, left: 0 }
+const CHART_HEIGHT = 320
+const CHART_PADDING = { top: 20, right: 24, bottom: 32, left: 16 }
 
 interface AreaChartProps {
   data: ChartDataResponse['appsOverTime']
@@ -78,8 +78,8 @@ function AreaChart({ data, maxValue }: AreaChartProps) {
       >
         <defs>
           <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6366f1" stopOpacity={0.3} />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity={0.02} />
+            <stop offset="0%" stopColor="#2563eb" stopOpacity={0.15} />
+            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.01} />
           </linearGradient>
         </defs>
 
@@ -93,14 +93,14 @@ function AreaChart({ data, maxValue }: AreaChartProps) {
                 y1={y}
                 x2={width - CHART_PADDING.right}
                 y2={y}
-                stroke="#e2e8f0"
+                stroke="#f1f5f9"
                 strokeWidth={1}
               />
               <text
-                x={CHART_PADDING.left - 4}
+                x={CHART_PADDING.left - 6}
                 y={y + 4}
                 textAnchor="end"
-                className="fill-on-surface-variant text-[11px]"
+                className="fill-text-tertiary text-[10px] font-semibold"
               >
                 {Math.round(maxValue * frac)}
               </text>
@@ -115,7 +115,7 @@ function AreaChart({ data, maxValue }: AreaChartProps) {
         <path
           d={linePath}
           fill="none"
-          stroke="#6366f1"
+          stroke="#2563eb"
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -130,8 +130,8 @@ function AreaChart({ data, maxValue }: AreaChartProps) {
             key={i}
             cx={p.x}
             cy={p.y}
-            r={hoveredIndex === i ? 5 : 3}
-            fill="#6366f1"
+            r={hoveredIndex === i ? 5 : 3.5}
+            fill="#2563eb"
             stroke="white"
             strokeWidth={2}
             className="transition-all duration-150 cursor-pointer"
@@ -336,33 +336,33 @@ export function AnalyticsPage() {
                   <p className="text-label text-text-tertiary mt-2">Offer Rate</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-lg w-full mt-md">
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary">
+              <div className="grid grid-cols-2 gap-4 w-full mt-4">
+                <div className="flex items-center gap-3.5 p-4 rounded-xl bg-surface-secondary border border-border">
                   <FileText className="h-5 w-5 text-text-tertiary" />
                   <div>
-                    <p className="text-label text-text-tertiary">Applied</p>
-                    <p className="text-heading-3 font-semibold text-text-primary">{summary?.byStatus?.applied ?? 0}</p>
+                    <p className="text-caption text-text-secondary font-medium">Applied</p>
+                    <p className="text-heading-3 font-bold text-text-primary">{summary?.byStatus?.applied ?? 0}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary">
+                <div className="flex items-center gap-3.5 p-4 rounded-xl bg-surface-secondary border border-border">
                   <CheckCircle className="h-5 w-5 text-success" />
                   <div>
-                    <p className="text-label text-text-tertiary">Offers</p>
-                    <p className="text-heading-3 font-semibold text-text-primary">{summary?.byStatus?.offer ?? 0}</p>
+                    <p className="text-caption text-text-secondary font-medium">Offers</p>
+                    <p className="text-heading-3 font-bold text-text-primary">{summary?.byStatus?.offer ?? 0}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary">
+                <div className="flex items-center gap-3.5 p-4 rounded-xl bg-surface-secondary border border-border">
                   <Clock className="h-5 w-5 text-warning" />
                   <div>
-                    <p className="text-label text-text-tertiary">In Progress</p>
-                    <p className="text-heading-3 font-semibold text-text-primary">{summary?.byStatus?.interview ?? 0}</p>
+                    <p className="text-caption text-text-secondary font-medium">In Progress</p>
+                    <p className="text-heading-3 font-bold text-text-primary">{summary?.byStatus?.interview ?? 0}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-secondary">
+                <div className="flex items-center gap-3.5 p-4 rounded-xl bg-surface-secondary border border-border">
                   <XCircle className="h-5 w-5 text-danger" />
                   <div>
-                    <p className="text-label text-text-tertiary">Rejected</p>
-                    <p className="text-heading-3 font-semibold text-text-primary">{summary?.byStatus?.rejected ?? 0}</p>
+                    <p className="text-caption text-text-secondary font-medium">Rejected</p>
+                    <p className="text-heading-3 font-bold text-text-primary">{summary?.byStatus?.rejected ?? 0}</p>
                   </div>
                 </div>
               </div>

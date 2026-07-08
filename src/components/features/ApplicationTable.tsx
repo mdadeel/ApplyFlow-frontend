@@ -27,12 +27,12 @@ export function ApplicationTable({
 }: ApplicationTableProps) {
   if (loading) {
     return (
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-xl border border-border bg-white shadow-card">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-surface-secondary">
+            <tr className="bg-surface-secondary border-b border-border">
               {['Company', 'Role', 'Status', 'Match Score', 'Updated', 'Actions'].map((col) => (
-                <th key={col} className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">
+                <th key={col} className="px-6 py-3.5 text-left text-label-sm font-semibold text-text-secondary">
                   {col}
                 </th>
               ))}
@@ -42,7 +42,7 @@ export function ApplicationTable({
             {Array.from({ length: 5 }).map((_, i) => (
               <tr key={i} className="border-t border-border">
                 {Array.from({ length: 6 }).map((_, j) => (
-                  <td key={j} className="px-4 py-3">
+                  <td key={j} className="px-6 py-4">
                     <Skeleton variant="text" width="80%" />
                   </td>
                 ))}
@@ -56,27 +56,28 @@ export function ApplicationTable({
 
   if (applications.length === 0) {
     return (
-      <div className="rounded-lg border border-border">
+      <div className="rounded-xl border border-border bg-white shadow-card overflow-hidden">
         <EmptyState
           icon={<Briefcase className="h-8 w-8" />}
           title="No applications yet"
           description="Start by analyzing a job description to create your first application."
+          noCard
         />
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded-xl border border-border bg-white shadow-card">
       <table className="w-full border-collapse">
         <thead>
-          <tr className="bg-surface-secondary">
-            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Company</th>
-            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Role</th>
-            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Status</th>
-            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Match Score</th>
-            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Updated</th>
-            <th className="px-4 py-3 text-left text-meta font-medium text-text-tertiary">Actions</th>
+          <tr className="bg-surface-secondary border-b border-border">
+            <th className="px-6 py-3.5 text-left text-label-sm font-semibold text-text-secondary">Company</th>
+            <th className="px-6 py-3.5 text-left text-label-sm font-semibold text-text-secondary">Role</th>
+            <th className="px-6 py-3.5 text-left text-label-sm font-semibold text-text-secondary">Status</th>
+            <th className="px-6 py-3.5 text-left text-label-sm font-semibold text-text-secondary">Match Score</th>
+            <th className="px-6 py-3.5 text-left text-label-sm font-semibold text-text-secondary">Updated</th>
+            <th className="px-6 py-3.5 text-left text-label-sm font-semibold text-text-secondary">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -85,15 +86,15 @@ export function ApplicationTable({
             return (
               <tr
                 key={app._id}
-                className="border-t border-border hover:bg-surface-secondary transition-colors cursor-pointer"
+                className="border-t border-border hover:bg-surface-secondary/50 transition-all duration-200 cursor-pointer"
                 onClick={() => onRowClick?.(app)}
                 tabIndex={0}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') onRowClick?.(app);
                 }}
               >
-                <td className="px-4 py-3 text-body font-medium text-text-primary">{app.company}</td>
-                <td className="px-4 py-3 text-body text-text-primary">{app.role}</td>
+                <td className="px-6 py-4 text-body-sm font-semibold text-text-primary">{app.company}</td>
+                <td className="px-6 py-4 text-body-sm text-text-secondary">{app.role}</td>
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <Dropdown
                     align="left"
@@ -143,7 +144,7 @@ export function ApplicationTable({
                     ]}
                   />
                 </td>
-                <td className="px-4 py-3 max-w-[160px]">
+                <td className="px-6 py-4 max-w-[160px]">
                   <ProgressBar
                     value={score}
                     size="sm"
@@ -151,10 +152,10 @@ export function ApplicationTable({
                     showLabel
                   />
                 </td>
-                <td className="px-4 py-3 text-body-sm text-text-secondary whitespace-nowrap">
+                <td className="px-6 py-4 text-body-sm text-text-secondary whitespace-nowrap">
                   {formatDate(app.updatedAt)}
                 </td>
-                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                   <Dropdown
                     align="right"
                     trigger={
