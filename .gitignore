@@ -25,3 +25,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+playwright-report/data/026dff36fa5405a91e451b8d2dc6115d7afbcd7c.md
+playwright-report/data/78485ad26ab49de2007fe98b0854715a58aaf5b6.png
+test-results/auth.setup.ts-authenticate-and-capture-storage-state-auth-setup/test-failed-1.png
+test-results/auth.setup.ts-authenticate-and-capture-storage-state-auth-setup/test-failed-1.png
+test-results/auth.setup.ts-authenticate-and-capture-storage-state-auth-setup/error-context.md

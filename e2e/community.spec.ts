@@ -823,7 +823,7 @@ test.describe('Community Module (Authenticated)', () => {
       })
 
       await page.goto('/community/feed')
-      await expect(page.getByText('Your feed is quiet rigout: 10_000 })
+      await expect(page.getByText('Your feed is quiet right: 10_000 })
       await expect(page.getByTestId('empty-state')).toBeVisible()
     })
 
