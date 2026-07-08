@@ -33,6 +33,12 @@ export function updateProfile(data: { name: string }): Promise<User> {
   return put<User>('/profile/personal/', data)
 }
 
+export function uploadAvatar(file: File): Promise<{ url: string }> {
+  const form = new FormData()
+  form.append('avatar', file)
+  return post<{ url: string }>('/auth/avatar', form)
+}
+
 export function saveApiKey(provider: string, key: string): Promise<User> {
   return post<User>('/auth/api-key', { provider, key })
 }
@@ -60,6 +66,7 @@ export const authService = {
   logout,
   getMe,
   updateProfile,
+  uploadAvatar,
   updatePreferences,
   getPreferences,
   saveApiKey,

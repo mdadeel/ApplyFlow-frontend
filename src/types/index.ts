@@ -7,6 +7,7 @@ export interface User {
   _id: string
   email: string
   name: string
+  avatarUrl?: string
   authProvider: string
   onboardingComplete: boolean
   preferences: UserPreferences

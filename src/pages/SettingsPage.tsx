@@ -11,6 +11,7 @@ import { useAuthStore } from '../stores/authStore'
 import { authService } from '../services/auth'
 import { getNotifications, markAsRead, dismiss, type NotificationItem } from '../services/notifications'
 import { useToast } from '../components/layout/useToast'
+import { AvatarUploader } from '../components/settings/AvatarUploader'
 import {
   Save,
   AlertTriangle,
@@ -443,6 +444,13 @@ export function SettingsPage() {
           <p className="text-label-md text-on-surface-variant">Update your personal information and public profile.</p>
         </div>
         <div className="space-y-3 max-w-xl">
+          <div className="flex items-center gap-4">
+            <AvatarUploader />
+            <div>
+              <p className="text-body-md font-medium text-on-surface">Profile Picture</p>
+              <p className="text-label-sm text-on-surface-variant">Upload a profile photo. JPG or PNG, max 5MB.</p>
+            </div>
+          </div>
           <Input
             label="Full Name"
             value={name}

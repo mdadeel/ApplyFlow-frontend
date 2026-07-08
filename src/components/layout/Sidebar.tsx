@@ -25,9 +25,10 @@ import type { LucideIcon } from '../../lib/icons'
 import { useLayout } from './useLayout'
 import { Button } from '../ui/Button'
 import { Tooltip } from '../ui/Tooltip'
+import { Avatar } from './Avatar'
 import { getSuggestions } from '../../services/learning'
 import { getPersonal } from '../../services/profile'
-import { getInitials } from '../../lib/format'
+import { useAuthStore } from '../../stores/authStore'
 
 export interface SubNavItem {
   id: string
@@ -105,6 +106,7 @@ export function Sidebar(): JSX.Element {
   } = useLayout()
   const location = useLocation()
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const [learningBadgeCount, setLearningBadgeCount] = useState(0)
   const [userName, setUserName] = useState<string | null>(null)
 
@@ -117,6 +119,8 @@ export function Sidebar(): JSX.Element {
       .then((data) => setUserName(data.name))
       .catch(() => { /* profile not available */ })
   }, [])
+
+  const userAvatarUrl = user?.avatarUrl ?? null
 
   useEffect(() => {
     setMobileSidebarOpen(false)
@@ -411,12 +415,12 @@ export function Sidebar(): JSX.Element {
             className="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary"
             title={sidebarCollapsed ? userName || 'User' : undefined}
           >
-            <div
-              className="w-8 h-8 rounded-full bg-surface-tertiary text-text-primary flex items-center justify-center text-caption font-semibold shrink-0"
+            <Avatar
+              src={userAvatarUrl}
+              name={userName}
+              size="sm"
               aria-label={userName || 'User avatar'}
-            >
-              {userName ? getInitials(userName) : '?'}
-            </div>
+            />
             {!sidebarCollapsed && (
               <span className="text-body-sm truncate text-text-primary">{userName || 'User'}</span>
             )}

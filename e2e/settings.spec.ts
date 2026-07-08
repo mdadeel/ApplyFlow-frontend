@@ -70,6 +70,25 @@ test.describe('Settings Page', () => {
       await expect(page.getByText('Danger Zone')).toBeVisible()
       await expect(page.getByRole('button', { name: 'Delete Account' })).toBeVisible()
     })
+
+    test('shows profile picture uploader', async ({ page }) => {
+      await expect(page.getByText('Profile Picture')).toBeVisible()
+      const fileInput = page.getByLabel('Upload avatar')
+      await expect(fileInput).toBeVisible()
+    })
+
+    test('uploads an avatar image and shows Upload button', async ({ page }) => {
+      const fileInput = page.getByLabel('Upload avatar')
+      await fileInput.setInputFiles({
+        name: 'avatar.png',
+        mimeType: 'image/png',
+        buffer: Buffer.from(
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/pLvAAAAAElFTkSuQmCC',
+          'base64',
+        ),
+      })
+      await expect(page.getByRole('button', { name: 'Upload' })).toBeVisible()
+    })
   })
 
   test.describe('Profile Form', () => {
