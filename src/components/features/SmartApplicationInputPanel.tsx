@@ -154,7 +154,7 @@ export function SmartApplicationInputPanel({
                 value={jdText}
                 onChange={(e) => onJdTextChange(e.target.value)}
                 placeholder="Paste one or more job descriptions here..."
-                className="w-full h-64 p-3 bg-surface-secondary rounded-lg text-body text-text-primary placeholder:text-text-tertiary resize-y focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full h-44 p-3 bg-neutral-50 border border-neutral-300 hover:border-neutral-400 rounded-md text-body text-text-primary placeholder:text-text-tertiary resize-y focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all duration-150"
               />
               <p className="text-caption text-text-secondary">
                 Paste one or more job descriptions. The AI will automatically detect and process them.
@@ -176,11 +176,11 @@ export function SmartApplicationInputPanel({
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                className="border border-dashed border-neutral-300 rounded-md p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all duration-150"
               >
-                <FileSpreadsheet className="h-10 w-10 text-text-tertiary mx-auto mb-3" />
-                <p className="text-body font-medium text-text-primary">Upload CSV of JDs</p>
-                <p className="text-body-sm text-text-secondary mt-1">Drag & drop or click to browse</p>
+                <FileSpreadsheet className="h-8 w-8 text-text-tertiary mx-auto mb-2" />
+                <p className="text-body-sm font-medium text-text-primary">Upload CSV of JDs</p>
+                <p className="text-caption text-text-secondary mt-1">Drag & drop or click to browse</p>
               </div>
             ) : (
               <div className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg">
@@ -203,7 +203,7 @@ export function SmartApplicationInputPanel({
         <div className="space-y-2">
           <label className="text-body-sm font-medium text-text-primary">Select Resume (optional)</label>
           {resumesLoading ? (
-            <div className="p-3 bg-surface-secondary rounded-lg">
+            <div className="p-3 bg-neutral-50 rounded-md border border-neutral-200">
               <Skeleton className="h-5 w-full" />
             </div>
           ) : uploadedResumes.length > 0 ? (
@@ -211,7 +211,7 @@ export function SmartApplicationInputPanel({
               <select
                 value={selectedResumeId}
                 onChange={(e) => onSelectedResumeIdChange(e.target.value)}
-                className="w-full p-2.5 rounded-lg border border-border bg-white text-body-sm text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full p-2 rounded-md border border-neutral-300 bg-neutral-50 hover:border-neutral-400 text-body-sm text-text-primary outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-150"
               >
                 <option value="">No resume (generate fresh)</option>
                 {uploadedResumes.map((r) => (
@@ -228,9 +228,9 @@ export function SmartApplicationInputPanel({
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+              className="border border-dashed border-neutral-300 rounded-md p-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-all duration-150"
             >
-              <Upload className="h-8 w-8 text-text-tertiary mx-auto mb-2" />
+              <Upload className="h-6 w-6 text-text-tertiary mx-auto mb-2" />
               <p className="text-body-sm font-medium text-text-primary">Upload DOCX CV</p>
               <p className="text-caption text-text-secondary mt-1">Drag & drop or click to browse</p>
             </div>

@@ -6,7 +6,6 @@ import { SplitPanel } from '../components/layout/SplitPanel'
 import { Section } from '../components/layout/Section'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-import { Card } from '../components/ui/Card'
 import { JDSummary } from '../components/features/JDSummary'
 import { EmptyState } from '../components/ui/EmptyState'
 import { Skeleton } from '../components/ui/Skeleton'
@@ -82,10 +81,10 @@ function parseCSV(text: string): Record<string, string>[] {
   let inQuotes = false
   let i = 0
   while (i < text.length) {
-    const ch = text[i]
+    const ch = text.charAt(i)
     if (inQuotes) {
       if (ch === '"') {
-        if (text[i + 1] === '"') {
+        if (text.charAt(i + 1) === '"') {
           field += '"'
           i += 2
           continue
@@ -116,7 +115,7 @@ function parseCSV(text: string): Record<string, string>[] {
       if (cur.some((c) => c.trim() !== '')) rows.push(cur)
       cur = []
       // Handle CRLF
-      if (ch === '\r' && text[i + 1] === '\n') i += 2
+      if (ch === '\r' && text.charAt(i + 1) === '\n') i += 2
       else i++
       continue
     }
@@ -133,6 +132,7 @@ function parseCSV(text: string): Record<string, string>[] {
   return rows.slice(1).map((r) => {
     const obj: Record<string, string> = {}
     header.forEach((h, idx) => {
+      if (h === '__proto__' || h === 'constructor' || h === 'prototype') return
       obj[h] = (r[idx] ?? '').trim()
     })
     return obj
@@ -141,7 +141,11 @@ function parseCSV(text: string): Record<string, string>[] {
 
 function pickColumn(row: Record<string, string>, ...keys: string[]): string {
   const lower: Record<string, string> = {}
-  for (const k of Object.keys(row)) lower[k.toLowerCase()] = row[k]
+  for (const k of Object.keys(row)) {
+    const lowerKey = k.toLowerCase()
+    if (lowerKey === '__proto__' || lowerKey === 'constructor' || lowerKey === 'prototype') continue
+    lower[lowerKey] = row[k]
+  }
   for (const k of keys) {
     const v = lower[k.toLowerCase()]
     if (v !== undefined && v !== '') return v
@@ -437,31 +441,33 @@ export function JDAnalysisPage() {
 
   function renderMultipleTab() {
     return (
-      <div className="space-y-md">
+      <div className="space-y-4">
         <Section
           title="Add Job Descriptions"
           description="Enter one or more JDs to analyze them in bulk."
+          titleClassName="text-body font-semibold"
+          descriptionClassName="text-caption"
         >
-          <div className="space-y-3 max-h-[440px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
             {bulkItems.map((entry, idx) => (
-              <Card key={entry.id} className="space-y-3">
+              <div key={entry.id} className="p-3 border border-neutral-200 bg-white rounded-md space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <p className="text-label-md font-medium text-on-surface">
+                  <p className="text-body-sm font-semibold text-text-primary">
                     JD #{idx + 1}
                   </p>
                   {bulkItems.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeEntry(entry.id)}
-                      className="inline-flex items-center gap-1 text-label-sm text-error hover:text-red-700 transition-colors"
+                      className="inline-flex items-center gap-0.5 text-caption text-red-600 hover:text-red-700 transition-colors"
                       aria-label={`Remove JD ${idx + 1}`}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5" />
                       Remove
                     </button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <Input
                     placeholder="Company"
                     value={entry.company}
@@ -477,34 +483,34 @@ export function JDAnalysisPage() {
                   placeholder="Paste the full job description here..."
                   value={entry.jdText}
                   onChange={(e) => updateEntry(entry.id, { jdText: e.target.value })}
-                  className="w-full h-32 p-3 rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors duration-150 focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none"
+                  className="w-full h-24 p-2 bg-neutral-50 border border-neutral-300 hover:border-neutral-400 rounded-md text-body-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all duration-150 resize-none font-sans"
                 />
-              </Card>
+              </div>
             ))}
           </div>
           <Button
             variant="ghost"
-            icon={<Plus className="h-4 w-4" />}
             onClick={addEntry}
             disabled={bulkLoading}
+            className="w-full border border-dashed border-neutral-300 hover:bg-neutral-50 text-body-sm"
           >
+            <Plus className="h-4 w-4 mr-1" />
             Add another JD
           </Button>
         </Section>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <Button
             onClick={handleAnalyzeAll}
             loading={bulkLoading}
             disabled={validEntries.length === 0}
             className="flex-1"
-            size="lg"
             icon={<Sparkles className="h-4 w-4" />}
           >
             Analyze all ({validEntries.length})
           </Button>
           <Button
-            variant="ghost"
+            variant="secondary"
             onClick={() => {
               setBulkItems([{ id: makeEntryId(), company: '', role: '', jdText: '' }])
               setBulkResults(null)
@@ -520,10 +526,12 @@ export function JDAnalysisPage() {
 
   function renderCSVTab() {
     return (
-      <div className="space-y-md">
+      <div className="space-y-4">
         <Section
           title="Upload CSV"
-          description="CSV must have columns: company, role, jd_text (or job_description)."
+          description="CSV columns must include: company, role, jd_text."
+          titleClassName="text-body font-semibold"
+          descriptionClassName="text-caption"
         >
           {!csvFileName ? (
             <div
@@ -539,17 +547,17 @@ export function JDAnalysisPage() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click()
               }}
-              className={`flex flex-col items-center justify-center gap-2 p-8 rounded-xl border-2 border-dashed cursor-pointer transition-colors duration-150 ${
+              className={`flex flex-col items-center justify-center gap-1.5 p-6 rounded-md border border-dashed cursor-pointer transition-all duration-150 ${
                 csvDragActive
                   ? 'border-primary bg-primary/5'
-                  : 'border-outline-variant bg-surface hover:border-primary/50'
+                  : 'border-neutral-300 bg-white hover:border-primary/50'
               }`}
             >
-              <Upload className="h-10 w-10 text-on-surface-variant" />
-              <p className="text-body-md font-medium text-on-surface">
+              <Upload className="h-8 w-8 text-text-tertiary" />
+              <p className="text-body-sm font-semibold text-text-primary">
                 Drag & drop a CSV file here
               </p>
-              <p className="text-label-sm text-on-surface-variant">
+              <p className="text-caption text-text-secondary">
                 or click to browse
               </p>
               <input
@@ -561,45 +569,45 @@ export function JDAnalysisPage() {
               />
             </div>
           ) : (
-            <div className="rounded-xl border border-outline-variant bg-surface p-4 space-y-3">
+            <div className="rounded-md border border-neutral-200 bg-white p-3 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-on-surface-variant" />
-                  <span className="text-body-md font-medium text-on-surface">
+                  <FileText className="h-4 w-4 text-text-tertiary" />
+                  <span className="text-body-sm font-semibold text-text-primary truncate max-w-[150px]">
                     {csvFileName}
                   </span>
-                  <span className="text-label-sm text-on-surface-variant">
-                    ({csvEntries.length} row{csvEntries.length === 1 ? '' : 's'})
+                  <span className="text-caption text-text-secondary">
+                    ({csvEntries.length} rows)
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={clearCSV}
-                  className="inline-flex items-center gap-1 text-label-sm text-on-surface-variant hover:text-error transition-colors"
+                  className="inline-flex items-center gap-0.5 text-caption text-red-600 hover:text-red-700 transition-colors"
                   aria-label="Remove CSV"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                   Remove
                 </button>
               </div>
-              <div className="overflow-x-auto max-h-72 overflow-y-auto rounded-lg border border-outline-variant">
-                <table className="w-full text-label-sm">
-                  <thead className="bg-surface-container sticky top-0">
+              <div className="overflow-x-auto max-h-48 overflow-y-auto rounded border border-neutral-200">
+                <table className="w-full text-caption border-collapse">
+                  <thead className="bg-neutral-50 sticky top-0 border-b border-neutral-200">
                     <tr>
-                      <th className="text-left px-3 py-2 font-medium text-on-surface">#</th>
-                      <th className="text-left px-3 py-2 font-medium text-on-surface">Company</th>
-                      <th className="text-left px-3 py-2 font-medium text-on-surface">Role</th>
-                      <th className="text-left px-3 py-2 font-medium text-on-surface">JD (preview)</th>
+                      <th className="text-left px-2 py-1.5 font-semibold text-text-secondary">#</th>
+                      <th className="text-left px-2 py-1.5 font-semibold text-text-secondary">Company</th>
+                      <th className="text-left px-2 py-1.5 font-semibold text-text-secondary">Role</th>
+                      <th className="text-left px-2 py-1.5 font-semibold text-text-secondary">JD Preview</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-neutral-200">
                     {csvEntries.map((e, idx) => (
-                      <tr key={e.id} className="border-t border-outline-variant">
-                        <td className="px-3 py-2 text-on-surface-variant">{idx + 1}</td>
-                        <td className="px-3 py-2 text-on-surface">{e.company || '—'}</td>
-                        <td className="px-3 py-2 text-on-surface">{e.role || '—'}</td>
-                        <td className="px-3 py-2 text-on-surface-variant truncate max-w-xs">
-                          {e.jdText ? e.jdText.slice(0, 80) + (e.jdText.length > 80 ? '…' : '') : '—'}
+                      <tr key={e.id} className="hover:bg-neutral-50/50">
+                        <td className="px-2 py-1.5 text-text-secondary">{idx + 1}</td>
+                        <td className="px-2 py-1.5 text-text-primary font-medium">{e.company || '—'}</td>
+                        <td className="px-2 py-1.5 text-text-primary">{e.role || '—'}</td>
+                        <td className="px-2 py-1.5 text-text-secondary truncate max-w-[120px]">
+                          {e.jdText ? e.jdText.slice(0, 50) + (e.jdText.length > 50 ? '…' : '') : '—'}
                         </td>
                       </tr>
                     ))}
@@ -609,24 +617,22 @@ export function JDAnalysisPage() {
             </div>
           )}
           {csvError && (
-            <div className="rounded-lg border border-error/20 bg-red-50 p-3 text-body-md text-error flex items-start gap-2">
+            <div className="rounded-md border border-red-200 bg-red-50 p-2 text-caption text-red-700 flex items-start gap-2">
               <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>{csvError}</span>
             </div>
           )}
         </Section>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2">
           <Button
             onClick={handleAnalyzeCSV}
             loading={bulkLoading}
             disabled={csvEntries.filter((e) => e.company && e.role && e.jdText).length === 0}
-            className="flex-1"
-            size="lg"
+            className="w-full"
             icon={<Sparkles className="h-4 w-4" />}
           >
-            Analyze CSV (
-            {csvEntries.filter((e) => e.company && e.role && e.jdText).length})
+            Analyze CSV ({csvEntries.filter((e) => e.company && e.role && e.jdText).length})
           </Button>
         </div>
       </div>
@@ -635,50 +641,37 @@ export function JDAnalysisPage() {
 
   function renderLeftPanel() {
     return (
-      <div className="space-y-md">
-        <div className="flex gap-2" role="tablist" aria-label="JD input mode">
-          <Button
-            variant={mode === 'single' ? 'primary' : 'ghost'}
-            onClick={() => {
-              setMode('single')
-              setBulkResults(null)
-            }}
-            role="tab"
-            aria-selected={mode === 'single'}
-          >
-            Single
-          </Button>
-          <Button
-            variant={mode === 'multiple' ? 'primary' : 'ghost'}
-            onClick={() => {
-              setMode('multiple')
-              setBulkResults(null)
-            }}
-            role="tab"
-            aria-selected={mode === 'multiple'}
-          >
-            Multiple
-          </Button>
-          <Button
-            variant={mode === 'csv' ? 'primary' : 'ghost'}
-            onClick={() => {
-              setMode('csv')
-              setBulkResults(null)
-            }}
-            role="tab"
-            aria-selected={mode === 'csv'}
-          >
-            CSV
-          </Button>
+      <div className="space-y-4">
+        {/* segmented control */}
+        <div className="flex p-0.5 bg-neutral-100 rounded-lg border border-neutral-200" role="tablist" aria-label="JD input mode">
+          {(['single', 'multiple', 'csv'] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={mode === t}
+              onClick={() => {
+                setMode(t)
+                setBulkResults(null)
+              }}
+              className={`flex-1 py-1.5 text-center text-body-sm font-medium rounded-md transition-all duration-150 ${
+                mode === t
+                  ? 'bg-white text-primary shadow-sm'
+                  : 'text-text-secondary hover:text-text-primary'
+              }`}
+            >
+              {t.charAt(0).toUpperCase() + t.slice(1)}
+            </button>
+          ))}
         </div>
 
         {mode === 'single' && (
-          <div className="space-y-md">
+          <div className="space-y-4">
             {targetApp && (
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between">
+              <div className="rounded-md border border-primary/20 bg-primary/5 p-3 flex items-center justify-between">
                 <div>
-                  <p className="text-label-sm text-primary font-semibold">Active Application Context</p>
-                  <p className="text-body-md font-medium text-on-surface">
+                  <p className="text-caption text-primary font-semibold">Active Context</p>
+                  <p className="text-body-sm font-medium text-text-primary">
                     {targetApp.role} @ {targetApp.company}
                   </p>
                 </div>
@@ -690,19 +683,22 @@ export function JDAnalysisPage() {
             <Section
               title="Paste Job Description"
               description="Paste the full job description to extract skills, keywords, and insights"
+              action={{ label: 'Use Sample JD', onClick: handleSampleJD }}
+              titleClassName="text-body font-semibold"
+              descriptionClassName="text-caption"
             >
               <div className="relative">
                 <textarea
                   value={jdText}
                   onChange={(e) => setJdText(e.target.value)}
                   placeholder="Paste the full job description here..."
-                  className="w-full h-[400px] p-4 rounded-xl border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors duration-150 focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none"
+                  className="w-full h-80 p-3 bg-neutral-50 border border-neutral-300 hover:border-neutral-400 rounded-md text-body-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all duration-150 resize-none font-sans"
                 />
                 {!jdText && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
-                      <ScrollText className="h-10 w-10 text-on-surface-variant/40 mx-auto mb-2" />
-                      <p className="text-body-md text-on-surface-variant/60">
+                      <ScrollText className="h-8 w-8 text-text-tertiary mx-auto mb-2" />
+                      <p className="text-body-sm text-text-secondary">
                         Paste a job description to begin
                       </p>
                     </div>
@@ -711,45 +707,42 @@ export function JDAnalysisPage() {
               </div>
             </Section>
 
-            <div className="flex gap-3">
-              <Button onClick={handleAnalyze} loading={loading} className="flex-1" size="lg" icon={<Sparkles className="h-4 w-4" />}>
-                Analyze
-              </Button>
-              <Button variant="ghost" onClick={handleSampleJD} disabled={loading}>
-                Sample JD
+            <div className="flex gap-2">
+              <Button onClick={handleAnalyze} loading={loading} className="w-full" size="lg" icon={<Sparkles className="h-4 w-4" />}>
+                Analyze JD
               </Button>
             </div>
 
             {error && !loading && (
-              <div className="rounded-xl border border-error/20 bg-red-50 p-4 text-body-md text-error flex items-start gap-3">
-                <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-caption text-red-700 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p className="font-semibold">Analysis Failed</p>
-                  <p className="text-error/80 mt-0.5">{error}</p>
+                  <p className="text-red-600/90 mt-0.5">{error}</p>
                 </div>
-                <button onClick={() => setError(null)} className="p-1 rounded hover:bg-error/10 transition-colors shrink-0" aria-label="Dismiss">
-                  <X className="h-4 w-4" />
+                <button onClick={() => setError(null)} className="p-0.5 rounded hover:bg-red-100 transition-colors shrink-0" aria-label="Dismiss">
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </div>
             )}
 
             <div>
-              <p className="text-label-sm text-on-surface-variant mb-3">Recent Analyses</p>
-              <div className="space-y-2">
+              <p className="text-caption font-semibold text-text-secondary uppercase tracking-wider mb-2">Recent Analyses</p>
+              <div className="divide-y divide-neutral-200 border border-neutral-200 bg-white rounded-md overflow-hidden">
                 {recentAnalyses.map((item) => (
                   <button
                     key={item.company}
                     type="button"
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-surface border border-outline-variant hover:border-outline transition-colors duration-150 text-left"
+                    className="w-full flex items-center justify-between px-3 py-2 hover:bg-neutral-50 transition-colors text-left"
                   >
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-4 w-4 text-on-surface-variant" />
-                      <div>
-                        <p className="text-body-md font-medium text-on-surface">{item.role}</p>
-                        <p className="text-label-sm text-on-surface-variant">{item.company}</p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-4 w-4 text-text-tertiary" />
+                      <div className="min-w-0">
+                        <p className="text-body-sm font-medium text-text-primary truncate">{item.role}</p>
+                        <p className="text-caption text-text-secondary truncate">{item.company}</p>
                       </div>
                     </div>
-                    <span className="text-label-sm text-on-surface-variant">{item.date}</span>
+                    <span className="text-caption text-text-tertiary shrink-0">{item.date}</span>
                   </button>
                 ))}
               </div>
@@ -781,10 +774,10 @@ export function JDAnalysisPage() {
     }
     if (bulkResults && bulkResults.length > 0) {
       return (
-        <div className="space-y-md">
-          <div className="rounded-xl border border-outline-variant bg-surface-container-low p-3">
-            <p className="text-headline-md text-on-surface">Bulk Analysis Results</p>
-            <p className="text-body-md text-on-surface-variant">
+        <div className="space-y-4">
+          <div className="rounded-md border border-neutral-200 bg-white p-4">
+            <p className="text-heading-3 text-text-primary font-semibold">Bulk Analysis Results</p>
+            <p className="text-body-sm text-text-secondary mt-0.5">
               {`${bulkResults.filter((r) => r.kind === 'success').length} of ${bulkResults.length} succeeded`}
             </p>
           </div>
@@ -796,24 +789,24 @@ export function JDAnalysisPage() {
                     key={`${r.applicationId}-${idx}`}
                     type="button"
                     onClick={() => navigate(`/applications/${r.applicationId}`)}
-                    className="w-full flex items-center justify-between p-4 rounded-xl bg-surface border border-outline-variant hover:border-primary transition-colors duration-150 text-left"
+                    className="w-full flex items-center justify-between p-3 rounded-md bg-white border border-neutral-200 hover:border-primary transition-colors text-left"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
                       <div className="min-w-0">
-                        <p className="text-body-md font-medium text-on-surface truncate">
+                        <p className="text-body-sm font-semibold text-text-primary truncate">
                           {r.role}
                         </p>
-                        <p className="text-label-sm text-on-surface-variant truncate">
+                        <p className="text-caption text-text-secondary truncate">
                           {r.company}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-label-md font-semibold text-primary">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-body-sm font-semibold text-primary">
                         {r.matchPercent}% match
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-label-sm bg-green-100 text-green-700">
+                      <span className="px-2 py-0.5 rounded-full text-caption bg-green-50 text-green-700 font-medium">
                         success
                       </span>
                     </div>
@@ -823,18 +816,18 @@ export function JDAnalysisPage() {
               return (
                 <div
                   key={`err-${idx}-${r.company}`}
-                  className="w-full flex items-center justify-between p-4 rounded-xl bg-red-50 border border-error/20 text-left"
+                  className="w-full flex items-center justify-between p-3 rounded-md bg-red-50/50 border border-red-200 text-left"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <XCircle className="h-5 w-5 text-error shrink-0" />
+                    <XCircle className="h-5 w-5 text-red-600 shrink-0" />
                     <div className="min-w-0">
-                      <p className="text-body-md font-medium text-on-surface truncate">
+                      <p className="text-body-sm font-semibold text-text-primary truncate">
                         {r.role || '(no role)'} @ {r.company || '(no company)'}
                       </p>
-                      <p className="text-label-sm text-error truncate">{r.error}</p>
+                      <p className="text-caption text-red-600 truncate">{r.error}</p>
                     </div>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full text-label-sm bg-red-100 text-red-700 shrink-0">
+                  <span className="px-2 py-0.5 rounded-full text-caption bg-red-50 text-red-700 font-medium shrink-0">
                     error
                   </span>
                 </div>
@@ -861,7 +854,7 @@ export function JDAnalysisPage() {
     }
     if (mode === 'single' && analysis) {
       return (
-        <div className="space-y-md">
+        <div className="space-y-4">
           <JDSummary analysis={analysis} />
           <div className="flex justify-end">
             <Button
@@ -877,7 +870,7 @@ export function JDAnalysisPage() {
     if (mode === 'single') {
       return (
         <EmptyState
-          icon={<FileText className="h-12 w-12" />}
+          icon={<FileText className="h-12 w-12 text-text-tertiary" />}
           title="No Analysis Yet"
           description="Paste a job description on the left panel and click 'Analyze' to get started."
           action={{ label: 'Try Sample JD', onClick: handleSampleJD }}
@@ -886,7 +879,7 @@ export function JDAnalysisPage() {
     }
     return (
       <EmptyState
-        icon={<FileText className="h-12 w-12" />}
+        icon={<FileText className="h-12 w-12 text-text-tertiary" />}
         title={
           mode === 'multiple'
             ? 'No Bulk Analysis Yet'

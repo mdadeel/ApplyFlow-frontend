@@ -204,14 +204,7 @@ export function SmartApplicationPage() {
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-heading-1 text-text-primary">Smart Application</h1>
-          <p className="text-body text-text-secondary mt-1">
-            Generate a complete job application package in one step.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-12rem)]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-8rem)]">
           <SmartApplicationInputPanel
             inputMode={inputMode}
             onInputModeChange={setInputMode}

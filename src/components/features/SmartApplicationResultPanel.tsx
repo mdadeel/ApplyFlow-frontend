@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Sparkles,
   Download,
@@ -8,6 +9,8 @@ import {
   Loader2,
   Clock,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from '../../lib/icons'
 import { Card } from '../ui/Card'
 import { Button } from '../ui/Button'
@@ -165,127 +168,84 @@ export function SmartApplicationResultPanel({
 
   // ── Result state ─────────────────────────────────────────
   const { output, scores } = result
+  const [showValidation, setShowValidation] = useState(false)
+  const [showBulk, setShowBulk] = useState(false)
 
   return (
-    <div className="h-full flex flex-col gap-4">
-      <ValidationBadges
-        scores={scores}
-        hints={output.validationHints}
-        atsKeywords={output.analysis.atsKeywords}
-      />
-
-      <Card className="flex-1 flex flex-col overflow-hidden">
-        <div className="border-b border-border p-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="text-heading-3 text-text-primary flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
-              {output.analysis.company || 'Unknown Company'}
-            </h2>
-            <p className="text-body-sm text-text-secondary mt-0.5">
-              {output.analysis.role || 'Unknown Role'} · {output.analysis.matchPercent}% match
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm" onClick={onExportAll} className="gap-1">
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
-          </div>
+    <Card className="h-full flex flex-col overflow-hidden">
+      {/* Unified Header */}
+      <div className="border-b border-border p-4 flex flex-wrap items-center justify-between gap-3 bg-surface-secondary">
+        <div>
+          <h2 className="text-heading-3 text-text-primary flex items-center gap-2 font-semibold">
+            <Building2 className="h-5 w-5 text-primary" />
+            {output.analysis.company || 'Unknown Company'}
+          </h2>
+          <p className="text-body-sm text-text-secondary mt-0.5 font-medium">
+            {output.analysis.role || 'Unknown Role'} · <span className="text-primary">{output.analysis.matchPercent}% match</span>
+          </p>
         </div>
+        <div className="flex items-center gap-2">
+          {bulkResults && bulkResults.length > 0 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setShowBulk(!showBulk)
+                setShowValidation(false)
+              }}
+              className="gap-1"
+            >
+              Bulk ({bulkResults.length})
+              {showBulk ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          )}
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setShowValidation(!showValidation)
+              setShowBulk(false)
+            }}
+            className="gap-1"
+          >
+            Validation
+            {showValidation ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+          <Button variant="secondary" size="sm" onClick={onExportAll} className="gap-1">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+        </div>
+      </div>
 
-        <div className="border-b border-border px-4">
-          <Tabs
-            tabs={[
-              { id: 'resume', label: 'Resume' },
-              { id: 'email', label: 'Email' },
-              { id: 'cover-letter', label: 'Cover Letter' },
-            ]}
-            activeTab={resultTab}
-            onChange={(id) => onResultTabChange(id as ResultTab)}
+      {/* Collapsible Validation Section */}
+      {showValidation && (
+        <div className="border-b border-border bg-neutral-50 p-4 transition-all duration-200">
+          <ValidationBadges
+            scores={scores}
+            hints={output.validationHints}
+            atsKeywords={output.analysis.atsKeywords}
           />
         </div>
+      )}
 
-        <div className="flex-1 overflow-y-auto p-4">
-          {resultTab === 'resume' && (
-            <ResumeEditor
-              markdown={editedResume}
-              atsKeywords={output.analysis.atsKeywords}
-              onChange={onEditedResumeChange}
-            />
-          )}
-
-          {resultTab === 'email' && (
-            <div className="space-y-4">
-              <Card className="p-4 bg-surface-secondary">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-body-sm font-medium text-text-primary">Subject</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onCopy(output.email.subject, 'subject')}
-                    className="gap-1"
-                  >
-                    {copiedField === 'subject' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copiedField === 'subject' ? 'Copied' : 'Copy'}
-                  </Button>
-                </div>
-                <p className="text-body text-text-primary">{output.email.subject}</p>
-              </Card>
-              <Card className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-body-sm font-medium text-text-primary">Body</span>
-                    <Badge variant="default">{output.email.tone}</Badge>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onCopy(output.email.body, 'body')}
-                    className="gap-1"
-                  >
-                    {copiedField === 'body' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    {copiedField === 'body' ? 'Copied' : 'Copy'}
-                  </Button>
-                </div>
-                <div className="whitespace-pre-wrap text-body text-text-secondary leading-relaxed">
-                  {output.email.body}
-                </div>
-              </Card>
-            </div>
-          )}
-
-          {resultTab === 'cover-letter' && (
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-body-sm font-medium text-text-primary">Cover Letter</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onCopy(output.coverLetter, 'cover-letter')}
-                  className="gap-1"
-                >
-                  {copiedField === 'cover-letter' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {copiedField === 'cover-letter' ? 'Copied' : 'Copy'}
-                </Button>
-              </div>
-              <div className="whitespace-pre-wrap text-body text-text-secondary leading-relaxed">
-                {output.coverLetter}
-              </div>
-            </Card>
-          )}
-        </div>
-      </Card>
-
-      {bulkResults && bulkResults.length > 0 && (
-        <Card className="p-4">
-          <h3 className="text-heading-3 text-text-primary mb-3">Bulk Results</h3>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
+      {/* Collapsible Bulk Results Section */}
+      {showBulk && bulkResults && bulkResults.length > 0 && (
+        <div className="border-b border-border bg-neutral-50 p-4 max-h-60 overflow-y-auto transition-all duration-200">
+          <h4 className="text-body-sm font-semibold text-text-primary mb-2">Generated Applications</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {bulkResults.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between p-3 bg-surface-secondary rounded-lg"
+                className="flex items-center justify-between p-2 border border-neutral-200 bg-white rounded-md hover:border-primary transition-colors cursor-pointer"
+                onClick={() => {
+                  if ('output' in item) {
+                    onResultSelect(item)
+                    setShowBulk(false)
+                  }
+                }}
               >
-                <div className="min-w-0">
+                <div className="min-w-0 pr-2">
                   <p className="text-body-sm font-medium text-text-primary truncate">
                     {('output' in item ? item.output.analysis.company : item.company) || 'Unknown'}
                   </p>
@@ -294,17 +254,10 @@ export function SmartApplicationResultPanel({
                   </p>
                 </div>
                 {'output' in item ? (
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <Badge variant={item.scores.overall >= 80 ? 'success' : 'warning'}>
                       {item.scores.overall}%
                     </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onResultSelect(item)}
-                    >
-                      View
-                    </Button>
                   </div>
                 ) : (
                   <Badge variant="danger" className="flex items-center gap-1">
@@ -315,8 +268,91 @@ export function SmartApplicationResultPanel({
               </div>
             ))}
           </div>
-        </Card>
+        </div>
       )}
-    </div>
+
+      {/* Main Tabs */}
+      <div className="border-b border-border px-4 bg-white">
+        <Tabs
+          tabs={[
+            { id: 'resume', label: 'Resume' },
+            { id: 'email', label: 'Email' },
+            { id: 'cover-letter', label: 'Cover Letter' },
+          ]}
+          activeTab={resultTab}
+          onChange={(id) => onResultTabChange(id as ResultTab)}
+        />
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 bg-white">
+        {resultTab === 'resume' && (
+          <ResumeEditor
+            markdown={editedResume}
+            atsKeywords={output.analysis.atsKeywords}
+            onChange={onEditedResumeChange}
+          />
+        )}
+
+        {resultTab === 'email' && (
+          <div className="space-y-4">
+            <Card className="p-4 bg-surface-secondary">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-body-sm font-medium text-text-primary">Subject</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onCopy(output.email.subject, 'subject')}
+                  className="gap-1 animate-none hover:text-white"
+                >
+                  {copiedField === 'subject' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedField === 'subject' ? 'Copied' : 'Copy'}
+                </Button>
+              </div>
+              <p className="text-body text-text-primary font-medium">{output.email.subject}</p>
+            </Card>
+            <Card className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-body-sm font-medium text-text-primary">Body</span>
+                  <Badge variant="default">{output.email.tone}</Badge>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onCopy(output.email.body, 'body')}
+                  className="gap-1 animate-none hover:text-white"
+                >
+                  {copiedField === 'body' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedField === 'body' ? 'Copied' : 'Copy'}
+                </Button>
+              </div>
+              <div className="whitespace-pre-wrap text-body text-text-secondary leading-relaxed font-sans">
+                {output.email.body}
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {resultTab === 'cover-letter' && (
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-body-sm font-medium text-text-primary">Cover Letter</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onCopy(output.coverLetter, 'cover-letter')}
+                className="gap-1 animate-none hover:text-white"
+              >
+                {copiedField === 'cover-letter' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copiedField === 'cover-letter' ? 'Copied' : 'Copy'}
+              </Button>
+            </div>
+            <div className="whitespace-pre-wrap text-body text-text-secondary leading-relaxed font-sans">
+              {output.coverLetter}
+            </div>
+          </Card>
+        )}
+      </div>
+    </Card>
   )
 }
