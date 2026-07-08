@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Users,
   User,
+  FileText,
 } from '../../lib/icons'
 
 /**
@@ -281,6 +282,19 @@ export const communityEmptyStates = {
       },
       example: workspacePreviewExample(contentType),
     } satisfies EmptyStateConfig),
+
+  profilesNoResults: {
+    icon: Search,
+    title: 'No results found',
+    description: 'We couldn’t find any profiles or templates matching your criteria. Try adjusting your filters or search terms.',
+  } satisfies EmptyStateConfig,
+
+  templates: {
+    icon: FileText,
+    title: 'No templates available',
+    description: 'Explore community templates for resumes, cover letters, and emails or contribute your own.',
+    primaryAction: { label: 'Create a template', href: '/community/templates/create' },
+  } satisfies EmptyStateConfig,
 } as const
 
 export type CommunityEmptyStateKey = keyof typeof communityEmptyStates

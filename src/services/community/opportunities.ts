@@ -76,7 +76,7 @@ export function getOpportunity(id: string): Promise<Opportunity> {
   return get<Opportunity>(`/opportunities/${id}`)
 }
 
-export function searchOpportunities(params: OpportunitySearchParams): Promise<{ items: Opportunity[]; total: number; suggestions: string[] }> {
+export async function searchOpportunities(params: OpportunitySearchParams): Promise<{ items: Opportunity[]; total: number; suggestions: string[] }> {
   const flat: Record<string, string | number | undefined> = {}
   for (const [k, v] of Object.entries(params)) {
     if (v === undefined || v === null || v === '') continue
@@ -86,7 +86,12 @@ export function searchOpportunities(params: OpportunitySearchParams): Promise<{ 
       flat[k] = v as string | number
     }
   }
-  return get<{ items: Opportunity[]; total: number; suggestions: string[] }>('/opportunities/search', flat)
+  const res = await get<{ results: Opportunity[]; total: number; suggestions?: string[] }>('/opportunities/search', flat)
+  return {
+    items: res.results || [],
+    total: res.total || 0,
+    suggestions: res.suggestions || [],
+  }
 }
 
 export function createOpportunity(data: OpportunityInput): Promise<Opportunity> {

@@ -12,6 +12,8 @@ import {
   Star,
   Download,
   Loader2,
+  Filter,
+  ListFilter,
 } from '../../lib/icons'
 import {
   listTemplates,
@@ -82,7 +84,7 @@ export function TemplatesPage() {
     setDownloadingId(id)
     try {
       const updated = await likeTemplate(id)
-      setTemplates((prev) => prev.map((t) => (t._id === updated._id ? updated : t)))
+      setTemplates((prev) => prev.map((t) => (t._id === updated.template._id ? updated.template : t)))
       showToast(updated.liked ? 'Template liked' : 'Template unliked', 'success')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Action failed.'
@@ -123,27 +125,55 @@ export function TemplatesPage() {
 
   const renderEmptyState = () => {
     if (searchTerm) {
-      return <CommunityEmptyState {...communityEmptyStates.profilesNoResults} />
+      const state = communityEmptyStates.profilesNoResults as any
+      return (
+        <CommunityEmptyState
+          icon={state.icon}
+          title={state.title}
+          description={state.description}
+          primaryAction={state.primaryAction}
+          secondaryAction={state.secondaryAction}
+          example={state.example}
+        />
+      )
     }
-    return <CommunityEmptyState {...communityEmptyStates.templates} />
+    const state = communityEmptyStates.templates as any
+    return (
+      <CommunityEmptyState
+        icon={state.icon}
+        title={state.title}
+        description={state.description}
+        primaryAction={state.primaryAction}
+        secondaryAction={state.secondaryAction}
+        example={state.example}
+      />
+    )
   }
 
   const getTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      resume: 'Resume',
-      cover_letter: 'Cover Letter',
-      email: 'Email',
+    switch (type) {
+      case 'resume':
+        return 'Resume'
+      case 'cover_letter':
+        return 'Cover Letter'
+      case 'email':
+        return 'Email'
+      default:
+        return type
     }
-    return labels[type] || type
   }
 
   const getTypeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      resume: 'bg-surface-secondary text-text-primary',
-      cover_letter: 'bg-success/20 text-success',
-      email: 'bg-primary/20 text-primary',
+    switch (type) {
+      case 'resume':
+        return 'bg-surface-secondary text-text-primary'
+      case 'cover_letter':
+        return 'bg-success/20 text-success'
+      case 'email':
+        return 'bg-primary/20 text-primary'
+      default:
+        return 'bg-surface-secondary text-text-primary'
     }
-    return colors[type] || 'bg-surface-secondary text-text-primary'
   }
 
   return (
@@ -255,41 +285,39 @@ export function TemplatesPage() {
                       {template.title}
                     </h3>
                     <div className="flex items-center gap-2 mb-2">
-                      <Badge
-                        className={getTypeColor(template.type)}
-                        size="sm"
-                      >
-                        {getTypeLabel(template.type)}
-                      </Badge>
-                      {template.isPublished && (
-                        <span className="text-caption-sm text-success">Published</span>
-                      )}
-                    </div>
-                  </div>
-                  <Star
-                    className={`w-4 h-4 ${template.likes > 0 ? 'text-warning fill-warning' : 'text-on-surface-variant'}`}
-                    aria-hidden="true"
-                  />
-                </div>
-                <p className="text-body-sm text-on-surface-variant line-clamp-2 mb-3">
-                  {template.description}
-                </p>
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {template.tags.slice(0, 3).map((tag) => (
                     <Badge
-                      key={tag}
-                      variant="secondary"
-                      size="sm"
+                      className={getTypeColor(template.type)}
                     >
-                      {tag}
+                      {getTypeLabel(template.type)}
                     </Badge>
-                  ))}
-                  {template.tags.length > 3 && (
-                    <Badge variant="secondary" size="sm">
-                      +{template.tags.length - 3} more
-                    </Badge>
-                  )}
+                    {template.isPublished && (
+                      <span className="text-caption-sm text-success">Published</span>
+                    )}
+                  </div>
                 </div>
+                <Star
+                  className={`w-4 h-4 ${template.likes > 0 ? 'text-warning fill-warning' : 'text-on-surface-variant'}`}
+                  aria-hidden="true"
+                />
+              </div>
+              <p className="text-body-sm text-on-surface-variant line-clamp-2 mb-3">
+                {template.description}
+              </p>
+              <div className="flex flex-wrap gap-1 mb-3">
+                {template.tags.slice(0, 3).map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="default"
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+                {template.tags.length > 3 && (
+                  <Badge variant="default">
+                    +{template.tags.length - 3} more
+                  </Badge>
+                )}
+              </div>
                 <div className="flex items-center justify-between pt-sm border-t border-outline-light">
                   <div className="flex items-center gap-3">
                     <button
