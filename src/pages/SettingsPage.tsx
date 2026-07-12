@@ -439,13 +439,13 @@ export function SettingsPage() {
 
   function renderProfileTab() {
     return (
-      <div className="space-y-6">
-        <Card className="p-6">
-          <div className="mb-6">
+      <div className="space-y-5">
+        <Card className="p-5">
+          <div className="mb-5">
             <h3 className="text-heading-2 font-bold text-text-primary">Account Settings</h3>
             <p className="text-body-sm text-text-secondary mt-1">Update your personal information and public profile.</p>
           </div>
-          <div className="space-y-6 max-w-xl">
+          <div className="space-y-5 max-w-xl">
             <div className="flex items-center gap-4">
               <AvatarUploader />
               <div>
@@ -474,7 +474,7 @@ export function SettingsPage() {
           </div>
         </Card>
 
-        <Card className="border-red-200 bg-red-50/10 p-6">
+        <Card className="border-red-200 bg-red-50/10 p-5">
           <div className="mb-4">
             <h3 className="text-heading-2 font-bold text-danger">Danger Zone</h3>
             <p className="text-body-sm text-text-secondary mt-1">Irreversible actions regarding your account.</p>
@@ -945,7 +945,7 @@ export function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-10 max-w-4xl">
+      <div className="space-y-8 max-w-4xl">
         <div>
           <h1 className="text-display text-text-primary tracking-tight">Settings</h1>
           <p className="text-body-md text-text-secondary mt-1">Manage your workspace account preferences and API integrations.</p>
