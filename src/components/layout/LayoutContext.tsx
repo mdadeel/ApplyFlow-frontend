@@ -2,14 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { LayoutContext } from './useLayout'
 
 export function LayoutProvider({ children }: { children: ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    try {
-      const saved = localStorage.getItem('applyflow_sidebar_collapsed')
-      return saved === 'true'
-    } catch {
-      return false
-    }
-  })
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   const toggleSidebar = () => {

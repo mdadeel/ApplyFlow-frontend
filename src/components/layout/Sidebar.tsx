@@ -9,7 +9,6 @@ import {
   BarChart3,
   BrainCircuit,
   Plus,
-  ChevronLeft,
   ChevronRight,
   Users,
   MessageSquare,
@@ -20,6 +19,7 @@ import {
   FileText,
   MessageCircle,
   Settings,
+  FileCheck,
 } from '../../lib/icons'
 import type { LucideIcon } from '../../lib/icons'
 import { useLayout } from './useLayout'
@@ -56,51 +56,64 @@ interface Section {
 
 const sections: Section[] = [
   {
-    id: 'dashboard',
+    id: 'overview',
     label: '',
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', visibleWhenCollapsed: true },
     ],
   },
   {
-    id: 'career',
-    label: 'Career',
+    id: 'ai-copilot',
+    label: 'AI Co-pilot',
     items: [
+      { id: 'smart-application', label: 'Smart Application', icon: Zap, href: '/smart-application', visibleWhenCollapsed: true },
+      { id: 'jd-analysis', label: 'JD Analysis', icon: FileSearch, href: '/jd-analysis', visibleWhenCollapsed: true },
       {
-        id: 'applications',
-        label: 'Applications',
-        icon: Briefcase,
-        href: '/applications',
+        id: 'resumes',
+        label: 'Resumes',
+        icon: FileText,
+        href: '/resume-library',
         visibleWhenCollapsed: true,
         children: [
-          { id: 'smart-application', label: 'Smart Application', icon: Zap, href: '/smart-application' },
-          { id: 'jd-analysis', label: 'JD Analysis', icon: FileSearch, href: '/jd-analysis' },
           { id: 'resume-editor', label: 'Resume Editor', icon: FileText, href: '/resume-editor' },
-          { id: 'interview-prep', label: 'Interview Prep', icon: MessageCircle, href: '/interview' },
+          { id: 'resume-library', label: 'Resume Library', icon: FileCheck, href: '/resume-library' },
         ],
       },
-      { id: 'jobs', label: 'Jobs', icon: Target, href: '/community/opportunities', visibleWhenCollapsed: true },
-      { id: 'profile', label: 'Profile', icon: User, href: '/profile', visibleWhenCollapsed: true },
+      { id: 'interview-prep', label: 'Interview Prep', icon: MessageCircle, href: '/interview', visibleWhenCollapsed: true },
+    ],
+  },
+  {
+    id: 'tracker',
+    label: 'Tracker',
+    items: [
+      { id: 'applications', label: 'Applications', icon: Briefcase, href: '/applications', visibleWhenCollapsed: true },
       { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/analytics', visibleWhenCollapsed: true },
-      { id: 'learning', label: 'Learning Center', icon: BrainCircuit, href: '/admin/learning', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
     ],
   },
   {
     id: 'network',
     label: 'Network',
-items: [
-        { id: 'feed', label: 'Feed', icon: Sparkles, href: '/community/feed', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
-        { id: 'templates', label: 'Templates', icon: FileText, href: '/community/templates', visibleWhenCollapsed: true },
-        { id: 'discussions', label: 'Discussions', icon: MessageSquare, href: '/community/discussions', visibleWhenCollapsed: false },
-        { id: 'referrals', label: 'Referrals', icon: Users, href: '/community/referrals', visibleWhenCollapsed: false },
-      ],
+    items: [
+      { id: 'feed', label: 'Feed', icon: Sparkles, href: '/community/feed', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
+      { id: 'opportunities', label: 'Job Board', icon: Target, href: '/community/opportunities', visibleWhenCollapsed: true },
+      { id: 'discussions', label: 'Discussions', icon: MessageSquare, href: '/community/discussions', visibleWhenCollapsed: false },
+      { id: 'referrals', label: 'Referrals', icon: Users, href: '/community/referrals', visibleWhenCollapsed: false },
+      { id: 'templates', label: 'Templates', icon: FileText, href: '/community/templates', visibleWhenCollapsed: false },
+    ],
+  },
+  {
+    id: 'management',
+    label: 'Management',
+    items: [
+      { id: 'profile', label: 'Career Profile', icon: User, href: '/profile', visibleWhenCollapsed: true },
+      { id: 'learning', label: 'Learning Center', icon: BrainCircuit, href: '/admin/learning', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
+    ],
   },
 ]
 
 export function Sidebar(): JSX.Element {
   const {
     sidebarCollapsed,
-    toggleSidebar,
     mobileSidebarOpen,
     setMobileSidebarOpen,
   } = useLayout()
@@ -111,7 +124,7 @@ export function Sidebar(): JSX.Element {
   const [userName, setUserName] = useState<string | null>(null)
 
   const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>(() => ({
-    applications: true,
+    resumes: true,
   }))
 
   useEffect(() => {
@@ -387,43 +400,34 @@ export function Sidebar(): JSX.Element {
           {sections.map((section, index) => renderSection(section, index === 0))}
         </nav>
 
-        <div className="border-t border-border px-2 py-2 space-y-0.5 shrink-0">
-          <button
-            onClick={toggleSidebar}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg w-full cursor-pointer transition-colors text-text-secondary hover:bg-surface-secondary hover:text-text-primary ${sidebarCollapsed ? 'justify-center' : ''}`}
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {sidebarCollapsed ? (
-              <ChevronRight className="w-5 h-5" />
-            ) : (
-              <>
-                <ChevronLeft className="w-5 h-5 shrink-0" />
-                <span className="text-body-sm">Collapse</span>
-              </>
-            )}
-          </button>
-          <a
-            href="/settings"
-            onClick={(e) => { e.preventDefault(); handleNav('/settings') }}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-colors text-text-secondary hover:bg-surface-secondary hover:text-text-primary ${sidebarCollapsed ? 'justify-center' : ''}`}
-            aria-label="Settings"
-          >
-            <Settings className="w-5 h-5 shrink-0" />
-            {!sidebarCollapsed && <span className="text-body-sm">Settings</span>}
-          </a>
-          <div
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-text-secondary"
-            title={sidebarCollapsed ? userName || 'User' : undefined}
-          >
-            <Avatar
-              src={userAvatarUrl}
-              name={userName}
-              size="sm"
-              aria-label={userName || 'User avatar'}
-            />
-            {!sidebarCollapsed && (
-              <span className="text-body-sm truncate text-text-primary">{userName || 'User'}</span>
-            )}
+        <div className="border-t border-border px-2 py-2 shrink-0 group">
+          <div className="flex items-center gap-1">
+            <a
+              href="/settings"
+              onClick={(e) => { e.preventDefault(); handleNav('/settings') }}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg cursor-pointer transition-colors text-text-secondary hover:bg-surface-secondary hover:text-text-primary flex-1 min-w-0"
+              aria-label="Settings"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5 shrink-0" />
+              <span className="text-body-sm truncate opacity-0 w-0 group-hover:opacity-100 group-hover:w-auto overflow-hidden transition-all duration-150">
+                Settings
+              </span>
+            </a>
+            <div
+              className="flex items-center gap-2 px-1.5 py-1.5 rounded-lg min-w-0"
+              title={userName || 'User'}
+            >
+              <Avatar
+                src={userAvatarUrl}
+                name={userName}
+                size="sm"
+                aria-label={userName || 'User avatar'}
+              />
+              <span className="text-body-sm truncate text-text-primary opacity-0 w-0 group-hover:opacity-100 group-hover:w-auto overflow-hidden transition-all duration-150">
+                {userName || 'User'}
+              </span>
+            </div>
           </div>
         </div>
       </aside>
