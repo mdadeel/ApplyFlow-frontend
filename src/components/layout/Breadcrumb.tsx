@@ -11,11 +11,20 @@ const ROUTE_LABELS: Record<string, string> = {
   'jd-analysis': 'JD Analysis',
   'resume-strategy': 'Resume Strategy',
   'resume-editor': 'Resume Editor',
+  'resume-library': 'Resume Library',
   validation: 'Validation Center',
   export: 'Export Center',
   interview: 'Interview Prep',
   analytics: 'Analytics',
   settings: 'Settings',
+  'smart-application': 'Smart Application',
+  'community': 'Community',
+  feed: 'Feed',
+  opportunities: 'Job Board',
+  discussions: 'Discussions',
+  referrals: 'Referrals',
+  'admin': 'Admin',
+  learning: 'Learning Center',
 }
 
 function labelForSegment(segment: string, isLast: boolean, dynamicLabel?: string): string {
@@ -61,6 +70,8 @@ export function Breadcrumb() {
 
   if (segments.length === 0) return null
 
+  const visibleSegments = segments.filter(s => s !== 'admin')
+
   return (
     <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 min-w-0 text-body-md">
       <Link
@@ -71,9 +82,10 @@ export function Breadcrumb() {
         <span className="hidden sm:inline">Home</span>
       </Link>
 
-      {segments.map((segment, index) => {
-        const isLast = index === segments.length - 1
-        const path = '/' + segments.slice(0, index + 1).join('/')
+      {visibleSegments.map((segment, index) => {
+        const originalIndex = segments.indexOf(segment, index === 0 ? 0 : index - 1)
+        const isLast = index === visibleSegments.length - 1
+        const path = '/' + segments.slice(0, originalIndex + 1).join('/')
         const label = labelForSegment(segment, isLast, dynamicLabel ?? undefined)
 
         return (

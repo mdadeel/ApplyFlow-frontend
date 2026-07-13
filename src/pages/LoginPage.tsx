@@ -124,6 +124,12 @@ export function LoginPage() {
 
               <div className="flex items-center justify-between">
                 <Toggle checked={remember} onChange={setRemember} label="Remember me" />
+                <Link
+                  to="/auth/forgot-password"
+                  className="text-label-sm text-primary hover:text-primary-hover font-medium transition-colors"
+                >
+                  Forgot password?
+                </Link>
               </div>
 
               {error && (
@@ -147,19 +153,23 @@ export function LoginPage() {
               </div>
             </div>
 
-            {/* Demo login */}
-            <Button
-              variant="secondary"
-              className="w-full"
-              onClick={handleDemoLogin}
-              loading={demoLoading}
-            >
-              Try Demo Account
-            </Button>
+            {/* Demo login — only shown in development */}
+            {import.meta.env.DEV && (
+              <>
+                <Button
+                  variant="secondary"
+                  className="w-full"
+                  onClick={handleDemoLogin}
+                  loading={demoLoading}
+                >
+                  Try Demo Account
+                </Button>
 
-            <p className="text-center text-body-sm text-on-surface-variant mt-2">
-              No registration needed — instantly explore all features.
-            </p>
+                <p className="text-center text-body-sm text-on-surface-variant mt-2">
+                  No registration needed — instantly explore all features.
+                </p>
+              </>
+            )}
 
             <p className="text-center text-body-md text-on-surface-variant mt-lg">
               Don&apos;t have an account?{' '}

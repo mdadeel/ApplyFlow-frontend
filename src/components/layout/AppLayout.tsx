@@ -16,7 +16,7 @@ function LayoutShell({ children, onSearch, searchValue }: AppLayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden bg-[#f6f8fc]">
       <Sidebar />
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main id="main-content" className="flex-1 flex flex-col overflow-hidden">
         <TopBar onSearch={onSearch} searchValue={searchValue} />
         <div className={`flex-1 overflow-y-auto p-8 w-full transition-all duration-200 ${sidebarCollapsed ? 'max-w-none px-12' : 'max-w-7xl mx-auto'}`}>
           {children}

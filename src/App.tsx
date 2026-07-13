@@ -8,6 +8,8 @@ import { DashboardPage } from './pages/DashboardPage'
 import { ApplicationsPage } from './pages/ApplicationsPage'
 import { ApplicationDetailPage } from './pages/ApplicationDetailPage'
 import { ResumeLibraryPage } from './pages/ResumeLibraryPage'
+import { CareerProfilePage } from './pages/CareerProfilePage'
+import { ValidationCenterPage } from './pages/ValidationCenterPage'
 
 import { ExportCenterPage } from './pages/ExportCenterPage'
 import { InterviewPrepPage } from './pages/InterviewPrepPage'
@@ -30,8 +32,12 @@ import { ReferralsPage } from './pages/community/ReferralsPage'
 import { ReferralRequestPage } from './pages/community/ReferralRequestPage'
 import { NotificationsPage } from './pages/community/NotificationsPage'
 import { TemplatesPage } from './pages/community/TemplatesPage'
+import { CreateTemplatePage } from './pages/community/CreateTemplatePage'
 import { LearningAdminPage } from './pages/LearningAdminPage'
 import { LandingPage } from './pages/LandingPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { VerifyEmailPage } from './pages/VerifyEmailPage'
 
 function App() {
   return (
@@ -42,16 +48,20 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
+        <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/verify-email" element={<VerifyEmailPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route path="/applications/:id" element={<ApplicationDetailPage />} />
         <Route path="/smart-application" element={<SmartApplicationPage />} />
-        <Route path="/profile" element={<ResumeLibraryPage />} />
+        <Route path="/resume-library" element={<ResumeLibraryPage />} />
+        <Route path="/profile" element={<CareerProfilePage />} />
         <Route path="/templates" element={<Navigate to="/community/templates" replace />} />
         <Route path="/jd-analysis" element={<JDAnalysisPage />} />
         <Route path="/resume-strategy" element={<ResumeStrategyPage />} />
         <Route path="/resume-editor" element={<ResumeEditorPage />} />
-        <Route path="/validation" element={<Navigate to="/smart-application" replace />} />
+        <Route path="/validation" element={<ValidationCenterPage />} />
         <Route path="/export" element={<ExportCenterPage />} />
         <Route path="/interview" element={<InterviewPrepPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
@@ -71,6 +81,7 @@ function App() {
         <Route path="/community/workspace/:id" element={<WorkspacePage />} />
         <Route path="/community/notifications" element={<NotificationsPage />} />
         <Route path="/community/templates" element={<TemplatesPage />} />
+        <Route path="/community/templates/create" element={<CreateTemplatePage />} />
         <Route path="/admin/learning" element={<LearningAdminPage />} />
       </Routes>
       </ErrorBoundary>
