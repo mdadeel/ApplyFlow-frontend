@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Section } from '../components/layout/Section'
 import { Button } from '../components/ui/Button'
@@ -12,7 +13,7 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { interviewService } from '../services/interview'
 import { applicationsService } from '../services/applications'
 import { useToast } from '../components/layout/useToast'
-import type { InterviewPrep, Application, JDAnalysis } from '../types'
+import type { InterviewPrep, JDAnalysis } from '../types'
 import {
   Sparkles,
   BrainCircuit,
@@ -24,7 +25,12 @@ import {
 export function InterviewPrepPage() {
   const { showToast } = useToast()
 
-  const [applications, setApplications] = useState<Application[]>([])
+  const applicationsQuery = useQuery({
+    queryKey: ['interview', 'applications'],
+    queryFn: () => applicationsService.getApplications(),
+    staleTime: 60 * 1000,
+  })
+
   const [selectedAppId, setSelectedAppId] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [prep, setPrep] = useState<InterviewPrep | null>(null)
@@ -40,18 +46,13 @@ export function InterviewPrepPage() {
   const [savingAnswer, setSavingAnswer] = useState<string | null>(null)
   const [researchLoading, setResearchLoading] = useState(false)
 
-  const loadApplications = useCallback(async () => {
-    try {
-      const res = await applicationsService.getApplications()
-      setApplications(res.applications)
-    } catch {
+  useEffect(() => {
+    if (applicationsQuery.isError) {
       showToast('Failed to load applications', 'error')
     }
-  }, [showToast])
+  }, [applicationsQuery.isError, showToast])
 
-  useEffect(() => {
-    loadApplications()
-  }, [loadApplications])
+  const applications = applicationsQuery.data?.applications ?? []
 
   const appOptions = applications.map((app) => ({
     value: app._id,

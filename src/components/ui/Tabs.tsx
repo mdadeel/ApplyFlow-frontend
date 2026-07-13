@@ -17,10 +17,13 @@ export interface TabsProps {
 export function Tabs({ tabs, activeTab, onChange, variant = 'underline', className = '' }: TabsProps) {
   if (variant === 'pill') {
     return (
-      <div className={`flex flex-wrap gap-1 ${className}`}>
+      <div className={`flex flex-wrap gap-1 ${className}`} role="tablist" aria-label="Tab navigation">
         {tabs.map((tab) => (
           <button
             key={tab.id}
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`tabpanel-${tab.id}`}
             onClick={() => onChange(tab.id)}
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-meta font-medium transition-colors duration-150
               ${activeTab === tab.id
@@ -41,10 +44,13 @@ export function Tabs({ tabs, activeTab, onChange, variant = 'underline', classNa
   }
 
   return (
-    <div className={`flex border-b border-border ${className}`}>
+    <div className={`flex border-b border-border ${className}`} role="tablist" aria-label="Tab navigation">
       {tabs.map((tab) => (
         <button
           key={tab.id}
+          role="tab"
+          aria-selected={activeTab === tab.id}
+          aria-controls={`tabpanel-${tab.id}`}
           onClick={() => onChange(tab.id)}
           className={`inline-flex items-center gap-2 px-4 py-3 text-caption font-medium transition-colors duration-150 border-b-2 -mb-px relative
             ${activeTab === tab.id

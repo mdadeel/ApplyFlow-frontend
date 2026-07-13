@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, LayoutList, LayoutGrid, Sparkles } from '../lib/icons'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Button } from '../components/ui/Button'
@@ -66,13 +67,7 @@ export function ApplicationsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { showToast } = useToast()
 
-  const [applications, setApplications] = useState<Application[]>([])
-  const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
-  const [pages, setPages] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
   const [searchValue, setSearchValue] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [activeTab, setActiveTab] = useState('all')
@@ -94,34 +89,27 @@ export function ApplicationsPage() {
     })
   }, [])
 
-  const fetchApplications = useCallback(async () => {
-    let cancelled = false
-    setLoading(true)
-    setError(null)
-    try {
-      const status = getStatusFilter(activeTab, statusFilter)
-      const res = await applicationsService.getApplications({
+  const status = getStatusFilter(activeTab, statusFilter)
+  const queryClient = useQueryClient()
+  const applicationsQuery = useQuery({
+    queryKey: ['applications', { status, page }],
+    queryFn: () =>
+      applicationsService.getApplications({
         status,
         page,
         limit: LIMIT,
-      })
-      if (cancelled) return
-      setApplications(res.applications ?? [])
-      setTotal(res.total ?? 0)
-      setPages(res.pages ?? 0)
-    } catch (err) {
-      if (!cancelled) {
-        setError(err instanceof Error ? err.message : 'Failed to load applications')
-        showToast('Failed to load applications', 'error')
-      }
-    } finally {
-      if (!cancelled) setLoading(false)
-    }
-  }, [activeTab, statusFilter, page, showToast])
-
-  useEffect(() => {
-    fetchApplications()
-  }, [fetchApplications])
+      }),
+    staleTime: 30 * 1000,
+  })
+  const applications = applicationsQuery.data?.applications ?? []
+  const total = applicationsQuery.data?.total ?? 0
+  const pages = applicationsQuery.data?.pages ?? 0
+  const loading = applicationsQuery.isLoading
+  const error = applicationsQuery.error
+    ? applicationsQuery.error instanceof Error
+      ? applicationsQuery.error.message
+      : 'Failed to load applications'
+    : null
 
   useEffect(() => {
     setPage(1)
@@ -170,7 +158,7 @@ export function ApplicationsPage() {
       setNewRole('')
       setNewJdText('')
       setPage(1)
-      fetchApplications()
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
     } catch {
       showToast('Failed to create application', 'error')
     } finally {
@@ -182,7 +170,7 @@ export function ApplicationsPage() {
     try {
       await applicationsService.updateApplication(id, { status: newStatus })
       showToast('Status updated successfully', 'success')
-      fetchApplications()
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
     } catch {
       showToast('Failed to update status', 'error')
     }
@@ -193,7 +181,7 @@ export function ApplicationsPage() {
     try {
       await applicationsService.deleteApplication(id)
       showToast('Application deleted successfully', 'success')
-      fetchApplications()
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
     } catch {
       showToast('Failed to delete application', 'error')
     }

@@ -16,6 +16,15 @@ import {
   ChevronRight,
   Sparkles,
   Clock,
+  Zap,
+  FileSearch,
+  FileCheck,
+  MessageCircle,
+  Target,
+  BrainCircuit,
+  Settings,
+  Users,
+  BookOpen,
 } from '../lib/icons'
 
 function timeBasedGreeting(): string {
@@ -41,6 +50,27 @@ const AI_SUGGESTIONS = [
   { text: 'Analyze a new job description to see how your resume matches up', action: 'Analyze a JD', path: '/jd-analysis' },
   { text: 'Your interview prep materials are ready for the next round', action: 'Start preparing', path: '/interview' },
   { text: 'Update your career profile to improve match scores', action: 'Update profile', path: '/profile' },
+]
+
+const QUICK_ACTIONS = [
+  { group: 'AI Co-pilot', items: [
+    { label: 'Smart Application', desc: 'AI-driven end-to-end application', icon: Zap, path: '/smart-application' },
+    { label: 'JD Analysis', desc: 'Match your resume to a job description', icon: FileSearch, path: '/jd-analysis' },
+    { label: 'Resume Editor', desc: 'Build and refine your resume', icon: FileText, path: '/resume-editor' },
+    { label: 'Interview Prep', desc: 'Generate Q&A and talking points', icon: MessageCircle, path: '/interview' },
+  ]},
+  { group: 'Tracker', items: [
+    { label: 'Applications', desc: 'Kanban board & status tracking', icon: Briefcase, path: '/applications' },
+    { label: 'Analytics', desc: 'Conversion rates & insights', icon: BarChart3, path: '/analytics' },
+  ]},
+  { group: 'Network', items: [
+    { label: 'Job Board', desc: 'Discover opportunities', icon: Target, path: '/community/opportunities' },
+    { label: 'Feed', desc: 'Community posts & updates', icon: Sparkles, path: '/community/feed' },
+  ]},
+  { group: 'Management', items: [
+    { label: 'Career Profile', desc: 'Skills, experience, credentials', icon: User, path: '/profile' },
+    { label: 'Resume Library', desc: 'Stored resume versions', icon: FileCheck, path: '/resume-library' },
+  ]},
 ]
 
 export function DashboardPage() {
@@ -92,13 +122,6 @@ export function DashboardPage() {
 
     fetchData()
   }, [])
-
-  const resumePoints = [
-    { label: 'Analyze a JD', desc: 'Paste a job description to get started', icon: FileText, path: '/jd-analysis' },
-    { label: 'View Applications', desc: 'Track your progress', icon: BarChart3, path: '/applications' },
-    { label: 'Update Profile', desc: 'Keep your career profile current', icon: User, path: '/profile' },
-    { label: 'Prepare for Interview', desc: 'Generate talking points', icon: MessageSquare, path: '/interview' },
-  ]
 
   return (
     <AppLayout>
@@ -184,31 +207,38 @@ export function DashboardPage() {
           </Card>
         </div>
 
-        {/* Continue Where You Left Off */}
+        {/* Quick Actions by Workspace Section */}
         <div>
           <div className="mb-4">
-            <h2 className="text-heading-2 text-text-primary font-semibold">Continue where you left off</h2>
-            <p className="text-body-sm text-text-secondary mt-1">Jump back into your active job search flow</p>
+            <h2 className="text-heading-2 text-text-primary font-semibold">Quick Actions</h2>
+            <p className="text-body-sm text-text-secondary mt-1">Jump directly into any workspace</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {resumePoints.map((point) => {
-              const Icon = point.icon
-              return (
-                <button
-                  key={point.path}
-                  onClick={() => navigate(point.path)}
-                  className="flex items-center gap-4 w-full text-left bg-white border border-border rounded-xl p-5 hover:border-border-hover hover:shadow-card-hover transition-all duration-300 group shadow-card"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-neutral-50 text-text-secondary flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-body-sm font-semibold text-text-primary group-hover:text-primary transition-colors">{point.label}</p>
-                    <p className="text-caption text-text-tertiary mt-1 leading-normal">{point.desc}</p>
-                  </div>
-                </button>
-              )
-            })}
+          <div className="space-y-6">
+            {QUICK_ACTIONS.map((group) => (
+              <div key={group.group}>
+                <h3 className="text-caption text-text-tertiary font-semibold uppercase tracking-wider mb-3">{group.group}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {group.items.map((item) => {
+                    const Icon = item.icon
+                    return (
+                      <button
+                        key={item.path}
+                        onClick={() => navigate(item.path)}
+                        className="flex items-center gap-4 w-full text-left bg-white border border-border rounded-xl p-5 hover:border-border-hover hover:shadow-card-hover transition-all duration-300 group shadow-card"
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-neutral-50 text-text-secondary flex items-center justify-center shrink-0 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-300">
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-body-sm font-semibold text-text-primary group-hover:text-primary transition-colors">{item.label}</p>
+                          <p className="text-caption text-text-tertiary mt-1 leading-normal">{item.desc}</p>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 

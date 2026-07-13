@@ -19,11 +19,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? `${inputId}-error` : undefined}
           className={`w-full h-10 px-3 rounded-md border bg-neutral-50 border-neutral-300 text-text-primary text-body-sm placeholder:text-text-tertiary outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-surface-secondary ${error ? 'border-danger' : 'hover:border-neutral-400'} ${className}`}
           {...props}
         />
         {error && (
-          <p className="text-meta text-danger">{error}</p>
+          <p id={`${inputId}-error`} className="text-meta text-danger" role="alert">
+            {error}
+          </p>
         )}
       </div>
     );

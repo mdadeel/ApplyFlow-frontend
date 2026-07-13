@@ -59,6 +59,24 @@ export function getApiKeysConfigured(): Promise<{ providers: string[] }> {
   return get<{ providers: string[] }>('/auth/api-keys')
 }
 
+// ── Email verification & password reset ─────────────────────────────
+
+export function verifyEmail(token: string): Promise<{ ok: boolean; message: string }> {
+  return post<{ ok: boolean; message: string }>('/auth/verify-email', { token })
+}
+
+export function resendVerification(): Promise<{ ok: boolean; message: string }> {
+  return post<{ ok: boolean; message: string }>('/auth/resend-verification')
+}
+
+export function forgotPassword(email: string): Promise<{ message: string }> {
+  return post<{ message: string }>('/auth/forgot-password', { email })
+}
+
+export function resetPassword(token: string, newPassword: string): Promise<{ ok: boolean; message: string }> {
+  return post<{ ok: boolean; message: string }>('/auth/reset-password', { token, newPassword })
+}
+
 export const authService = {
   login,
   register,

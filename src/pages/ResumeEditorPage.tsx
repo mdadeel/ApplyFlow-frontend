@@ -1,5 +1,6 @@
-import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -8,9 +9,10 @@ import { ResumePreview } from '../components/features/ResumePreview'
 import { Skeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 import { resumeService } from '../services/resume'
+import { resumeLibraryService } from '../services/resumeLibrary'
 import { contentService } from '../services/content'
 import { useToast } from '../components/layout/useToast'
-import type { ResumeVersion, ResumeContent } from '../types'
+import type { ResumeVersion, ResumeContent, UploadedResumeContent } from '../types'
 import {
   Sparkles,
   FileCheck,
@@ -43,11 +45,30 @@ const emptyContent: ResumeContent = {
   certificates: [],
 }
 
+function toResumeContent(uploaded: UploadedResumeContent): ResumeContent {
+  const skills = Array.isArray(uploaded.skills)
+    ? uploaded.skills.map((s: any) =>
+        typeof s === 'string' ? s : (s?.name ?? s?.skill ?? String(s ?? '')),
+      )
+    : []
+  return {
+    summary: uploaded.summary ?? '',
+    experiences: Array.isArray(uploaded.experiences) ? uploaded.experiences : [],
+    projects: Array.isArray(uploaded.projects) ? uploaded.projects : [],
+    skills,
+    education: Array.isArray(uploaded.education) ? uploaded.education : [],
+    certificates: Array.isArray(uploaded.certificates) ? uploaded.certificates : [],
+  }
+}
+
 export function ResumeEditorPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const toast = useToast()
   const strategy = (location.state as { strategy?: unknown })?.strategy
+
+  const resumeId = searchParams.get('resumeId')
 
   const [template, setTemplate] = useState('modern')
   const [version, setVersion] = useState<ResumeVersion | null>(null)
@@ -57,6 +78,38 @@ export function ResumeEditorPage() {
   const [visibleSections, setVisibleSections] = useState<string[]>(
     SECTION_LIST.map((s) => s.id),
   )
+
+  // List of uploaded resumes (for the "Load from uploaded CV" dropdown)
+  const uploadedResumesQuery = useQuery({
+    queryKey: ['resumes'],
+    queryFn: async () => {
+      const { resumes } = await resumeLibraryService.getResumes()
+      return resumes
+    },
+    staleTime: 60 * 1000,
+  })
+  const uploadedResumes = uploadedResumesQuery.data ?? []
+
+  // Fetch a specific uploaded resume when resumeId is present
+  const uploadedResumeQuery = useQuery({
+    queryKey: ['resume', resumeId],
+    queryFn: async () => {
+      if (!resumeId) return null
+      const { resume } = await resumeLibraryService.getResume(resumeId)
+      return resume
+    },
+    enabled: Boolean(resumeId),
+    staleTime: 60 * 1000,
+  })
+
+  // When an uploaded resume loads, populate the editor content
+  useEffect(() => {
+    if (uploadedResumeQuery.data?.content) {
+      setContent(toResumeContent(uploadedResumeQuery.data.content))
+      setGenerated(true)
+      setVersion(null)
+    }
+  }, [uploadedResumeQuery.data])
 
   function toggleSection(id: string) {
     setVisibleSections((prev) =>
@@ -125,11 +178,40 @@ export function ResumeEditorPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto mb-6">
-        <h1 className="text-heading-1 text-text-primary">Resume Editor</h1>
-        <p className="text-body text-text-secondary mt-1">
-          Review, customize, and refine your tailored resume.
-        </p>
+      <div className="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <h1 className="text-heading-1 text-text-primary">Resume Editor</h1>
+          <p className="text-body text-text-secondary mt-1">
+            Review, customize, and refine your tailored resume.
+          </p>
+        </div>
+
+        <div className="w-full md:w-80">
+          <label
+            htmlFor="load-uploaded-cv"
+            className="block text-body-sm font-semibold text-text-primary uppercase tracking-wider mb-2"
+          >
+            Load from uploaded CV
+          </label>
+          <Select
+            inputId="load-uploaded-cv"
+            options={[
+              { value: '', label: 'Select an uploaded resume...' },
+              ...uploadedResumes.map((r) => ({
+                value: r._id,
+                label: r.fileName,
+              })),
+            ]}
+            value={resumeId ?? ''}
+            onChange={(value) => {
+              if (value) {
+                navigate(`/resume-editor?resumeId=${value}`)
+              } else {
+                navigate('/resume-editor')
+              }
+            }}
+          />
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">

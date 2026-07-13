@@ -33,11 +33,12 @@ export function Table<T extends Record<string, unknown>>({
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-surface-secondary border-b border-border">
-            {columns.map((col) => (
-              <th
+            {columns.map((col) => (                <th
                 key={col.key}
+                scope="col"
                 className={`px-6 py-3.5 text-left text-label-sm font-semibold text-text-secondary ${col.sortable ? 'cursor-pointer hover:text-text-primary select-none' : ''}`}
                 onClick={() => col.sortable && onSort?.(col.key)}
+                aria-sort={col.sortable && sortField === col.key ? (sortDir === 'asc' ? 'ascending' : 'descending') : undefined}
               >
                 <span className="inline-flex items-center gap-1">
                   {col.label}

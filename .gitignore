@@ -30,3 +30,8 @@ playwright-report/data/78485ad26ab49de2007fe98b0854715a58aaf5b6.png
 test-results/auth.setup.ts-authenticate-and-capture-storage-state-auth-setup/test-failed-1.png
 test-results/auth.setup.ts-authenticate-and-capture-storage-state-auth-setup/test-failed-1.png
 test-results/auth.setup.ts-authenticate-and-capture-storage-state-auth-setup/error-context.md
+
+# Environments
+.env
+.env.*
+

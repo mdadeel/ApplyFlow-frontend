@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { AppLayout } from '../components/layout/AppLayout'
 import {
   smartApplicationService,
   type SmartApplicationResult,
 } from '../services/smartApplication'
 import { resumeLibraryService } from '../services/resumeLibrary'
-import type { UploadedResume } from '../types'
+import { get } from '../services/api'
+import { Briefcase } from '../lib/icons'
 import { useToast } from '../components/layout/useToast'
 import {
   SmartApplicationInputPanel,
@@ -28,7 +30,6 @@ export function SmartApplicationPage() {
   const [company, setCompany] = useState('')
   const [role, setRole] = useState('')
   const [masterCVFile, setMasterCVFile] = useState<File | null>(null)
-  const [uploadedResumes, setUploadedResumes] = useState<UploadedResume[]>([])
   const [selectedResumeId, setSelectedResumeId] = useState<string>('')
 
   // ── Result state ─────────────────────────────────────────
@@ -45,7 +46,6 @@ export function SmartApplicationPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const generationStartRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const [resumesLoading, setResumesLoading] = useState(false)
 
   // ── Effects ───────────────────────────────────────────────
   useEffect(() => {
@@ -65,22 +65,52 @@ export function SmartApplicationPage() {
     }
   }, [isGenerating])
 
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      setResumesLoading(true)
-      try {
-        const { resumes } = await resumeLibraryService.getResumes()
-        if (!cancelled) setUploadedResumes(resumes)
-      } catch {
-        // Silently fail
-      } finally {
-        if (!cancelled) setResumesLoading(false)
-      }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [])
+  // ── Data fetching (React Query) ───────────────────────────
+  const resumesQuery = useQuery({
+    queryKey: ['resumes'],
+    queryFn: async () => {
+      const { resumes } = await resumeLibraryService.getResumes()
+      return resumes
+    },
+    staleTime: 60 * 1000,
+  })
+  const uploadedResumes = resumesQuery.data ?? []
+  const resumesLoading = resumesQuery.isLoading
+
+  // ── Recent JD analyses (for "Use existing job description") ──
+  interface RecentJD {
+    _id: string
+    company: string
+    role: string
+    jdText?: string
+    createdAt?: string
+  }
+  const recentJDQuery = useQuery({
+    queryKey: ['jd-analyses', 'recent'],
+    queryFn: async () => {
+      const raw = await get<RecentJD[] | { data: RecentJD[] } | { items: RecentJD[] }>(
+        '/api/v1/jd-analyses',
+        { limit: 20 },
+      )
+      if (Array.isArray(raw)) return raw
+      const obj = raw as { data?: RecentJD[]; items?: RecentJD[] }
+      return obj.data ?? obj.items ?? []
+    },
+    staleTime: 30_000,
+  })
+  const recentJDs: RecentJD[] = recentJDQuery.data ?? []
+
+  const handleSelectRecentJD = useCallback(
+    (id: string) => {
+      const picked = recentJDs.find((j) => j._id === id)
+      if (!picked) return
+      if (picked.jdText) setJdText(picked.jdText)
+      if (picked.company) setCompany(picked.company)
+      if (picked.role) setRole(picked.role)
+      showToast(`Loaded JD: ${picked.role} @ ${picked.company}`, 'success')
+    },
+    [recentJDs, showToast],
+  )
 
   // Bulk item type for AI-split results
   type BulkItem = SmartApplicationResult | { error: string; company: string; role: string }
@@ -203,7 +233,44 @@ export function SmartApplicationPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-4">
+        {recentJDs.length > 0 && (
+          <div className="rounded-lg border border-border bg-white shadow-card p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Briefcase className="h-4 w-4 text-primary" />
+              <h3 className="text-body-sm font-semibold text-text-primary">
+                Use existing job description
+              </h3>
+              {recentJDQuery.isFetching && (
+                <span className="text-caption text-text-tertiary">refreshing…</span>
+              )}
+            </div>
+            <p className="text-caption text-text-secondary mb-2">
+              Pick a previously analyzed JD to auto-fill the description, company, and role below.
+            </p>
+            <select
+              defaultValue=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  handleSelectRecentJD(e.target.value)
+                  e.target.value = ''
+                }
+              }}
+              className="w-full p-2 rounded-md border border-neutral-300 bg-neutral-50 hover:border-neutral-400 text-body-sm text-text-primary outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-150"
+              aria-label="Select a recent job description"
+            >
+              <option value="" disabled>
+                Choose a recent JD…
+              </option>
+              {recentJDs.map((j) => (
+                <option key={j._id} value={j._id}>
+                  {j.role} @ {j.company}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-8rem)]">
           <SmartApplicationInputPanel
             inputMode={inputMode}

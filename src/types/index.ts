@@ -85,6 +85,49 @@ export interface Certificate {
   url?: string
 }
 
+export interface Award {
+  _id: string
+  title: string
+  issuer: string
+  date?: string
+  description?: string
+  url?: string
+}
+
+export interface Publication {
+  _id: string
+  title: string
+  publisher: string
+  date?: string
+  url?: string
+  description?: string
+  authors?: string[]
+}
+
+export interface Volunteering {
+  _id: string
+  organization: string
+  role: string
+  startDate?: string
+  endDate?: string
+  current: boolean
+  description?: string
+  technologies?: string[]
+  url?: string
+}
+
+export interface Language {
+  _id: string
+  name: string
+  proficiency: 'Native' | 'Fluent' | 'Advanced' | 'Intermediate' | 'Basic'
+}
+
+export interface Interest {
+  _id: string
+  name: string
+  category?: string
+}
+
 export interface ExtractedLink {
   displayText: string
   url: string
@@ -161,6 +204,49 @@ export interface ExtractedCertificate {
   confidence?: 'High' | 'Medium' | 'Low'
 }
 
+export interface ExtractedAward {
+  title: string
+  issuer: string
+  date?: string
+  description?: string
+  url?: string
+  confidence?: 'High' | 'Medium' | 'Low'
+}
+
+export interface ExtractedPublication {
+  title: string
+  publisher: string
+  date?: string
+  url?: string
+  description?: string
+  authors?: string[]
+  confidence?: 'High' | 'Medium' | 'Low'
+}
+
+export interface ExtractedVolunteering {
+  organization: string
+  role: string
+  startDate?: string
+  endDate?: string
+  current: boolean
+  description?: string
+  technologies?: string[]
+  url?: string
+  confidence?: 'High' | 'Medium' | 'Low'
+}
+
+export interface ExtractedLanguage {
+  name: string
+  proficiency: 'Native' | 'Fluent' | 'Advanced' | 'Intermediate' | 'Basic'
+  confidence?: 'High' | 'Medium' | 'Low'
+}
+
+export interface ExtractedInterest {
+  name: string
+  category?: string
+  confidence?: 'High' | 'Medium' | 'Low'
+}
+
 export interface CustomSection {
   title: string
   type: string
@@ -189,6 +275,11 @@ export interface ExtractedProfile {
   skills: ExtractedSkill[]
   education: ExtractedEducation[]
   certificates: ExtractedCertificate[]
+  awards?: ExtractedAward[]
+  publications?: ExtractedPublication[]
+  volunteering?: ExtractedVolunteering[]
+  languages?: ExtractedLanguage[]
+  interests?: ExtractedInterest[]
   customSections?: CustomSection[]
   links?: ExtractedLink[]
   documentStructure?: {

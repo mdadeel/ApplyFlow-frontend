@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import {
@@ -120,39 +121,30 @@ export function Sidebar(): JSX.Element {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const [learningBadgeCount, setLearningBadgeCount] = useState(0)
-  const [userName, setUserName] = useState<string | null>(null)
+  const userNameQuery = useQuery({
+    queryKey: ['sidebar', 'userName'],
+    queryFn: () => getPersonal(),
+    staleTime: 5 * 60 * 1000,
+  })
+  const userName = userNameQuery.data?.name ?? null
+
+  const suggestionsQuery = useQuery({
+    queryKey: ['sidebar', 'suggestions'],
+    queryFn: () => getSuggestions(),
+    refetchInterval: 30_000,
+    staleTime: 30_000,
+  })
+  const learningBadgeCount = suggestionsQuery.data?.count ?? 0
 
   const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>(() => ({
     resumes: true,
   }))
-
-  useEffect(() => {
-    getPersonal()
-      .then((data) => setUserName(data.name))
-      .catch(() => { /* profile not available */ })
-  }, [])
 
   const userAvatarUrl = user?.avatarUrl ?? null
 
   useEffect(() => {
     setMobileSidebarOpen(false)
   }, [location.pathname, setMobileSidebarOpen])
-
-  useEffect(() => {
-    let cancelled = false
-    const poll = () => {
-      getSuggestions()
-        .then(s => { if (!cancelled) setLearningBadgeCount(s.count) })
-        .catch(() => { /* non-critical */ })
-    }
-    poll()
-    const intervalId = setInterval(poll, 30_000)
-    return () => {
-      cancelled = true
-      clearInterval(intervalId)
-    }
-  }, [])
 
   function isActive(item: NavItem): boolean {
     if (item.href === '/dashboard') {

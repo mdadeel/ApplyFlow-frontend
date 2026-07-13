@@ -18,6 +18,7 @@ export class ApiError extends Error {
 }
 
 const BASE_URL = import.meta.env.VITE_API_URL || '/api'
+const CSRF_COOKIE = 'af_csrf'
 
 function clearAuth(): void {
   if (_authExpiredInProgress) return
@@ -28,6 +29,12 @@ function clearAuth(): void {
 /** Reset the guard — called by AuthWatcher after it finishes handling expiry. */
 export function resetAuthExpiredGuard(): void {
   _authExpiredInProgress = false
+}
+
+/** Read a cookie value by name (client-side readable cookies only). */
+function getCookie(name: string): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : null
 }
 
 function buildUrl(path: string, params?: Record<string, string | number | undefined>): string {
@@ -45,9 +52,16 @@ function buildUrl(path: string, params?: Record<string, string | number | undefi
   return url
 }
 
-function buildHeaders(): Record<string, string> {
+function buildHeaders(method: string): Record<string, string> {
   const headers: Record<string, string> = {}
   // No Authorization header needed — the JWT is sent as an httpOnly cookie automatically.
+  // CSRF token: send X-CSRF-Token header on state-changing requests
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+    const csrfToken = getCookie(CSRF_COOKIE)
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken
+    }
+  }
   return headers
 }
 
@@ -81,7 +95,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 export async function get<T>(path: string, params?: Record<string, string | number | undefined>, signal?: AbortSignal): Promise<T> {
   const response = await fetch(buildUrl(path, params), {
     method: 'GET',
-    headers: buildHeaders(),
+    headers: buildHeaders('GET'),
     credentials: 'include',
     ...(signal ? { signal } : {}),
   })
@@ -91,7 +105,7 @@ export async function get<T>(path: string, params?: Record<string, string | numb
 export async function getArray<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T[]> {
   const response = await fetch(buildUrl(path, params), {
     method: 'GET',
-    headers: buildHeaders(),
+    headers: buildHeaders('GET'),
     credentials: 'include',
   })
   const data = await handleResponse<unknown>(response)
@@ -99,7 +113,7 @@ export async function getArray<T>(path: string, params?: Record<string, string |
 }
 
 export async function post<T>(path: string, body?: unknown): Promise<T> {
-  const headers = buildHeaders()
+  const headers = buildHeaders('POST')
   if (body && !(body instanceof FormData)) {
     headers['Content-Type'] = 'application/json'
   }
@@ -113,7 +127,7 @@ export async function post<T>(path: string, body?: unknown): Promise<T> {
 }
 
 export async function put<T>(path: string, body?: unknown): Promise<T> {
-  const headers = buildHeaders()
+  const headers = buildHeaders('PUT')
   if (body && !(body instanceof FormData)) {
     headers['Content-Type'] = 'application/json'
   }
@@ -129,14 +143,14 @@ export async function put<T>(path: string, body?: unknown): Promise<T> {
 export async function del<T>(path: string): Promise<T> {
   const response = await fetch(buildUrl(path), {
     method: 'DELETE',
-    headers: buildHeaders(),
+    headers: buildHeaders('DELETE'),
     credentials: 'include',
   })
   return handleResponse<T>(response)
 }
 
 export async function postBlob(path: string, body: unknown): Promise<Blob> {
-  const headers = buildHeaders()
+  const headers = buildHeaders('POST')
   if (body && !(body instanceof FormData)) {
     headers['Content-Type'] = 'application/json'
   }

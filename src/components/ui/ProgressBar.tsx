@@ -25,11 +25,19 @@ export function ProgressBar({ value, size = 'md', color = 'primary', showLabel =
   };
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div
+      className={`flex items-center gap-3 ${className}`}
+      role="progressbar"
+      aria-valuenow={clampedValue}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`${Math.round(clampedValue)}% complete`}
+    >
       <div className={`flex-1 rounded-full bg-surface-container-high overflow-hidden ${sizeStyles[size]}`}>
         <div
           className={`h-full rounded-full transition-all duration-500 ease-out ${colorStyles[color]}`}
           style={{ width: `${clampedValue}%` }}
+          aria-hidden="true"
         />
       </div>
       {showLabel && (

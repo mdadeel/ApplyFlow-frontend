@@ -4,6 +4,7 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { Chip } from './Chip';
 export { Dialog } from './Dialog';
+export { FileUpload } from './FileUpload';
 export { Dropdown } from './Dropdown';
 export { EmptyState } from './EmptyState';
 export { IconButton } from './IconButton';

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { applicationsService } from '../services/applications'
 import { AppLayout } from '../components/layout/AppLayout'
 import { SplitPanel } from '../components/layout/SplitPanel'
@@ -45,12 +46,6 @@ Benefits:
 - Remote-first culture
 - Competitive salary
 - Equity package`
-
-const recentAnalyses = [
-  { company: 'Google', role: 'Frontend Engineer', date: '2 days ago' },
-  { company: 'Meta', role: 'React Developer', date: '5 days ago' },
-  { company: 'Stripe', role: 'UI Engineer', date: '1 week ago' },
-]
 
 // ── Types ──────────────────────────────────────────────
 
@@ -191,30 +186,38 @@ export function JDAnalysisPage() {
   const [csvDragActive, setCsvDragActive] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // ── Load Application on Mount ──────────────────────────
-  useEffect(() => {
-    const id = searchParams.get('application')
-    if (id === null) return
-    let active = true
+  const [recentSearchValue, setRecentSearchValue] = useState('')
 
-    async function loadApp() {
-      try {
-        const app = await applicationsService.getApplication(id!)
-        if (active) {
-          setTargetApp({ company: app.company, role: app.role })
-          if (app.jdText) {
-            setJdText(app.jdText)
-          }
-        }
-      } catch (err) {
-        console.error('Failed to load application for JD analysis', err)
-      }
-    }
-    loadApp()
-    return () => {
-      active = false
-    }
-  }, [appId])
+  const recentAnalysesQuery = useQuery({
+    queryKey: ['jd-analyses', 'recent'],
+    queryFn: () => jdService.getRecentAnalyses(50),
+    staleTime: 30 * 1000,
+  })
+  const recentAnalysesRaw = recentAnalysesQuery.data ?? []
+
+  const recentAnalyses = recentAnalysesRaw.filter((item: any) => {
+    if (!recentSearchValue.trim()) return true
+    const q = recentSearchValue.toLowerCase()
+    const company = String(item.company ?? '').toLowerCase()
+    const role = String(item.role ?? '').toLowerCase()
+    return company.includes(q) || role.includes(q)
+  })
+
+  // ── Load Application Context ───────────────────────────
+  const linkedAppQuery = useQuery({
+    queryKey: ['application', appId],
+    queryFn: () =>
+      appId ? applicationsService.getApplication(appId) : Promise.resolve(null),
+    enabled: Boolean(appId),
+    staleTime: 30 * 1000,
+  })
+  const linkedApp = linkedAppQuery.data
+
+  useEffect(() => {
+    if (!linkedApp) return
+    setTargetApp({ company: linkedApp.company, role: linkedApp.role })
+    setJdText((current) => (current ? current : linkedApp.jdText ?? current))
+  }, [linkedApp])
 
   // ── Handlers: single JD (unchanged) ───────────────────
 
@@ -728,23 +731,40 @@ export function JDAnalysisPage() {
 
             <div>
               <p className="text-caption font-semibold text-text-secondary uppercase tracking-wider mb-2">Recent Analyses</p>
-              <div className="divide-y divide-neutral-200 border border-neutral-200 bg-white rounded-md overflow-hidden">
-                {recentAnalyses.map((item) => (
-                  <button
-                    key={item.company}
-                    type="button"
-                    className="w-full flex items-center justify-between px-3 py-2 hover:bg-neutral-50 transition-colors text-left"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <FileText className="h-4 w-4 text-text-tertiary" />
-                      <div className="min-w-0">
-                        <p className="text-body-sm font-medium text-text-primary truncate">{item.role}</p>
-                        <p className="text-caption text-text-secondary truncate">{item.company}</p>
-                      </div>
-                    </div>
-                    <span className="text-caption text-text-tertiary shrink-0">{item.date}</span>
-                  </button>
-                ))}
+              <Input
+                placeholder="Search recent analyses..."
+                value={recentSearchValue}
+                onChange={(e) => setRecentSearchValue(e.target.value)}
+                className="mb-2"
+              />
+              <div className="border border-neutral-200 bg-white rounded-md overflow-hidden">
+                {recentAnalyses.length === 0 ? (
+                  <div className="px-3 py-6 text-center">
+                    <FileText className="h-8 w-8 text-text-tertiary mx-auto mb-2" />
+                    <p className="text-body-sm text-text-secondary">
+                      {recentSearchValue.trim() ? 'No analyses match your search' : 'No recent analyses yet'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="max-h-96 overflow-y-auto space-y-2">
+                    {recentAnalyses.map((item: any, idx: number) => (
+                      <button
+                        key={`${item._id ?? item.id ?? 'j'}-${idx}`}
+                        type="button"
+                        className="w-full flex items-center justify-between px-3 py-2 hover:bg-neutral-50 transition-colors text-left border-b border-neutral-200 last:border-b-0"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FileText className="h-4 w-4 text-text-tertiary" />
+                          <div className="min-w-0">
+                            <p className="text-body-sm font-medium text-text-primary truncate">{item.role}</p>
+                            <p className="text-caption text-text-secondary truncate">{item.company}</p>
+                          </div>
+                        </div>
+                        <span className="text-caption text-text-tertiary shrink-0">{item.date ?? item.createdAt ?? ''}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

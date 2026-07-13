@@ -10,6 +10,7 @@ import { Badge } from '../components/ui/Badge'
 import { Dialog } from '../components/ui/Dialog'
 import { useToast } from '../components/layout/useToast'
 import { resumeLibraryService } from '../services/resumeLibrary'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UploadedResume } from '../types'
 
 type TabKey = 'summary' | 'experience' | 'projects' | 'skills' | 'education' | 'certificates'
@@ -168,36 +169,30 @@ export function ResumeLibraryPage() {
   const { showToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const [resumes, setResumes] = useState<UploadedResume[]>([])
+  const resumesQuery = useQuery({
+    queryKey: ['resumes'],
+    queryFn: async () => {
+      const { resumes } = await resumeLibraryService.getResumes()
+      return resumes
+    },
+    staleTime: 60 * 1000,
+  })
+  const queryClient = useQueryClient()
+  const resumes: UploadedResume[] = resumesQuery.data ?? []
+  const loading = resumesQuery.isLoading
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [detailLoading, setDetailLoading] = useState(false)
   const [selectedResume, setSelectedResume] = useState<UploadedResume | null>(null)
   const [activeSection, setActiveSection] = useState<TabKey>('experience')
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
 
-  // Load resume list
+  // Auto-select the first resume when the list loads and none is selected
   useEffect(() => {
-    let cancelled = false
-    async function load() {
-      try {
-        const { resumes: list } = await resumeLibraryService.getResumes()
-        if (cancelled) return
-        setResumes(list)
-        // Auto-select the first resume if none selected
-        if (list.length > 0 && !selectedId) {
-          setSelectedId(list[0]._id)
-        }
-      } catch {
-        if (!cancelled) showToast('Failed to load resumes', 'error')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+    if (!selectedId && resumesQuery.data && resumesQuery.data.length > 0) {
+      setSelectedId(resumesQuery.data[0]._id)
     }
-    load()
-    return () => { cancelled = true }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [resumesQuery.data, selectedId])
 
   // Load selected resume detail
   useEffect(() => {
@@ -243,9 +238,9 @@ export function ResumeLibraryPage() {
     setUploading(true)
     try {
       const { resume } = await resumeLibraryService.uploadResume(file)
-      setResumes((prev) => [resume, ...prev])
       setSelectedId(resume._id)
       setActiveSection('experience')
+      queryClient.invalidateQueries({ queryKey: ['resumes'] })
       showToast(`"${resume.fileName}" processed successfully`, 'success')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to process document.'
@@ -259,11 +254,11 @@ export function ResumeLibraryPage() {
     if (!deleteTarget) return
     try {
       await resumeLibraryService.deleteResume(deleteTarget)
-      setResumes((prev) => prev.filter((r) => r._id !== deleteTarget))
       if (selectedId === deleteTarget) {
         setSelectedId(resumes.length > 1 ? resumes.find((r) => r._id !== deleteTarget)?._id || null : null)
         setSelectedResume(null)
       }
+      queryClient.invalidateQueries({ queryKey: ['resumes'] })
       showToast('Resume deleted', 'success')
     } catch {
       showToast('Failed to delete resume', 'error')
@@ -312,6 +307,14 @@ export function ResumeLibraryPage() {
       case 'summary': return c.summary ? 1 : 0
     }
   }
+
+  const visibleTabs = sectionTabs.filter((tab) => sectionCount(tab.id) > 0)
+
+  useEffect(() => {
+    if (visibleTabs.length > 0 && !visibleTabs.find((t) => t.id === activeSection)) {
+      setActiveSection(visibleTabs[0].id)
+    }
+  }, [visibleTabs, activeSection])
 
   return (
     <AppLayout>
@@ -419,7 +422,7 @@ export function ResumeLibraryPage() {
 
                 {/* Section tabs */}
                 <div className="flex flex-wrap gap-1 border-b border-border pb-1">
-                  {sectionTabs.map((tab) => {
+                  {visibleTabs.map((tab) => {
                     const count = sectionCount(tab.id)
                     const Icon = tab.icon
                     return (

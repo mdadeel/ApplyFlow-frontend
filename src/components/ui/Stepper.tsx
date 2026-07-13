@@ -19,8 +19,7 @@ export function Stepper({ steps, currentStep, className = '' }: StepperProps) {
 
   return (
     <div className={`flex items-center ${className}`}>
-      {displaySteps.map((step, index) => (
-        <div key={index} className="flex items-center flex-1 last:flex-none">
+      {displaySteps.map((step, index) => (          <div key={index} className="flex items-center flex-1 last:flex-none" aria-current={step.status === 'active' ? 'step' : undefined}>
           <div className="flex items-center gap-2">
             <div
               className={`flex items-center justify-center h-8 w-8 rounded-full text-label-sm font-medium transition-colors duration-200 shrink-0
@@ -30,6 +29,7 @@ export function Stepper({ steps, currentStep, className = '' }: StepperProps) {
                   ? 'bg-primary-container text-on-primary border-2 border-primary'
                   : 'bg-surface-container text-on-surface-variant border border-outline-variant'
                 }`}
+              aria-label={step.status === 'completed' ? `Step ${index + 1}: ${step.label} (completed)` : step.status === 'active' ? `Step ${index + 1}: ${step.label} (current)` : `Step ${index + 1}: ${step.label}`}
             >
               {step.status === 'completed' ? (
                 <Check className="h-4 w-4" />
