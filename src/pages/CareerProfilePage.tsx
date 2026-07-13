@@ -6,7 +6,7 @@ import {
   Briefcase,
   Code,
   GraduationCap,
-  Award,
+  Award as AwardIcon,
   ExternalLink,
   Code2,
   AlertTriangle,
@@ -14,6 +14,11 @@ import {
   FileText,
   Check,
   Upload,
+  Star,
+  BookOpen,
+  Bookmark,
+  Globe,
+  Target,
 } from '../lib/icons'
 import { AppLayout } from '../components/layout/AppLayout'
 import { Card } from '../components/ui/Card'
@@ -28,38 +33,74 @@ import { EmptyState } from '../components/ui/EmptyState'
 import { Badge } from '../components/ui/Badge'
 import { useToast } from '../components/layout/useToast'
 import { profileService, type PersonalData } from '../services/profile'
+import { useProfileData } from '../hooks/useProfileData'
+import { resumeLibraryService } from '../services/resumeLibrary'
+import {
+  ExperienceForm,
+  ProjectForm,
+  SkillForm,
+  EducationForm,
+  CertificateForm,
+  AwardForm,
+  PublicationForm,
+  VolunteeringForm,
+  LanguageForm,
+  InterestForm,
+  PersonalForm,
+} from '../components/forms'
+import { useNavigate } from 'react-router-dom'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  useCreateExperience,
+  useUpdateExperience,
+  useDeleteExperience,
+  useCreateProject,
+  useUpdateProject,
+  useDeleteProject,
+  useCreateSkill,
+  useUpdateSkill,
+  useDeleteSkill,
+  useCreateEducation,
+  useUpdateEducation,
+  useDeleteEducation,
+  useCreateCertificate,
+  useUpdateCertificate,
+  useDeleteCertificate,
+  useCreateAward,
+  useUpdateAward,
+  useDeleteAward,
+  useCreatePublication,
+  useUpdatePublication,
+  useDeletePublication,
+  useCreateVolunteering,
+  useUpdateVolunteering,
+  useDeleteVolunteering,
+  useCreateLanguage,
+  useUpdateLanguage,
+  useDeleteLanguage,
+  useCreateInterest,
+  useUpdateInterest,
+  useDeleteInterest,
+} from '../hooks/useProfileMutations'
 import type {
   Experience,
   Project,
   Skill,
   Education,
   Certificate,
+  Award,
+  Publication,
+  Volunteering,
+  Language,
+  Interest,
   ExtractedProfile,
   ExtractedExperience,
   ExtractedProject,
   ExtractedSkill,
   ExtractedEducation,
   ExtractedCertificate,
+  UploadedResume,
 } from '../types'
-
-
-
-const skillCategories = [
-  'Frontend', 'Backend', 'Database', 'Cloud', 'Testing', 'DevOps', 'Languages', 'Soft Skills',
-] as const
-
-const skillLevels = ['Beginner', 'Intermediate', 'Advanced', 'Expert'] as const
-
-function parseListInput(value: string): string[] {
-  return value
-    .split(/[,;\n]/)
-    .map((s) => s.trim())
-    .filter(Boolean)
-}
-
-function formatListInput(items: string[]): string {
-  return items.join(', ')
-}
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return ''
@@ -87,7 +128,7 @@ function ExperienceCard({
               <h3 className="text-heading-3 font-bold text-text-primary leading-snug">{item.role}</h3>
               <p className="text-body-sm text-text-secondary font-semibold">{item.company}</p>
             </div>
-            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus-within:opacity-100">
+            <div className="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity duration-200 focus-within:opacity-100">
               <button
                 onClick={onEdit}
                 className="p-1.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-border transition-all text-text-secondary hover:text-text-primary"
@@ -151,7 +192,7 @@ function ProjectCard({
             <p className="text-body-sm text-text-secondary leading-relaxed line-clamp-2">{item.description}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus-within:opacity-100">
+        <div className="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity duration-200 focus-within:opacity-100">
           <button
             onClick={onEdit}
             className="p-1.5 rounded-lg hover:bg-neutral-50 border border-transparent hover:border-border transition-all text-text-secondary hover:text-text-primary"
@@ -224,7 +265,7 @@ function EducationCard({
               <h3 className="text-headline-sm text-on-surface">{item.institution}</h3>
               <p className="text-body-md text-on-surface-variant font-medium">{item.degree}</p>
             </div>
-            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+            <div className="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
               <button
                 onClick={onEdit}
                 className="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant"
@@ -269,7 +310,7 @@ function CertificateCard({
     <Card className="p-md group hover:border-primary/30 transition-colors">
       <div className="flex items-start gap-4">
         <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0 text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-          <Award className="h-6 w-6" />
+          <AwardIcon className="h-6 w-6" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
@@ -277,7 +318,7 @@ function CertificateCard({
               <h3 className="text-headline-sm text-on-surface">{item.name}</h3>
               <p className="text-body-md text-on-surface-variant font-medium">{item.issuer}</p>
             </div>
-            <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+            <div className="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
               <button
                 onClick={onEdit}
                 className="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant"
@@ -332,7 +373,7 @@ function SkillCard({
           {item.level}
         </Badge>
       </div>
-      <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100 ml-1">
+      <div className="flex items-center opacity-40 group-hover:opacity-100 transition-opacity focus-within:opacity-100 ml-1">
         <button
           onClick={onEdit}
           className="p-1 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant"
@@ -352,6 +393,211 @@ function SkillCard({
   )
 }
 
+function AwardCard({
+  item,
+  onEdit,
+  onDelete,
+}: {
+  item: Award
+  onEdit?: () => void
+  onDelete?: () => void
+}) {
+  return (
+    <Card className="p-md group hover:border-primary/30 transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0 text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+          <Star className="h-6 w-6" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-0.5 min-w-0">
+              <h3 className="text-headline-sm text-on-surface">{item.title}</h3>
+              <p className="text-body-md text-on-surface-variant font-medium">{item.issuer}</p>
+            </div>
+            <div className="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+              <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant" aria-label="Edit">
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-error" aria-label="Delete">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          {item.description && <p className="text-body-sm text-on-surface mt-2">{item.description}</p>}
+          <div className="flex items-center justify-between gap-4 mt-2">
+            {item.date && <p className="text-label-sm text-on-surface-variant">{formatDate(item.date)}</p>}
+            {item.url && (
+              <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-label-sm text-primary hover:underline">
+                <ExternalLink className="h-3.5 w-3.5" /> View
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function PublicationCard({
+  item,
+  onEdit,
+  onDelete,
+}: {
+  item: Publication
+  onEdit?: () => void
+  onDelete?: () => void
+}) {
+  return (
+    <Card className="p-md group hover:border-primary/30 transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0 text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+          <BookOpen className="h-6 w-6" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-0.5 min-w-0">
+              <h3 className="text-headline-sm text-on-surface">{item.title}</h3>
+              <p className="text-body-md text-on-surface-variant font-medium">{item.publisher}</p>
+            </div>
+            <div className="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+              <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant" aria-label="Edit">
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-error" aria-label="Delete">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          {item.authors && item.authors.length > 0 && (
+            <p className="text-label-sm text-on-surface-variant mt-1">By: {item.authors.join(', ')}</p>
+          )}
+          {item.description && <p className="text-body-sm text-on-surface mt-2">{item.description}</p>}
+          <div className="flex items-center justify-between gap-4 mt-2">
+            {item.date && <p className="text-label-sm text-on-surface-variant">{formatDate(item.date)}</p>}
+            {item.url && (
+              <a href={item.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-label-sm text-primary hover:underline">
+                <ExternalLink className="h-3.5 w-3.5" /> View
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function VolunteeringCard({
+  item,
+  onEdit,
+  onDelete,
+}: {
+  item: Volunteering
+  onEdit?: () => void
+  onDelete?: () => void
+}) {
+  return (
+    <Card className="p-md group hover:border-primary/30 transition-colors">
+      <div className="flex items-start gap-4">
+        <div className="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center shrink-0 text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+          <Bookmark className="h-6 w-6" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-0.5 min-w-0">
+              <h3 className="text-headline-sm text-on-surface">{item.role}</h3>
+              <p className="text-body-md text-on-surface-variant font-medium">{item.organization}</p>
+            </div>
+            <div className="flex items-center gap-1 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+              <button onClick={onEdit} className="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant" aria-label="Edit">
+                <Pencil className="h-4 w-4" />
+              </button>
+              <button onClick={onDelete} className="p-1.5 rounded-lg hover:bg-red-50 transition-colors text-error" aria-label="Delete">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          <p className="text-caption text-on-surface-variant mt-1">
+            {formatDate(item.startDate || '')} – {item.current ? 'Present' : formatDate(item.endDate || '')}
+          </p>
+          {item.description && <p className="text-body-sm text-on-surface mt-2">{item.description}</p>}
+          {item.technologies && item.technologies.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {item.technologies.map((t) => <Chip key={t} label={t} />)}
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+function LanguageCard({
+  item,
+  onEdit,
+  onDelete,
+}: {
+  item: Language
+  onEdit?: () => void
+  onDelete?: () => void
+}) {
+  const proficiencyColor: Record<string, 'default' | 'warning' | 'success'> = {
+    Native: 'success',
+    Fluent: 'success',
+    Advanced: 'warning',
+    Intermediate: 'default',
+    Basic: 'default',
+  }
+
+  return (
+    <div className="group relative inline-flex items-center gap-2 pl-3 pr-1.5 py-1.5 rounded-full bg-surface-container-low border border-outline-variant hover:border-primary/40 hover:bg-surface-container transition-all">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-body-sm font-medium text-on-surface truncate">{item.name}</span>
+        <Badge variant={proficiencyColor[item.proficiency] || 'default'}>
+          {item.proficiency}
+        </Badge>
+      </div>
+      <div className="flex items-center opacity-40 group-hover:opacity-100 transition-opacity focus-within:opacity-100 ml-1">
+        <button onClick={onEdit} className="p-1 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant" aria-label="Edit">
+          <Pencil className="h-3 w-3" />
+        </button>
+        <button onClick={onDelete} className="p-1 rounded-full hover:bg-red-100 transition-colors text-error" aria-label="Delete">
+          <X className="h-3 w-3" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function InterestCard({
+  item,
+  onEdit,
+  onDelete,
+}: {
+  item: Interest
+  onEdit?: () => void
+  onDelete?: () => void
+}) {
+  return (
+    <div className="group relative inline-flex items-center gap-2 pl-3 pr-1.5 py-1.5 rounded-full bg-surface-container-low border border-outline-variant hover:border-primary/40 hover:bg-surface-container transition-all">
+      <div className="flex items-center gap-2 min-w-0">
+        <Target className="h-3.5 w-3.5 text-on-surface-variant" />
+        <span className="text-body-sm font-medium text-on-surface truncate">{item.name}</span>
+        {item.category && (
+          <Badge variant="default">{item.category}</Badge>
+        )}
+      </div>
+      <div className="flex items-center opacity-40 group-hover:opacity-100 transition-opacity focus-within:opacity-100 ml-1">
+        <button onClick={onEdit} className="p-1 rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant" aria-label="Edit">
+          <Pencil className="h-3 w-3" />
+        </button>
+        <button onClick={onDelete} className="p-1 rounded-full hover:bg-red-100 transition-colors text-error" aria-label="Delete">
+          <X className="h-3 w-3" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function CareerProfilePage() {
   const { showToast } = useToast()
   const [searchValue, setSearchValue] = useState('')
@@ -361,11 +607,50 @@ export function CareerProfilePage() {
   const [skills, setSkills] = useState<Skill[]>([])
   const [education, setEducation] = useState<Education[]>([])
   const [certificates, setCertificates] = useState<Certificate[]>([])
+  const [awards, setAwards] = useState<Award[]>([])
+  const [publications, setPublications] = useState<Publication[]>([])
+  const [volunteering, setVolunteering] = useState<Volunteering[]>([])
+  const [languages, setLanguages] = useState<Language[]>([])
+  const [interests, setInterests] = useState<Interest[]>([])
   const [personal, setPersonal] = useState<PersonalData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+
+  // Mutations
+  const createExperience = useCreateExperience()
+  const updateExperience = useUpdateExperience()
+  const deleteExperience = useDeleteExperience()
+  const createProject = useCreateProject()
+  const updateProject = useUpdateProject()
+  const deleteProject = useDeleteProject()
+  const createSkill = useCreateSkill()
+  const updateSkill = useUpdateSkill()
+  const deleteSkill = useDeleteSkill()
+  const createEducation = useCreateEducation()
+  const updateEducation = useUpdateEducation()
+  const deleteEducation = useDeleteEducation()
+  const createCertificate = useCreateCertificate()
+  const updateCertificate = useUpdateCertificate()
+  const deleteCertificate = useDeleteCertificate()
+  const createAward = useCreateAward()
+  const updateAward = useUpdateAward()
+  const deleteAward = useDeleteAward()
+  const createPublication = useCreatePublication()
+  const updatePublication = useUpdatePublication()
+  const deletePublication = useDeletePublication()
+  const createVolunteering = useCreateVolunteering()
+  const updateVolunteering = useUpdateVolunteering()
+  const deleteVolunteering = useDeleteVolunteering()
+  const createLanguage = useCreateLanguage()
+  const updateLanguage = useUpdateLanguage()
+  const deleteLanguage = useDeleteLanguage()
+  const createInterest = useCreateInterest()
+  const updateInterest = useUpdateInterest()
+  const deleteInterest = useDeleteInterest()
+  const [dismissedError, setDismissedError] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<{ type: string; id: string } | null>(null)
   const [manualMode, setManualMode] = useState(false)
+  const [personalEditOpen, setPersonalEditOpen] = useState(false)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [modalType, setModalType] = useState<string | null>(null)
@@ -385,6 +670,73 @@ export function CareerProfilePage() {
   const [isDragging, setIsDragging] = useState(false)
   const [progress, setProgress] = useState(0)
   const [progressStage, setProgressStage] = useState('')
+
+  // React Query: profile data
+  const profileQuery = useProfileData()
+
+  // React Query: uploaded resumes for sidebar CV list
+  const resumesQuery = useQuery({
+    queryKey: ['resumes'],
+    queryFn: async () => {
+      const { resumes } = await resumeLibraryService.getResumes()
+      return resumes
+    },
+    staleTime: 60 * 1000,
+  })
+
+  // State for selected resume detail panel
+  const [selectedCvId, setSelectedCvId] = useState<string | null>(null)
+  const [selectedCvContent, setSelectedCvContent] = useState<any>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  // Fetch resume detail when a CV is selected
+  useEffect(() => {
+    if (!selectedCvId) {
+      setSelectedCvContent(null)
+      return
+    }
+    let cancelled = false
+    async function loadDetail() {
+      setDetailLoading(true)
+      try {
+        const { resume } = await resumeLibraryService.getResume(selectedCvId)
+        if (cancelled) return
+        setSelectedCvContent(resume)
+      } catch {
+        if (!cancelled) showToast('Failed to load resume details', 'error')
+      } finally {
+        if (!cancelled) setDetailLoading(false)
+      }
+    }
+    loadDetail()
+    return () => { cancelled = true }
+  }, [selectedCvId])
+
+  useEffect(() => {
+    if (!profileQuery.data) return
+    setExperiences(profileQuery.data.experiences)
+    setProjects(profileQuery.data.projects)
+    setSkills(profileQuery.data.skills)
+    setEducation(profileQuery.data.education)
+    setCertificates(profileQuery.data.certificates)
+    setAwards(profileQuery.data.awards)
+    setPublications(profileQuery.data.publications)
+    setVolunteering(profileQuery.data.volunteering)
+    setLanguages(profileQuery.data.languages)
+    setInterests(profileQuery.data.interests)
+    if (profileQuery.data.personal && (profileQuery.data.personal.name || profileQuery.data.personal.title || profileQuery.data.personal.summary)) {
+      setPersonal(profileQuery.data.personal)
+    }
+  }, [profileQuery.data])
+
+  const loading = profileQuery.isLoading && !profileQuery.data
+  const errorMessage = profileQuery.isError && profileQuery.error instanceof Error ? profileQuery.error.message : null
+  const showError = !dismissedError && errorMessage != null
+  const displayError = errorMessage === 'Unauthorized' ? 'Your session has expired. Please sign in again.' : 'Failed to load profile data from the server.'
+  const handleRetry = () => {
+    setDismissedError(false)
+    profileQuery.refetch()
+  }
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
@@ -427,12 +779,18 @@ export function CareerProfilePage() {
       setExtractedOpen(true)
       setDismissedKeys(new Set())
       setSavedKeys(new Set())
+      queryClient.invalidateQueries({ queryKey: ['resumes'] })
       const total =
         (extracted?.experiences?.length || 0) +
         (extracted?.projects?.length || 0) +
         (extracted?.skills?.length || 0) +
         (extracted?.education?.length || 0) +
-        (extracted?.certificates?.length || 0)
+        (extracted?.certificates?.length || 0) +
+        (extracted?.awards?.length || 0) +
+        (extracted?.publications?.length || 0) +
+        (extracted?.volunteering?.length || 0) +
+        (extracted?.languages?.length || 0) +
+        (extracted?.interests?.length || 0)
       showToast(
         total > 0
           ? `Extracted ${total} item${total === 1 ? '' : 's'} from your resume.`
@@ -505,20 +863,20 @@ export function CareerProfilePage() {
   }
 
   const handleSaveExperience = async (item: ExtractedExperience, key: string) => {
+    const payload: Omit<Experience, '_id'> = {
+      company: item.company || '',
+      role: item.role || '',
+      startDate: item.startDate || '',
+      endDate: item.endDate || undefined,
+      current: Boolean(item.current),
+      responsibilities: item.responsibilities || [],
+      technologies: item.technologies || [],
+      achievements: item.achievements || [],
+      metrics: item.metrics || [],
+      links: item.links || [],
+    }
     try {
-      const payload: Omit<Experience, '_id'> = {
-        company: item.company || '',
-        role: item.role || '',
-        startDate: item.startDate || '',
-        endDate: item.endDate || undefined,
-        current: Boolean(item.current),
-        responsibilities: item.responsibilities || [],
-        technologies: item.technologies || [],
-        achievements: item.achievements || [],
-        metrics: item.metrics || [],
-        links: item.links || [],
-      }
-      const created = await profileService.createExperience(payload)
+      const created = await createExperience.mutateAsync(payload)
       setExperiences((prev) => [created, ...prev])
       setSavedKeys((prev) => new Set(prev).add(key))
       showToast('Experience added', 'success')
@@ -528,18 +886,18 @@ export function CareerProfilePage() {
   }
 
   const handleSaveProject = async (item: ExtractedProject, key: string) => {
+    const payload: Omit<Project, '_id'> = {
+      title: item.title || '',
+      description: item.description || '',
+      technologies: item.technologies || [],
+      features: item.features || [],
+      outcome: item.outcome || undefined,
+      github: item.github || undefined,
+      demo: item.demo || undefined,
+      links: item.links || [],
+    }
     try {
-      const payload: Omit<Project, '_id'> = {
-        title: item.title || '',
-        description: item.description || '',
-        technologies: item.technologies || [],
-        features: item.features || [],
-        outcome: item.outcome || undefined,
-        github: item.github || undefined,
-        demo: item.demo || undefined,
-        links: item.links || [],
-      }
-      const created = await profileService.createProject(payload)
+      const created = await createProject.mutateAsync(payload)
       setProjects((prev) => [created, ...prev])
       setSavedKeys((prev) => new Set(prev).add(key))
       showToast('Project added', 'success')
@@ -549,13 +907,13 @@ export function CareerProfilePage() {
   }
 
   const handleSaveSkill = async (item: ExtractedSkill, key: string) => {
+    const payload: Omit<Skill, '_id'> = {
+      name: item.name,
+      category: item.category as Skill['category'],
+      level: item.level,
+    }
     try {
-      const payload: Omit<Skill, '_id'> = {
-        name: item.name,
-        category: item.category as Skill['category'],
-        level: item.level,
-      }
-      const created = await profileService.createSkill(payload)
+      const created = await createSkill.mutateAsync(payload)
       setSkills((prev) => [created, ...prev])
       setSavedKeys((prev) => new Set(prev).add(key))
       showToast('Skill added', 'success')
@@ -565,15 +923,15 @@ export function CareerProfilePage() {
   }
 
   const handleSaveEducation = async (item: ExtractedEducation, key: string) => {
+    const payload: Omit<Education, '_id'> = {
+      degree: item.degree || '',
+      institution: item.institution || '',
+      startDate: item.startDate || '',
+      endDate: item.endDate || '',
+      result: item.result || undefined,
+    }
     try {
-      const payload: Omit<Education, '_id'> = {
-        degree: item.degree || '',
-        institution: item.institution || '',
-        startDate: item.startDate || '',
-        endDate: item.endDate || '',
-        result: item.result || undefined,
-      }
-      const created = await profileService.createEducation(payload)
+      const created = await createEducation.mutateAsync(payload)
       setEducation((prev) => [created, ...prev])
       setSavedKeys((prev) => new Set(prev).add(key))
       showToast('Education added', 'success')
@@ -583,14 +941,14 @@ export function CareerProfilePage() {
   }
 
   const handleSaveCertificate = async (item: ExtractedCertificate, key: string) => {
+    const payload: Omit<Certificate, '_id'> = {
+      name: item.name || '',
+      issuer: item.issuer || '',
+      date: item.date || '',
+      url: item.url || undefined,
+    }
     try {
-      const payload: Omit<Certificate, '_id'> = {
-        name: item.name || '',
-        issuer: item.issuer || '',
-        date: item.date || '',
-        url: item.url || undefined,
-      }
-      const created = await profileService.createCertificate(payload)
+      const created = await createCertificate.mutateAsync(payload)
       setCertificates((prev) => [created, ...prev])
       setSavedKeys((prev) => new Set(prev).add(key))
       showToast('Certificate added', 'success')
@@ -629,44 +987,92 @@ export function CareerProfilePage() {
     }
   }
 
-  useEffect(() => {
-    let cancelled = false
-
-    async function load() {
-      setLoading(true)
-      setError(null)
-      try {
-        const [exp, proj, sk, edu, cert, pers] = await Promise.all([
-          profileService.getExperiences(),
-          profileService.getProjects(),
-          profileService.getSkills(),
-          profileService.getEducation(),
-          profileService.getCertificates(),
-          profileService.getPersonal().catch(() => null),
-        ])
-        if (cancelled) return
-        setExperiences(Array.isArray(exp) ? exp : [])
-        setProjects(Array.isArray(proj) ? proj : [])
-        setSkills(Array.isArray(sk) ? sk : [])
-        setEducation(Array.isArray(edu) ? edu : [])
-        setCertificates(Array.isArray(cert) ? cert : [])
-        setPersonal(pers && (pers.name || pers.title || pers.summary) ? pers : null)
-      } catch (err) {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load profile data from the server.'
-          setError(message === 'Unauthorized' ? 'Your session has expired. Please sign in again.' : 'Failed to load profile data from the server.')
-          if (message !== 'Unauthorized') {
-            showToast('Failed to load profile data', 'error')
-          }
-        }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+  const handleSaveAward = async (item: Omit<ExtractedAward, '_id'>, key: string) => {
+    const payload: Omit<Award, '_id'> = {
+      title: item.title || '',
+      issuer: item.issuer || '',
+      date: item.date || undefined,
+      description: item.description || undefined,
+      url: item.url || undefined,
     }
+    try {
+      const created = await createAward.mutateAsync(payload)
+      setAwards((prev) => [created, ...prev])
+      setSavedKeys((prev) => new Set(prev).add(key))
+      showToast('Award added', 'success')
+    } catch {
+      showToast('Failed to add award', 'error')
+    }
+  }
 
-    load()
-    return () => { cancelled = true }
-  }, [showToast])
+  const handleSavePublication = async (item: { title: string; publisher: string; date?: string; url?: string; description?: string; authors?: string[] }, key: string) => {
+    const payload: Omit<Publication, '_id'> = {
+      title: item.title || '',
+      publisher: item.publisher || '',
+      date: item.date || undefined,
+      url: item.url || undefined,
+      description: item.description || undefined,
+      authors: item.authors || [],
+    }
+    try {
+      const created = await createPublication.mutateAsync(payload)
+      setPublications((prev) => [created, ...prev])
+      setSavedKeys((prev) => new Set(prev).add(key))
+      showToast('Publication added', 'success')
+    } catch {
+      showToast('Failed to add publication', 'error')
+    }
+  }
+
+  const handleSaveVolunteering = async (item: { organization: string; role: string; startDate?: string; endDate?: string; current: boolean; description?: string; technologies?: string[] }, key: string) => {
+    const payload: Omit<Volunteering, '_id'> = {
+      organization: item.organization || '',
+      role: item.role || '',
+      startDate: item.startDate || undefined,
+      endDate: item.endDate || undefined,
+      current: Boolean(item.current),
+      description: item.description || undefined,
+      technologies: item.technologies || [],
+    }
+    try {
+      const created = await createVolunteering.mutateAsync(payload)
+      setVolunteering((prev) => [created, ...prev])
+      setSavedKeys((prev) => new Set(prev).add(key))
+      showToast('Volunteering added', 'success')
+    } catch {
+      showToast('Failed to add volunteering', 'error')
+    }
+  }
+
+  const handleSaveLanguage = async (item: { name: string; proficiency: string }, key: string) => {
+    const payload: Omit<Language, '_id'> = {
+      name: item.name || '',
+      proficiency: (item.proficiency as Language['proficiency']) || 'Intermediate',
+    }
+    try {
+      const created = await createLanguage.mutateAsync(payload)
+      setLanguages((prev) => [created, ...prev])
+      setSavedKeys((prev) => new Set(prev).add(key))
+      showToast('Language added', 'success')
+    } catch {
+      showToast('Failed to add language', 'error')
+    }
+  }
+
+  const handleSaveInterest = async (item: { name: string; category?: string }, key: string) => {
+    const payload: Omit<Interest, '_id'> = {
+      name: item.name || '',
+      category: item.category || undefined,
+    }
+    try {
+      const created = await createInterest.mutateAsync(payload)
+      setInterests((prev) => [created, ...prev])
+      setSavedKeys((prev) => new Set(prev).add(key))
+      showToast('Interest added', 'success')
+    } catch {
+      showToast('Failed to add interest', 'error')
+    }
+  }
 
   const openAddModal = (type: string) => {
     setModalType(type)
@@ -680,37 +1086,115 @@ export function CareerProfilePage() {
     setModalOpen(true)
   }
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteTarget) return
-    try {
-      const { type, id } = deleteTarget
-      switch (type) {
-        case 'experience':
-          await profileService.deleteExperience(id)
-          setExperiences((prev) => prev.filter((e) => e._id !== id))
-          break
-        case 'project':
-          await profileService.deleteProject(id)
-          setProjects((prev) => prev.filter((p) => p._id !== id))
-          break
-        case 'skill':
-          await profileService.deleteSkill(id)
-          setSkills((prev) => prev.filter((s) => s._id !== id))
-          break
-        case 'education':
-          await profileService.deleteEducation(id)
-          setEducation((prev) => prev.filter((e) => e._id !== id))
-          break
-        case 'certificate':
-          await profileService.deleteCertificate(id)
-          setCertificates((prev) => prev.filter((c) => c._id !== id))
-          break
-      }
-      showToast('Deleted successfully', 'success')
-    } catch {
-      showToast('Failed to delete', 'error')
-    }
+    const { type, id } = deleteTarget
     setDeleteTarget(null)
+
+    // Optimistic delete: save previous state and update immediately
+    const rollback: Record<string, () => void> = {}
+    switch (type) {
+      case 'experience': {
+        const prev = experiences
+        setExperiences((p) => p.filter((e) => e._id !== id))
+        rollback.experience = () => setExperiences(prev)
+        deleteExperience.mutate(id, {
+          onError: () => { rollback.experience?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'project': {
+        const prev = projects
+        setProjects((p) => p.filter((e) => e._id !== id))
+        rollback.project = () => setProjects(prev)
+        deleteProject.mutate(id, {
+          onError: () => { rollback.project?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'skill': {
+        const prev = skills
+        setSkills((p) => p.filter((e) => e._id !== id))
+        rollback.skill = () => setSkills(prev)
+        deleteSkill.mutate(id, {
+          onError: () => { rollback.skill?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'education': {
+        const prev = education
+        setEducation((p) => p.filter((e) => e._id !== id))
+        rollback.education = () => setEducation(prev)
+        deleteEducation.mutate(id, {
+          onError: () => { rollback.education?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'certificate': {
+        const prev = certificates
+        setCertificates((p) => p.filter((e) => e._id !== id))
+        rollback.certificate = () => setCertificates(prev)
+        deleteCertificate.mutate(id, {
+          onError: () => { rollback.certificate?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'award': {
+        const prev = awards
+        setAwards((p) => p.filter((e) => e._id !== id))
+        rollback.award = () => setAwards(prev)
+        deleteAward.mutate(id, {
+          onError: () => { rollback.award?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'publication': {
+        const prev = publications
+        setPublications((p) => p.filter((e) => e._id !== id))
+        rollback.publication = () => setPublications(prev)
+        deletePublication.mutate(id, {
+          onError: () => { rollback.publication?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'volunteering': {
+        const prev = volunteering
+        setVolunteering((p) => p.filter((e) => e._id !== id))
+        rollback.volunteering = () => setVolunteering(prev)
+        deleteVolunteering.mutate(id, {
+          onError: () => { rollback.volunteering?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'language': {
+        const prev = languages
+        setLanguages((p) => p.filter((e) => e._id !== id))
+        rollback.language = () => setLanguages(prev)
+        deleteLanguage.mutate(id, {
+          onError: () => { rollback.language?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+      case 'interest': {
+        const prev = interests
+        setInterests((p) => p.filter((e) => e._id !== id))
+        rollback.interest = () => setInterests(prev)
+        deleteInterest.mutate(id, {
+          onError: () => { rollback.interest?.(); showToast('Failed to delete', 'error') },
+          onSuccess: () => showToast('Deleted successfully', 'success'),
+        })
+        break
+      }
+    }
   }
 
   const getItemForEdit = () => {
@@ -726,6 +1210,16 @@ export function CareerProfilePage() {
         return education.find((e) => e._id === editingId)
       case 'certificate':
         return certificates.find((c) => c._id === editingId)
+      case 'award':
+        return awards.find((a) => a._id === editingId)
+      case 'publication':
+        return publications.find((p) => p._id === editingId)
+      case 'volunteering':
+        return volunteering.find((v) => v._id === editingId)
+      case 'language':
+        return languages.find((l) => l._id === editingId)
+      case 'interest':
+        return interests.find((i) => i._id === editingId)
     }
   }
 
@@ -748,6 +1242,17 @@ export function CareerProfilePage() {
   const filteredCertificates = certificates.filter(
     (c) => matchesQuery(c.name) || matchesQuery(c.issuer)
   )
+  const filteredAwards = awards.filter(
+    (a) => matchesQuery(a.title) || matchesQuery(a.issuer)
+  )
+  const filteredPublications = publications.filter(
+    (p) => matchesQuery(p.title) || matchesQuery(p.publisher)
+  )
+  const filteredVolunteering = volunteering.filter(
+    (v) => matchesQuery(v.organization) || matchesQuery(v.role)
+  )
+  const filteredLanguages = languages.filter((l) => matchesQuery(l.name))
+  const filteredInterests = interests.filter((i) => matchesQuery(i.name))
 
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
@@ -759,6 +1264,11 @@ export function CareerProfilePage() {
     skills.length > 0 ||
     education.length > 0 ||
     certificates.length > 0 ||
+    awards.length > 0 ||
+    publications.length > 0 ||
+    volunteering.length > 0 ||
+    languages.length > 0 ||
+    interests.length > 0 ||
     personal !== null
 
   const renderHeroUpload = (compact: boolean = false) => (
@@ -848,18 +1358,46 @@ export function CareerProfilePage() {
     if (!personal) return null
     return (
       <Card className="p-md" data-testid="career-profile-summary">
-        <h3 className="text-headline-sm text-on-surface mb-2 flex items-center gap-2">
-          <FileText className="h-5 w-5 text-primary" /> Profile
-        </h3>
+        <div className="flex items-center justify-between">
+          <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" /> Profile
+          </h3>
+          <button
+            onClick={() => setPersonalEditOpen(true)}
+            className="p-1.5 rounded-lg hover:bg-surface-container transition-colors text-on-surface-variant hover:text-on-surface"
+            aria-label="Edit profile"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+        </div>
         <div className="space-y-1">
           {personal.name && (
             <p className="text-body-md font-semibold text-on-surface">{personal.name}</p>
           )}
+          {personal.email && (
+            <p className="text-caption text-on-surface-variant">{personal.email}</p>
+          )}
           {personal.title && (
             <p className="text-body-md text-on-surface-variant">{personal.title}</p>
           )}
+          {personal.location && (
+            <p className="text-caption text-on-surface-variant flex items-center gap-1 mt-1">{personal.location}</p>
+          )}
           {personal.summary && (
             <p className="text-body-sm text-on-surface mt-2 leading-relaxed">{personal.summary}</p>
+          )}
+          {(personal.github || personal.linkedIn || personal.portfolio) && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              {personal.github && (
+                <a href={personal.github} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-caption text-primary hover:underline bg-primary/5 px-2 py-1 rounded-md">GitHub</a>
+              )}
+              {personal.linkedIn && (
+                <a href={personal.linkedIn} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-caption text-primary hover:underline bg-primary/5 px-2 py-1 rounded-md">LinkedIn</a>
+              )}
+              {personal.portfolio && (
+                <a href={personal.portfolio} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-caption text-primary hover:underline bg-primary/5 px-2 py-1 rounded-md">Portfolio</a>
+              )}
+            </div>
           )}
         </div>
       </Card>
@@ -921,11 +1459,71 @@ export function CareerProfilePage() {
         {filteredCertificates.length > 0 && (
           <section data-testid="overview-section-certificates" className="space-y-4">
             <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
-              <Award className="h-5 w-5 text-primary" /> Certificates
+              <AwardIcon className="h-5 w-5 text-primary" /> Certificates
             </h3>
             <div className="space-y-4">
               {filteredCertificates.map((item) => (
                 <CertificateCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filteredAwards.length > 0 && (
+          <section data-testid="overview-section-awards" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <Star className="h-5 w-5 text-primary" /> Awards
+            </h3>
+            <div className="space-y-4">
+              {filteredAwards.map((item) => (
+                <AwardCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filteredPublications.length > 0 && (
+          <section data-testid="overview-section-publications" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-primary" /> Publications
+            </h3>
+            <div className="space-y-4">
+              {filteredPublications.map((item) => (
+                <PublicationCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filteredVolunteering.length > 0 && (
+          <section data-testid="overview-section-volunteering" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <Bookmark className="h-5 w-5 text-primary" /> Volunteering
+            </h3>
+            <div className="space-y-4">
+              {filteredVolunteering.map((item) => (
+                <VolunteeringCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filteredLanguages.length > 0 && (
+          <section data-testid="overview-section-languages" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <Globe className="h-5 w-5 text-primary" /> Languages
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {filteredLanguages.map((item) => (
+                <LanguageCard key={item._id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+        {filteredInterests.length > 0 && (
+          <section data-testid="overview-section-interests" className="space-y-4">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2">
+              <Target className="h-5 w-5 text-primary" /> Interests
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {filteredInterests.map((item) => (
+                <InterestCard key={item._id} item={item} />
               ))}
             </div>
           </section>
@@ -1041,12 +1639,12 @@ export function CareerProfilePage() {
         {/* Certificates Section */}
         <section id="certificates" className="scroll-mt-24 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-headline-sm text-on-surface flex items-center gap-2"><Award className="h-5 w-5 text-primary" /> Certificates</h3>
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2"><AwardIcon className="h-5 w-5 text-primary" /> Certificates</h3>
             <Button variant="secondary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => openAddModal('certificate')}>Add</Button>
           </div>
           {filteredCertificates.length === 0 ? (
             <EmptyState
-              icon={<Award className="h-8 w-8" />}
+              icon={<AwardIcon className="h-8 w-8" />}
               title={searchValue ? 'No matching certificates' : 'No certificates yet'}
               description={searchValue ? 'Try a different search term.' : 'Add your certifications and credentials.'}
               action={searchValue ? undefined : { label: 'Add Certificate', onClick: () => openAddModal('certificate') }}
@@ -1055,6 +1653,116 @@ export function CareerProfilePage() {
             <div className="space-y-4">
               {filteredCertificates.map((item) => (
                 <CertificateCard key={item._id} item={item} onEdit={() => openEditModal('certificate', item._id)} onDelete={() => setDeleteTarget({ type: 'certificate', id: item._id })} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Awards Section */}
+        <section id="awards" className="scroll-mt-24 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2"><Star className="h-5 w-5 text-primary" /> Awards</h3>
+            <Button variant="secondary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => openAddModal('award')}>Add</Button>
+          </div>
+          {filteredAwards.length === 0 ? (
+            <EmptyState
+              icon={<Star className="h-8 w-8" />}
+              title={searchValue ? 'No matching awards' : 'No awards yet'}
+              description={searchValue ? 'Try a different search term.' : 'Add your awards and recognitions.'}
+              action={searchValue ? undefined : { label: 'Add Award', onClick: () => openAddModal('award') }}
+            />
+          ) : (
+            <div className="space-y-4">
+              {filteredAwards.map((item) => (
+                <AwardCard key={item._id} item={item} onEdit={() => openEditModal('award', item._id)} onDelete={() => setDeleteTarget({ type: 'award', id: item._id })} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Publications Section */}
+        <section id="publications" className="scroll-mt-24 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2"><BookOpen className="h-5 w-5 text-primary" /> Publications</h3>
+            <Button variant="secondary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => openAddModal('publication')}>Add</Button>
+          </div>
+          {filteredPublications.length === 0 ? (
+            <EmptyState
+              icon={<BookOpen className="h-8 w-8" />}
+              title={searchValue ? 'No matching publications' : 'No publications yet'}
+              description={searchValue ? 'Try a different search term.' : 'Add your published works.'}
+              action={searchValue ? undefined : { label: 'Add Publication', onClick: () => openAddModal('publication') }}
+            />
+          ) : (
+            <div className="space-y-4">
+              {filteredPublications.map((item) => (
+                <PublicationCard key={item._id} item={item} onEdit={() => openEditModal('publication', item._id)} onDelete={() => setDeleteTarget({ type: 'publication', id: item._id })} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Volunteering Section */}
+        <section id="volunteering" className="scroll-mt-24 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2"><Bookmark className="h-5 w-5 text-primary" /> Volunteering</h3>
+            <Button variant="secondary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => openAddModal('volunteering')}>Add</Button>
+          </div>
+          {filteredVolunteering.length === 0 ? (
+            <EmptyState
+              icon={<Bookmark className="h-8 w-8" />}
+              title={searchValue ? 'No matching volunteering' : 'No volunteering yet'}
+              description={searchValue ? 'Try a different search term.' : 'Add your volunteer experience.'}
+              action={searchValue ? undefined : { label: 'Add Volunteering', onClick: () => openAddModal('volunteering') }}
+            />
+          ) : (
+            <div className="space-y-4">
+              {filteredVolunteering.map((item) => (
+                <VolunteeringCard key={item._id} item={item} onEdit={() => openEditModal('volunteering', item._id)} onDelete={() => setDeleteTarget({ type: 'volunteering', id: item._id })} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Languages Section */}
+        <section id="languages" className="scroll-mt-24 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2"><Globe className="h-5 w-5 text-primary" /> Languages</h3>
+            <Button variant="secondary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => openAddModal('language')}>Add</Button>
+          </div>
+          {filteredLanguages.length === 0 ? (
+            <EmptyState
+              icon={<Globe className="h-8 w-8" />}
+              title={searchValue ? 'No matching languages' : 'No languages yet'}
+              description={searchValue ? 'Try a different search term.' : 'Add the languages you speak.'}
+              action={searchValue ? undefined : { label: 'Add Language', onClick: () => openAddModal('language') }}
+            />
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {filteredLanguages.map((item) => (
+                <LanguageCard key={item._id} item={item} onEdit={() => openEditModal('language', item._id)} onDelete={() => setDeleteTarget({ type: 'language', id: item._id })} />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Interests Section */}
+        <section id="interests" className="scroll-mt-24 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-headline-sm text-on-surface flex items-center gap-2"><Target className="h-5 w-5 text-primary" /> Interests</h3>
+            <Button variant="secondary" size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => openAddModal('interest')}>Add</Button>
+          </div>
+          {filteredInterests.length === 0 ? (
+            <EmptyState
+              icon={<Target className="h-8 w-8" />}
+              title={searchValue ? 'No matching interests' : 'No interests yet'}
+              description={searchValue ? 'Try a different search term.' : 'Add your professional interests.'}
+              action={searchValue ? undefined : { label: 'Add Interest', onClick: () => openAddModal('interest') }}
+            />
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {filteredInterests.map((item) => (
+                <InterestCard key={item._id} item={item} onEdit={() => openEditModal('interest', item._id)} onDelete={() => setDeleteTarget({ type: 'interest', id: item._id })} />
               ))}
             </div>
           )}
@@ -1114,7 +1822,12 @@ export function CareerProfilePage() {
     skills.length > 0,
     education.length > 0,
     certificates.length > 0,
-  ].filter(Boolean).length * 20
+    awards.length > 0,
+    publications.length > 0,
+    volunteering.length > 0,
+    languages.length > 0,
+    interests.length > 0,
+  ].filter(Boolean).length * 10
 
   return (
     <AppLayout onSearch={setSearchValue} searchValue={searchValue}>
@@ -1130,21 +1843,21 @@ export function CareerProfilePage() {
             </div>
           </div>
 
-          {error && (
+          {showError && (
             <div className="rounded-lg border border-danger/20 bg-red-50 p-4 text-body-sm text-danger flex items-start gap-3 mb-lg">
               <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="font-semibold">Failed to Load Profile</p>
-                <p className="mt-0.5 opacity-80">{error}</p>
+                <p className="mt-0.5 opacity-80">{displayError}</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => window.location.reload()}
+                  onClick={handleRetry}
                   className="px-3 py-1.5 rounded-lg bg-danger text-white text-meta font-medium hover:opacity-90 transition-colors"
                 >
                   Retry
                 </button>
-                <button onClick={() => setError(null)} className="p-1.5 rounded hover:bg-danger/10 transition-colors" aria-label="Dismiss">
+                <button onClick={() => setDismissedError(true)} className="p-1.5 rounded hover:bg-danger/10 transition-colors" aria-label="Dismiss">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -1172,6 +1885,11 @@ export function CareerProfilePage() {
                 { id: 'skills', label: 'Skills', done: skills.length > 0 },
                 { id: 'education', label: 'Education', done: education.length > 0 },
                 { id: 'certificates', label: 'Certificates', done: certificates.length > 0 },
+                { id: 'awards', label: 'Awards', done: awards.length > 0 },
+                { id: 'publications', label: 'Publications', done: publications.length > 0 },
+                { id: 'volunteering', label: 'Volunteering', done: volunteering.length > 0 },
+                { id: 'languages', label: 'Languages', done: languages.length > 0 },
+                { id: 'interests', label: 'Interests', done: interests.length > 0 },
               ].map((item) => (
                 <li key={item.id} className="flex items-center gap-2">
                   <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 ${item.done ? 'bg-primary text-white' : 'bg-surface-tertiary'}`}>
@@ -1185,6 +1903,86 @@ export function CareerProfilePage() {
             </ul>
           </Card>
 
+          {/* Uploaded CVs */}
+          <Card className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-heading-3 text-text-primary">Uploaded CVs</h3>
+              <button
+                onClick={() => navigate('/resume-library')}
+                className="text-caption text-primary hover:underline font-semibold"
+              >
+                Manage
+              </button>
+            </div>
+            {resumesQuery.isLoading ? (
+              <div className="space-y-2">
+                <Skeleton variant="rectangular" height={36} />
+                <Skeleton variant="rectangular" height={36} />
+              </div>
+            ) : resumesQuery.data && resumesQuery.data.length > 0 ? (
+              <>
+                <div className={`space-y-1 ${selectedCvContent ? 'max-h-32' : 'max-h-48'} overflow-y-auto`}>
+                  {resumesQuery.data.slice(0, 5).map((resume) => (
+                    <button
+                      key={resume._id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCvId(resume._id)
+                        setSelectedCvContent(null)
+                      }}
+                      className={`w-full flex items-center gap-2 p-1.5 rounded-lg transition-colors text-left ${selectedCvId === resume._id ? 'bg-primary-container text-on-primary-container' : 'hover:bg-neutral-50'}`}
+                    >
+                      <FileText className="h-4 w-4 shrink-0 text-text-tertiary" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-caption font-medium text-text-primary truncate">{resume.fileName}</p>
+                        <p className="text-meta text-text-tertiary">{new Date(resume.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                {selectedCvContent && (
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-label-md text-text-primary">Extracted from {selectedCvContent.fileName}</h4>
+                      <button
+                        onClick={() => {
+                          setSelectedCvId(null)
+                          setSelectedCvContent(null)
+                        }}
+                        className="text-caption text-text-tertiary hover:text-primary"
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                    <div className="space-y-3">
+                      {detailLoading ? (
+                        <Skeleton variant="rectangular" height={80} className="rounded-lg" />
+                      ) : (
+                        <>
+                          <ResumeSectionPreview label="Experience" data={selectedCvContent.experiences} onClick={() => navigate('/resume-library')} />
+                          <ResumeSectionPreview label="Projects" data={selectedCvContent.projects} onClick={() => navigate('/resume-library')} />
+                          <ResumeSectionPreview label="Skills" data={selectedCvContent.skills} onClick={() => navigate('/resume-library')} />
+                          <ResumeSectionPreview label="Education" data={selectedCvContent.education} onClick={() => navigate('/resume-library')} />
+                          <ResumeSectionPreview label="Certificates" data={selectedCvContent.certificates} onClick={() => navigate('/resume-library')} />
+                          <div className="mt-2 pt-2 text-center">
+                            <button
+                              onClick={() => navigate('/resume-library')}
+                              className="text-caption text-primary hover:underline font-semibold"
+                            >
+                              View full breakdown on Resume Library →
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+                            </>
+            ) : (
+              <p className="text-caption text-text-tertiary italic">No CVs uploaded yet.</p>
+            )}
+          </Card>
+
           {/* Navigation ScrollSpy */}
           <Card className="p-5 hidden lg:block">
             <h3 className="text-heading-3 text-text-primary mb-3">Quick Navigation</h3>
@@ -1194,6 +1992,11 @@ export function CareerProfilePage() {
               <button onClick={() => scrollTo('skills')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Skills</button>
               <button onClick={() => scrollTo('education')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Education</button>
               <button onClick={() => scrollTo('certificates')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Certificates</button>
+              <button onClick={() => scrollTo('awards')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Awards</button>
+              <button onClick={() => scrollTo('publications')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Publications</button>
+              <button onClick={() => scrollTo('volunteering')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Volunteering</button>
+              <button onClick={() => scrollTo('languages')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Languages</button>
+              <button onClick={() => scrollTo('interests')} className="text-body-sm text-text-primary hover:text-primary transition-colors py-1">Interests</button>
             </div>
           </Card>
         </div>
@@ -1209,23 +2012,27 @@ export function CareerProfilePage() {
           <ExperienceForm
             item={getItemForEdit() as Experience | undefined}
             submitting={submitting}
-            onSubmit={async (data) => {
-              setSubmitting(true)
-              try {
-                if (editingId) {
-                  const updated = await profileService.updateExperience(editingId, data)
-                  setExperiences((prev) => prev.map((e) => (e._id === editingId ? updated : e)))
-                  showToast('Experience updated', 'success')
-                } else {
-                  const created = await profileService.createExperience(data as Omit<Experience, '_id'>)
-                  setExperiences((prev) => [created, ...prev])
-                  showToast('Experience added', 'success')
-                }
-                setModalOpen(false)
-              } catch {
-                showToast('Failed to save experience', 'error')
-              } finally {
-                setSubmitting(false)
+            onSubmit={(data) => {
+              if (editingId) {
+                updateExperience.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setExperiences((prev) => prev.map((e) => (e._id === editingId ? updated : e)))
+                    showToast('Experience updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save experience', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createExperience.mutate(data as Omit<Experience, '_id'>, {
+                  onSuccess: (created) => {
+                    setExperiences((prev) => [created, ...prev])
+                    showToast('Experience added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save experience', 'error'); setSubmitting(false) },
+                })
               }
             }}
             onCancel={() => setModalOpen(false)}
@@ -1235,23 +2042,27 @@ export function CareerProfilePage() {
           <ProjectForm
             item={getItemForEdit() as Project | undefined}
             submitting={submitting}
-            onSubmit={async (data) => {
-              setSubmitting(true)
-              try {
-                if (editingId) {
-                  const updated = await profileService.updateProject(editingId, data)
-                  setProjects((prev) => prev.map((p) => (p._id === editingId ? updated : p)))
-                  showToast('Project updated', 'success')
-                } else {
-                  const created = await profileService.createProject(data as Omit<Project, '_id'>)
-                  setProjects((prev) => [created, ...prev])
-                  showToast('Project added', 'success')
-                }
-                setModalOpen(false)
-              } catch {
-                showToast('Failed to save project', 'error')
-              } finally {
-                setSubmitting(false)
+            onSubmit={(data) => {
+              if (editingId) {
+                updateProject.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setProjects((prev) => prev.map((p) => (p._id === editingId ? updated : p)))
+                    showToast('Project updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save project', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createProject.mutate(data as Omit<Project, '_id'>, {
+                  onSuccess: (created) => {
+                    setProjects((prev) => [created, ...prev])
+                    showToast('Project added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save project', 'error'); setSubmitting(false) },
+                })
               }
             }}
             onCancel={() => setModalOpen(false)}
@@ -1261,23 +2072,27 @@ export function CareerProfilePage() {
           <SkillForm
             item={getItemForEdit() as Skill | undefined}
             submitting={submitting}
-            onSubmit={async (data) => {
-              setSubmitting(true)
-              try {
-                if (editingId) {
-                  const updated = await profileService.updateSkill(editingId, data)
-                  setSkills((prev) => prev.map((s) => (s._id === editingId ? updated : s)))
-                  showToast('Skill updated', 'success')
-                } else {
-                  const created = await profileService.createSkill(data as Omit<Skill, '_id'>)
-                  setSkills((prev) => [created, ...prev])
-                  showToast('Skill added', 'success')
-                }
-                setModalOpen(false)
-              } catch {
-                showToast('Failed to save skill', 'error')
-              } finally {
-                setSubmitting(false)
+            onSubmit={(data) => {
+              if (editingId) {
+                updateSkill.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setSkills((prev) => prev.map((s) => (s._id === editingId ? updated : s)))
+                    showToast('Skill updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save skill', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createSkill.mutate(data as Omit<Skill, '_id'>, {
+                  onSuccess: (created) => {
+                    setSkills((prev) => [created, ...prev])
+                    showToast('Skill added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save skill', 'error'); setSubmitting(false) },
+                })
               }
             }}
             onCancel={() => setModalOpen(false)}
@@ -1287,23 +2102,27 @@ export function CareerProfilePage() {
           <EducationForm
             item={getItemForEdit() as Education | undefined}
             submitting={submitting}
-            onSubmit={async (data) => {
-              setSubmitting(true)
-              try {
-                if (editingId) {
-                  const updated = await profileService.updateEducation(editingId, data)
-                  setEducation((prev) => prev.map((e) => (e._id === editingId ? updated : e)))
-                  showToast('Education updated', 'success')
-                } else {
-                  const created = await profileService.createEducation(data as Omit<Education, '_id'>)
-                  setEducation((prev) => [created, ...prev])
-                  showToast('Education added', 'success')
-                }
-                setModalOpen(false)
-              } catch {
-                showToast('Failed to save education', 'error')
-              } finally {
-                setSubmitting(false)
+            onSubmit={(data) => {
+              if (editingId) {
+                updateEducation.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setEducation((prev) => prev.map((e) => (e._id === editingId ? updated : e)))
+                    showToast('Education updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save education', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createEducation.mutate(data as Omit<Education, '_id'>, {
+                  onSuccess: (created) => {
+                    setEducation((prev) => [created, ...prev])
+                    showToast('Education added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save education', 'error'); setSubmitting(false) },
+                })
               }
             }}
             onCancel={() => setModalOpen(false)}
@@ -1313,23 +2132,177 @@ export function CareerProfilePage() {
           <CertificateForm
             item={getItemForEdit() as Certificate | undefined}
             submitting={submitting}
-            onSubmit={async (data) => {
-              setSubmitting(true)
-              try {
-                if (editingId) {
-                  const updated = await profileService.updateCertificate(editingId, data)
-                  setCertificates((prev) => prev.map((c) => (c._id === editingId ? updated : c)))
-                  showToast('Certificate updated', 'success')
-                } else {
-                  const created = await profileService.createCertificate(data as Omit<Certificate, '_id'>)
-                  setCertificates((prev) => [created, ...prev])
-                  showToast('Certificate added', 'success')
-                }
-                setModalOpen(false)
-              } catch {
-                showToast('Failed to save certificate', 'error')
-              } finally {
-                setSubmitting(false)
+            onSubmit={(data) => {
+              if (editingId) {
+                updateCertificate.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setCertificates((prev) => prev.map((c) => (c._id === editingId ? updated : c)))
+                    showToast('Certificate updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save certificate', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createCertificate.mutate(data as Omit<Certificate, '_id'>, {
+                  onSuccess: (created) => {
+                    setCertificates((prev) => [created, ...prev])
+                    showToast('Certificate added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save certificate', 'error'); setSubmitting(false) },
+                })
+              }
+            }}
+            onCancel={() => setModalOpen(false)}
+          />
+        )}
+        {modalType === 'award' && (
+          <AwardForm
+            item={getItemForEdit() as Award | undefined}
+            submitting={submitting}
+            onSubmit={(data) => {
+              if (editingId) {
+                updateAward.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setAwards((prev) => prev.map((a) => (a._id === editingId ? updated : a)))
+                    showToast('Award updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save award', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createAward.mutate(data as Omit<Award, '_id'>, {
+                  onSuccess: (created) => {
+                    setAwards((prev) => [created, ...prev])
+                    showToast('Award added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save award', 'error'); setSubmitting(false) },
+                })
+              }
+            }}
+            onCancel={() => setModalOpen(false)}
+          />
+        )}
+        {modalType === 'publication' && (
+          <PublicationForm
+            item={getItemForEdit() as Publication | undefined}
+            submitting={submitting}
+            onSubmit={(data) => {
+              if (editingId) {
+                updatePublication.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setPublications((prev) => prev.map((p) => (p._id === editingId ? updated : p)))
+                    showToast('Publication updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save publication', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createPublication.mutate(data as Omit<Publication, '_id'>, {
+                  onSuccess: (created) => {
+                    setPublications((prev) => [created, ...prev])
+                    showToast('Publication added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save publication', 'error'); setSubmitting(false) },
+                })
+              }
+            }}
+            onCancel={() => setModalOpen(false)}
+          />
+        )}
+        {modalType === 'volunteering' && (
+          <VolunteeringForm
+            item={getItemForEdit() as Volunteering | undefined}
+            submitting={submitting}
+            onSubmit={(data) => {
+              if (editingId) {
+                updateVolunteering.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setVolunteering((prev) => prev.map((v) => (v._id === editingId ? updated : v)))
+                    showToast('Volunteering updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save volunteering', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createVolunteering.mutate(data as Omit<Volunteering, '_id'>, {
+                  onSuccess: (created) => {
+                    setVolunteering((prev) => [created, ...prev])
+                    showToast('Volunteering added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save volunteering', 'error'); setSubmitting(false) },
+                })
+              }
+            }}
+            onCancel={() => setModalOpen(false)}
+          />
+        )}
+        {modalType === 'language' && (
+          <LanguageForm
+            item={getItemForEdit() as Language | undefined}
+            submitting={submitting}
+            onSubmit={(data) => {
+              if (editingId) {
+                updateLanguage.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setLanguages((prev) => prev.map((l) => (l._id === editingId ? updated : l)))
+                    showToast('Language updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save language', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createLanguage.mutate(data as Omit<Language, '_id'>, {
+                  onSuccess: (created) => {
+                    setLanguages((prev) => [created, ...prev])
+                    showToast('Language added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save language', 'error'); setSubmitting(false) },
+                })
+              }
+            }}
+            onCancel={() => setModalOpen(false)}
+          />
+        )}
+        {modalType === 'interest' && (
+          <InterestForm
+            item={getItemForEdit() as Interest | undefined}
+            submitting={submitting}
+            onSubmit={(data) => {
+              if (editingId) {
+                updateInterest.mutate({ id: editingId, data }, {
+                  onSuccess: (updated) => {
+                    setInterests((prev) => prev.map((i) => (i._id === editingId ? updated : i)))
+                    showToast('Interest updated', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save interest', 'error'); setSubmitting(false) },
+                })
+              } else {
+                createInterest.mutate(data as Omit<Interest, '_id'>, {
+                  onSuccess: (created) => {
+                    setInterests((prev) => [created, ...prev])
+                    showToast('Interest added', 'success')
+                    setModalOpen(false)
+                    setSubmitting(false)
+                  },
+                  onError: () => { showToast('Failed to save interest', 'error'); setSubmitting(false) },
+                })
               }
             }}
             onCancel={() => setModalOpen(false)}
@@ -1347,6 +2320,33 @@ export function CareerProfilePage() {
         variant="danger"
       />
 
+      {/* Personal Info Edit Modal */}
+      <Modal
+        open={personalEditOpen}
+        onClose={() => setPersonalEditOpen(false)}
+        title="Edit Profile"
+        size="lg"
+      >
+        <PersonalForm
+          item={personal}
+          submitting={submitting}
+          onSubmit={async (data) => {
+            setSubmitting(true)
+            try {
+              const updated = await profileService.updatePersonal(data)
+              setPersonal(updated)
+              setPersonalEditOpen(false)
+              showToast('Profile updated', 'success')
+            } catch {
+              showToast('Failed to update profile', 'error')
+            } finally {
+              setSubmitting(false)
+            }
+          }}
+          onCancel={() => setPersonalEditOpen(false)}
+        />
+      </Modal>
+
       <ExtractedResumeModal
         open={extractedOpen}
         onClose={closeExtractedModal}
@@ -1361,308 +2361,26 @@ export function CareerProfilePage() {
         onSaveEducation={handleSaveEducation}
         onSaveCertificate={handleSaveCertificate}
         onSavePersonal={handleSavePersonal}
+        onSaveAward={handleSaveAward}
+        onSavePublication={handleSavePublication}
+        onSaveVolunteering={handleSaveVolunteering}
+        onSaveLanguage={handleSaveLanguage}
+        onSaveInterest={handleSaveInterest}
       />
     </AppLayout>
   )
 }
 
-function ExperienceForm({
-  item,
-  submitting,
-  onSubmit,
-  onCancel,
-}: {
-  item?: Experience
-  submitting: boolean
-  onSubmit: (data: Partial<Experience>) => void
-  onCancel: () => void
-}) {
-  const [company, setCompany] = useState(item?.company || '')
-  const [role, setRole] = useState(item?.role || '')
-  const [startDate, setStartDate] = useState(item?.startDate || '')
-  const [endDate, setEndDate] = useState(item?.endDate || '')
-  const [current, setCurrent] = useState(item?.current || false)
-  const [responsibilities, setResponsibilities] = useState(formatListInput(item?.responsibilities || []))
-  const [technologies, setTechnologies] = useState(formatListInput(item?.technologies || []))
-  const [achievements, setAchievements] = useState(formatListInput(item?.achievements || []))
-  const [metrics, setMetrics] = useState(formatListInput(item?.metrics || []))
-
-  const handleSubmit = () => {
-    if (!company.trim() || !role.trim() || !startDate.trim()) return
-    onSubmit({
-      company: company.trim(),
-      role: role.trim(),
-      startDate,
-      endDate: current ? undefined : endDate || undefined,
-      current,
-      responsibilities: parseListInput(responsibilities),
-      technologies: parseListInput(technologies),
-      achievements: parseListInput(achievements),
-      metrics: parseListInput(metrics),
-    })
-  }
-
+function ResumeSectionPreview({ label, data, onClick }: { label: string; data: any[]; onClick: () => void }) {
+  if (!data || data.length === 0) return null
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="Company" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" />
-        <Input label="Role" value={role} onChange={(e) => setRole(e.target.value)} placeholder="Job title" />
-        <Input label="Start Date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-        <Input label="End Date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} disabled={current} />
+    <button onClick={onClick} className="w-full text-left p-2 rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors">
+      <div className="flex items-center justify-between">
+        <span className="text-label-sm text-text-primary">{label}</span>
+        <span className="text-caption text-text-tertiary">{data.length} items</span>
       </div>
-      <label className="flex items-center gap-2 cursor-pointer">
-        <input type="checkbox" checked={current} onChange={(e) => setCurrent(e.target.checked)} className="rounded border-outline-variant" />
-        <span className="text-body-md text-on-surface">I currently work here</span>
-      </label>
-      <div className="flex flex-col gap-1.5">
-        <label className="font-label-md text-on-surface">Responsibilities (one per line)</label>
-        <textarea value={responsibilities} onChange={(e) => setResponsibilities(e.target.value)} rows={3} className="w-full rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none" placeholder="Led frontend development..." />
-      </div>
-      <Input label="Technologies (comma-separated)" value={technologies} onChange={(e) => setTechnologies(e.target.value)} placeholder="React, TypeScript, Node.js" />
-      <div className="flex flex-col gap-1.5">
-        <label className="font-label-md text-on-surface">Achievements (one per line)</label>
-        <textarea value={achievements} onChange={(e) => setAchievements(e.target.value)} rows={3} className="w-full rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none" placeholder="Shipped a new feature..." />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <label className="font-label-md text-on-surface">Metrics (one per line)</label>
-        <textarea value={metrics} onChange={(e) => setMetrics(e.target.value)} rows={2} className="w-full rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none" placeholder="Increased performance by 40%" />
-      </div>
-      <div className="flex justify-end gap-3 pt-2">
-        <Button variant="secondary" onClick={onCancel}>Cancel</Button>
-        <Button onClick={handleSubmit} loading={submitting} disabled={!company.trim() || !role.trim() || !startDate.trim()}>Save</Button>
-      </div>
-    </div>
-  )
-}
-
-function ProjectForm({
-  item,
-  submitting,
-  onSubmit,
-  onCancel,
-}: {
-  item?: Project
-  submitting: boolean
-  onSubmit: (data: Partial<Project>) => void
-  onCancel: () => void
-}) {
-  const [title, setTitle] = useState(item?.title || '')
-  const [description, setDescription] = useState(item?.description || '')
-  const [technologies, setTechnologies] = useState(formatListInput(item?.technologies || []))
-  const [features, setFeatures] = useState(formatListInput(item?.features || []))
-  const [outcome, setOutcome] = useState(item?.outcome || '')
-  const [github, setGithub] = useState(item?.github || '')
-  const [demo, setDemo] = useState(item?.demo || '')
-
-  const handleSubmit = () => {
-    if (!title.trim() || !description.trim()) return
-    onSubmit({
-      title: title.trim(),
-      description: description.trim(),
-      technologies: parseListInput(technologies),
-      features: parseListInput(features),
-      outcome: outcome.trim() || undefined,
-      github: github.trim() || undefined,
-      demo: demo.trim() || undefined,
-    })
-  }
-
-  return (
-    <div className="space-y-4">
-      <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Project name" />
-      <div className="flex flex-col gap-1.5">
-        <label className="font-label-md text-on-surface">Description</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="w-full rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none" placeholder="A brief description of the project" />
-      </div>
-      <Input label="Technologies (comma-separated)" value={technologies} onChange={(e) => setTechnologies(e.target.value)} placeholder="React, Node.js, MongoDB" />
-      <div className="flex flex-col gap-1.5">
-        <label className="font-label-md text-on-surface">Features (one per line)</label>
-        <textarea value={features} onChange={(e) => setFeatures(e.target.value)} rows={3} className="w-full rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none" placeholder="User authentication..." />
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <label className="font-label-md text-on-surface">Outcome</label>
-        <textarea value={outcome} onChange={(e) => setOutcome(e.target.value)} rows={2} className="w-full rounded-lg border border-outline-variant bg-surface font-body-md text-on-surface placeholder:text-on-surface-variant outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none" placeholder="Served 1000+ users" />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="GitHub URL" value={github} onChange={(e) => setGithub(e.target.value)} placeholder="https://github.com/..." />
-        <Input label="Demo URL" value={demo} onChange={(e) => setDemo(e.target.value)} placeholder="https://..." />
-      </div>
-      <div className="flex justify-end gap-3 pt-2">
-        <Button variant="secondary" onClick={onCancel}>Cancel</Button>
-        <Button onClick={handleSubmit} loading={submitting} disabled={!title.trim() || !description.trim()}>Save</Button>
-      </div>
-    </div>
-  )
-}
-
-function SkillForm({
-  item,
-  submitting,
-  onSubmit,
-  onCancel,
-}: {
-  item?: Skill
-  submitting: boolean
-  onSubmit: (data: Partial<Skill>) => void
-  onCancel: () => void
-}) {
-  const [name, setName] = useState(item?.name || '')
-  const [category, setCategory] = useState(item?.category || 'Frontend')
-  const [level, setLevel] = useState(item?.level || 'Intermediate')
-
-  const handleSubmit = () => {
-    if (!name.trim()) return
-    onSubmit({ name: name.trim(), category: category as Skill['category'], level: level as Skill['level'] })
-  }
-
-  return (
-    <div className="space-y-4">
-      <Input label="Skill Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. React" />
-      <Select label="Category" options={skillCategories.map((c) => ({ value: c, label: c }))} value={category} onChange={(v) => setCategory(v as Skill['category'])} />
-      <Select label="Level" options={skillLevels.map((l) => ({ value: l, label: l }))} value={level} onChange={(v) => setLevel(v as Skill['level'])} />
-      <div className="flex justify-end gap-3 pt-2">
-        <Button variant="secondary" onClick={onCancel}>Cancel</Button>
-        <Button onClick={handleSubmit} loading={submitting} disabled={!name.trim()}>Save</Button>
-      </div>
-    </div>
-  )
-}
-
-function EducationForm({
-  item,
-  submitting,
-  onSubmit,
-  onCancel,
-}: {
-  item?: Education
-  submitting: boolean
-  onSubmit: (data: Partial<Education>) => void
-  onCancel: () => void
-}) {
-  const [degree, setDegree] = useState(item?.degree || '')
-  const [institution, setInstitution] = useState(item?.institution || '')
-  const [startDate, setStartDate] = useState(item?.startDate || '')
-  const [endDate, setEndDate] = useState(item?.endDate || '')
-  const [result, setResult] = useState(item?.result || '')
-
-  const handleSubmit = () => {
-    if (!degree.trim() || !institution.trim() || !startDate.trim() || !endDate.trim()) return
-    onSubmit({
-      degree: degree.trim(),
-      institution: institution.trim(),
-      startDate,
-      endDate,
-      result: result.trim() || undefined,
-    })
-  }
-
-  return (
-    <div className="space-y-4">
-      <Input label="Degree" value={degree} onChange={(e) => setDegree(e.target.value)} placeholder="B.Sc. in Computer Science" />
-      <Input label="Institution" value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="University name" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="Start Date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-        <Input label="End Date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-      </div>
-      <Input label="Result (optional)" value={result} onChange={(e) => setResult(e.target.value)} placeholder="GPA 3.8/4.0" />
-      <div className="flex justify-end gap-3 pt-2">
-        <Button variant="secondary" onClick={onCancel}>Cancel</Button>
-        <Button onClick={handleSubmit} loading={submitting} disabled={!degree.trim() || !institution.trim() || !startDate.trim() || !endDate.trim()}>Save</Button>
-      </div>
-    </div>
-  )
-}
-
-function CertificateForm({
-  item,
-  submitting,
-  onSubmit,
-  onCancel,
-}: {
-  item?: Certificate
-  submitting: boolean
-  onSubmit: (data: Partial<Certificate>) => void
-  onCancel: () => void
-}) {
-  const [name, setName] = useState(item?.name || '')
-  const [issuer, setIssuer] = useState(item?.issuer || '')
-  const [date, setDate] = useState(item?.date || '')
-  const [url, setUrl] = useState(item?.url || '')
-
-  const handleSubmit = () => {
-    if (!name.trim() || !issuer.trim() || !date.trim()) return
-    onSubmit({
-      name: name.trim(),
-      issuer: issuer.trim(),
-      date,
-      url: url.trim() || undefined,
-    })
-  }
-
-  return (
-    <div className="space-y-4">
-      <Input label="Certificate Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="AWS Solutions Architect" />
-      <Input label="Issuer" value={issuer} onChange={(e) => setIssuer(e.target.value)} placeholder="Amazon Web Services" />
-      <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <Input label="URL (optional)" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://credential.example.com/..." />
-      <div className="flex justify-end gap-3 pt-2">
-        <Button variant="secondary" onClick={onCancel}>Cancel</Button>
-        <Button onClick={handleSubmit} loading={submitting} disabled={!name.trim() || !issuer.trim() || !date.trim()}>Save</Button>
-      </div>
-    </div>
-  )
-}
-
-function ExtractedItemRow({
-  title,
-  subtitle,
-  details,
-  onAdd,
-  onRemove,
-  isSaved,
-  isDismissed,
-}: {
-  title: string
-  subtitle?: string
-  details?: React.ReactNode
-  onAdd: () => void
-  onRemove: () => void
-  isSaved: boolean
-  isDismissed: boolean
-}) {
-  if (isDismissed) return null
-  return (
-    <div className="rounded-lg border border-outline-variant bg-surface p-3 space-y-2">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-body-md text-on-surface font-medium truncate">{title}</p>
-          {subtitle && (
-            <p className="text-label-sm text-on-surface-variant truncate">{subtitle}</p>
-          )}
-          {details && <div className="mt-1.5">{details}</div>}
-        </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          {isSaved ? (
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded text-label-sm text-success bg-green-50">
-              <Check className="h-3.5 w-3.5" />
-              Added
-            </span>
-          ) : (
-            <Button size="sm" onClick={onAdd} icon={<Plus className="h-3.5 w-3.5" />}>
-              Add
-            </Button>
-          )}
-          <button
-            onClick={onRemove}
-            className="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant"
-            aria-label="Remove suggestion"
-            disabled={isSaved}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </div>
+      <p className="text-caption text-text-tertiary mt-0.5 truncate">{data[0]?.name || data[0]?.title || data[0]?.company || 'Click to view'}</p>
+    </button>
   )
 }
 
@@ -1680,6 +2398,11 @@ function ExtractedResumeModal({
   onSaveEducation,
   onSaveCertificate,
   onSavePersonal,
+  onSaveAward,
+  onSavePublication,
+  onSaveVolunteering,
+  onSaveLanguage,
+  onSaveInterest,
 }: {
   open: boolean
   onClose: () => void
@@ -1694,6 +2417,11 @@ function ExtractedResumeModal({
   onSaveEducation: (item: ExtractedEducation, key: string) => void
   onSaveCertificate: (item: ExtractedCertificate, key: string) => void
   onSavePersonal: (item: ExtractedProfile['personal'], key: string) => void
+  onSaveAward: (item: { title: string; issuer: string; date?: string; description?: string; url?: string }, key: string) => void
+  onSavePublication: (item: { title: string; publisher: string; date?: string; url?: string; description?: string; authors?: string[] }, key: string) => void
+  onSaveVolunteering: (item: { organization: string; role: string; startDate?: string; endDate?: string; current: boolean; description?: string; technologies?: string[] }, key: string) => void
+  onSaveLanguage: (item: { name: string; proficiency: string }, key: string) => void
+  onSaveInterest: (item: { name: string; category?: string }, key: string) => void,
 }) {
   if (!data) return null
 
@@ -1702,9 +2430,15 @@ function ExtractedResumeModal({
   const skills = data.skills || []
   const education = data.education || []
   const certificates = data.certificates || []
+  const awards = data.awards || []
+  const publications = data.publications || []
+  const volunteering = data.volunteering || []
+  const languages = data.languages || []
+  const interests = data.interests || []
 
   const total =
-    experiences.length + projects.length + skills.length + education.length + certificates.length
+    experiences.length + projects.length + skills.length + education.length + certificates.length +
+    awards.length + publications.length + volunteering.length + languages.length + interests.length
 
   const groupedSkills = skills.reduce<Record<string, ExtractedSkill[]>>((acc, s) => {
     const key = s.category || 'Other'
@@ -1728,7 +2462,7 @@ function ExtractedResumeModal({
             </p>
             <p className="text-label-sm text-on-surface-variant">
               {total > 0
-                ? `Found ${total} item${total === 1 ? '' : 's'} across ${[experiences.length > 0, projects.length > 0, skills.length > 0, education.length > 0, certificates.length > 0].filter(Boolean).length} categor${[experiences.length > 0, projects.length > 0, skills.length > 0, education.length > 0, certificates.length > 0].filter(Boolean).length === 1 ? 'y' : 'ies'}. Add the ones you want to your profile.`
+                ? `Found ${total} item${total === 1 ? '' : 's'} across ${[experiences.length > 0, projects.length > 0, skills.length > 0, education.length > 0, certificates.length > 0, awards.length > 0, publications.length > 0, volunteering.length > 0, languages.length > 0, interests.length > 0].filter(Boolean).length} categor${[experiences.length > 0, projects.length > 0, skills.length > 0, education.length > 0, certificates.length > 0, awards.length > 0, publications.length > 0, volunteering.length > 0, languages.length > 0, interests.length > 0].filter(Boolean).length === 1 ? 'y' : 'ies'}. Add the ones you want to your profile.`
                 : 'No items could be detected. You can close this and add items manually.'}
             </p>
           </div>
@@ -1765,11 +2499,9 @@ function ExtractedResumeModal({
           </section>
         )}
 
-        <section className="space-y-3">
-          <h3 className="text-headline-sm text-on-surface">Experiences ({experiences.length})</h3>
-          {experiences.length === 0 ? (
-            renderEmpty('experience')
-          ) : (
+        {experiences.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Experiences ({experiences.length})</h3>
             <div className="space-y-2">
               {experiences.map((item, idx) => {
                 const key = `experience-${idx}`
@@ -1800,14 +2532,12 @@ function ExtractedResumeModal({
                 )
               })}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
-        <section className="space-y-3">
-          <h3 className="text-headline-sm text-on-surface">Projects ({projects.length})</h3>
-          {projects.length === 0 ? (
-            renderEmpty('projects')
-          ) : (
+        {projects.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Projects ({projects.length})</h3>
             <div className="space-y-2">
               {projects.map((item, idx) => {
                 const key = `project-${idx}`
@@ -1833,14 +2563,12 @@ function ExtractedResumeModal({
                 )
               })}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
-        <section className="space-y-3">
-          <h3 className="text-headline-sm text-on-surface">Skills ({skills.length})</h3>
-          {skills.length === 0 ? (
-            renderEmpty('skills')
-          ) : (
+        {skills.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Skills ({skills.length})</h3>
             <div className="space-y-4">
               {Object.entries(groupedSkills).map(([category, items]) => (
                 <div key={category}>
@@ -1863,14 +2591,12 @@ function ExtractedResumeModal({
                 </div>
               ))}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
-        <section className="space-y-3">
-          <h3 className="text-headline-sm text-on-surface">Education ({education.length})</h3>
-          {education.length === 0 ? (
-            renderEmpty('education')
-          ) : (
+        {education.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Education ({education.length})</h3>
             <div className="space-y-2">
               {education.map((item, idx) => {
                 const key = `education-${idx}`
@@ -1888,14 +2614,12 @@ function ExtractedResumeModal({
                 )
               })}
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
-        <section className="space-y-3">
-          <h3 className="text-headline-sm text-on-surface">Certificates ({certificates.length})</h3>
-          {certificates.length === 0 ? (
-            renderEmpty('certificates')
-          ) : (
+        {certificates.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Certificates ({certificates.length})</h3>
             <div className="space-y-2">
               {certificates.map((item, idx) => {
                 const key = `certificate-${idx}`
@@ -1912,8 +2636,118 @@ function ExtractedResumeModal({
                 )
               })}
             </div>
-          )}
-        </section>
+          </section>
+        )}
+
+        {awards.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Awards ({awards.length})</h3>
+            <div className="space-y-2">
+              {awards.map((item, idx) => {
+                const key = `award-${idx}`
+                return (
+                  <ExtractedItemRow
+                    key={key}
+                    title={item.title || 'Award'}
+                    subtitle={[item.issuer, item.date].filter(Boolean).join(' · ')}
+                    onAdd={() => onSaveAward(item, key)}
+                    onRemove={() => onDismiss(key)}
+                    isSaved={savedKeys.has(key)}
+                    isDismissed={dismissedKeys.has(key)}
+                  />
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {publications.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Publications ({publications.length})</h3>
+            <div className="space-y-2">
+              {publications.map((item, idx) => {
+                const key = `publication-${idx}`
+                return (
+                  <ExtractedItemRow
+                    key={key}
+                    title={item.title || 'Publication'}
+                    subtitle={[item.publisher, item.date].filter(Boolean).join(' · ')}
+                    onAdd={() => onSavePublication(item, key)}
+                    onRemove={() => onDismiss(key)}
+                    isSaved={savedKeys.has(key)}
+                    isDismissed={dismissedKeys.has(key)}
+                  />
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {volunteering.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Volunteering ({volunteering.length})</h3>
+            <div className="space-y-2">
+              {volunteering.map((item, idx) => {
+                const key = `volunteering-${idx}`
+                return (
+                  <ExtractedItemRow
+                    key={key}
+                    title={item.role || 'Volunteering'}
+                    subtitle={[item.organization, item.startDate].filter(Boolean).join(' · ')}
+                    onAdd={() => onSaveVolunteering(item, key)}
+                    onRemove={() => onDismiss(key)}
+                    isSaved={savedKeys.has(key)}
+                    isDismissed={dismissedKeys.has(key)}
+                  />
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {languages.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Languages ({languages.length})</h3>
+            <div className="space-y-2">
+              {languages.map((item, idx) => {
+                const key = `language-${idx}`
+                return (
+                  <ExtractedItemRow
+                    key={key}
+                    title={item.name || 'Language'}
+                    subtitle={item.proficiency || ''}
+                    onAdd={() => onSaveLanguage(item, key)}
+                    onRemove={() => onDismiss(key)}
+                    isSaved={savedKeys.has(key)}
+                    isDismissed={dismissedKeys.has(key)}
+                  />
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {interests.length > 0 && (
+          <section className="space-y-3">
+            <h3 className="text-headline-sm text-on-surface">Interests ({interests.length})</h3>
+            <div className="space-y-2">
+              {interests.map((item, idx) => {
+                const key = `interest-${idx}`
+                return (
+                  <ExtractedItemRow
+                    key={key}
+                    title={item.name || 'Interest'}
+                    subtitle={item.category || ''}
+                    onAdd={() => onSaveInterest(item, key)}
+                    onRemove={() => onDismiss(key)}
+                    isSaved={savedKeys.has(key)}
+                    isDismissed={dismissedKeys.has(key)}
+                  />
+                )
+              })}
+            </div>
+          </section>
+        )}
 
         <div className="flex justify-end pt-2 border-t border-outline-variant">
           <Button variant="secondary" onClick={onClose}>Done</Button>

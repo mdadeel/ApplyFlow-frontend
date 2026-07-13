@@ -1,5 +1,5 @@
 import { get, getArray, post, put, del } from './api'
-import type { Experience, Project, Skill, Education, Certificate, ExtractedProfile } from '../types'
+import type { Experience, Project, Skill, Education, Certificate, Award, Publication, Volunteering, Language, Interest, ExtractedProfile } from '../types'
 
 export interface PersonalData {
   name: string
@@ -91,12 +91,101 @@ export function uploadResumePDF(file: File): Promise<{ extracted: ExtractedProfi
   return post<{ extracted: ExtractedProfile }>('/profile/upload-pdf', form)
 }
 
+export interface FullProfile {
+  personal: PersonalData | null
+  experiences: Experience[]
+  projects: Project[]
+  skills: Skill[]
+  education: Education[]
+  certificates: Certificate[]
+  awards: Award[]
+  publications: Publication[]
+  volunteering: Volunteering[]
+  languages: Language[]
+  interests: Interest[]
+}
+
+export function getFullProfile(): Promise<FullProfile> {
+  return get<FullProfile>('/profile/all')
+}
+
+export function getAwards(): Promise<Award[]> {
+  return getArray<Award>('/profile/awards')
+}
+export function createAward(data: Omit<Award, '_id'>): Promise<Award> {
+  return post<Award>('/profile/awards', data)
+}
+export function updateAward(id: string, data: Partial<Award>): Promise<Award> {
+  return put<Award>(`/profile/awards/${id}`, data)
+}
+export function deleteAward(id: string): Promise<void> {
+  return del<void>(`/profile/awards/${id}`)
+}
+
+export function getPublications(): Promise<Publication[]> {
+  return getArray<Publication>('/profile/publications')
+}
+export function createPublication(data: Omit<Publication, '_id'>): Promise<Publication> {
+  return post<Publication>('/profile/publications', data)
+}
+export function updatePublication(id: string, data: Partial<Publication>): Promise<Publication> {
+  return put<Publication>(`/profile/publications/${id}`, data)
+}
+export function deletePublication(id: string): Promise<void> {
+  return del<void>(`/profile/publications/${id}`)
+}
+
+export function getVolunteering(): Promise<Volunteering[]> {
+  return getArray<Volunteering>('/profile/volunteering')
+}
+export function createVolunteering(data: Omit<Volunteering, '_id'>): Promise<Volunteering> {
+  return post<Volunteering>('/profile/volunteering', data)
+}
+export function updateVolunteering(id: string, data: Partial<Volunteering>): Promise<Volunteering> {
+  return put<Volunteering>(`/profile/volunteering/${id}`, data)
+}
+export function deleteVolunteering(id: string): Promise<void> {
+  return del<void>(`/profile/volunteering/${id}`)
+}
+
+export function getLanguages(): Promise<Language[]> {
+  return getArray<Language>('/profile/languages')
+}
+export function createLanguage(data: Omit<Language, '_id'>): Promise<Language> {
+  return post<Language>('/profile/languages', data)
+}
+export function updateLanguage(id: string, data: Partial<Language>): Promise<Language> {
+  return put<Language>(`/profile/languages/${id}`, data)
+}
+export function deleteLanguage(id: string): Promise<void> {
+  return del<void>(`/profile/languages/${id}`)
+}
+
+export function getInterests(): Promise<Interest[]> {
+  return getArray<Interest>('/profile/interests')
+}
+export function createInterest(data: Omit<Interest, '_id'>): Promise<Interest> {
+  return post<Interest>('/profile/interests', data)
+}
+export function updateInterest(id: string, data: Partial<Interest>): Promise<Interest> {
+  return put<Interest>(`/profile/interests/${id}`, data)
+}
+export function deleteInterest(id: string): Promise<void> {
+  return del<void>(`/profile/interests/${id}`)
+}
+
 export const profileService = {
   getExperiences, createExperience, updateExperience, deleteExperience,
   getProjects, createProject, updateProject, deleteProject,
   getSkills, createSkill, updateSkill, deleteSkill,
   getEducation, createEducation, updateEducation, deleteEducation,
   getCertificates, createCertificate, updateCertificate, deleteCertificate,
+  getAwards, createAward, updateAward, deleteAward,
+  getPublications, createPublication, updatePublication, deletePublication,
+  getVolunteering, createVolunteering, updateVolunteering, deleteVolunteering,
+  getLanguages, createLanguage, updateLanguage, deleteLanguage,
+  getInterests, createInterest, updateInterest, deleteInterest,
   getPersonal, updatePersonal,
   uploadResumePDF,
+  getFullProfile,
 }
