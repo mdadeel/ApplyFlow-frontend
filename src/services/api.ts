@@ -1,6 +1,10 @@
 /** Guard: prevents re-entrant `auth:expired` dispatch when a logout request itself returns 401. */
 let _authExpiredInProgress = false
 
+/** In-flight request deduplication: caches promises for concurrent GETs to the same URL. */
+const _inflightRequests = new Map<string, Promise<unknown>>()
+const methodKey = (method: string, url: string) => `${method}:${url}`
+
 export class ApiError extends Error {
   status: number
   data: unknown
@@ -93,13 +97,28 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export async function get<T>(path: string, params?: Record<string, string | number | undefined>, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(buildUrl(path, params), {
-    method: 'GET',
-    headers: buildHeaders('GET'),
-    credentials: 'include',
-    ...(signal ? { signal } : {}),
-  })
-  return handleResponse<T>(response)
+  const url = buildUrl(path, params)
+  const key = methodKey('GET', url)
+
+  const existing = _inflightRequests.get(key)
+  if (existing) return existing as Promise<T>
+
+  const promise = (async () => {
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: buildHeaders('GET'),
+        credentials: 'include',
+        ...(signal ? { signal } : {}),
+      })
+      return handleResponse<T>(response)
+    } finally {
+      _inflightRequests.delete(key)
+    }
+  })()
+
+  _inflightRequests.set(key, promise)
+  return promise
 }
 
 export async function getArray<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T[]> {

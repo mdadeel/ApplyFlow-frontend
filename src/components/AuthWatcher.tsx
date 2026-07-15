@@ -15,7 +15,6 @@ import { resetAuthExpiredGuard } from '../services/api'
  */
 export function AuthWatcher() {
   const navigate = useNavigate()
-  const logout = useAuthStore((s) => s.logout)
   const checkSession = useAuthStore((s) => s.checkSession)
   const handlingRef = useRef(false)
 
@@ -30,7 +29,7 @@ export function AuthWatcher() {
       if (handlingRef.current) return
       handlingRef.current = true
       try {
-        await logout()
+        useAuthStore.getState().setUser(null)
         navigate('/auth/login', { replace: true })
       } finally {
         handlingRef.current = false
@@ -40,7 +39,7 @@ export function AuthWatcher() {
 
     window.addEventListener('auth:expired', handleAuthExpired)
     return () => window.removeEventListener('auth:expired', handleAuthExpired)
-  }, [navigate, logout])
+  }, [navigate])
 
   return null
 }

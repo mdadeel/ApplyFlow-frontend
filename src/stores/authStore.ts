@@ -56,18 +56,24 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user: null, error: null })
   },
 
-  checkSession: async () => {
-    // Skip if we already have a user.
-    if (useAuthStore.getState().user) return
-
-    set({ loading: true })
-    try {
-      const user = await authApi.getMe()
-      set({ user, loading: false, error: null })
-    } catch {
-      set({ user: null, loading: false, error: null })
+  checkSession: (() => {
+    let _inFlight = false
+    return async () => {
+      if (_inFlight) return
+      const { user } = useAuthStore.getState()
+      if (user) return
+      _inFlight = true
+      set({ loading: true })
+      try {
+        const user = await authApi.getMe()
+        set({ user, loading: false, error: null })
+      } catch {
+        set({ user: null, loading: false, error: null })
+      } finally {
+        _inFlight = false
+      }
     }
-  },
+  })(),
 
   demoLogin: async () => {
     set({ loading: true, error: null })
