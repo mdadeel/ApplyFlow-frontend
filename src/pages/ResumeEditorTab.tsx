@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { AppLayout } from '../components/layout/AppLayout'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Select } from '../components/ui/Select'
@@ -61,7 +60,7 @@ function toResumeContent(uploaded: UploadedResumeContent): ResumeContent {
   }
 }
 
-export function ResumeEditorPage() {
+export function ResumeEditorTab() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -177,7 +176,7 @@ export function ResumeEditorPage() {
   }
 
   return (
-    <AppLayout>
+    <div className="space-y-lg animate-in fade-in duration-200 h-full">
       <div className="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
           <h1 className="text-heading-1 text-text-primary">Resume Editor</h1>
@@ -321,6 +320,6 @@ export function ResumeEditorPage() {
           </Card>
         </div>
       </div>
-    </AppLayout>
+    </div>
   )
 }

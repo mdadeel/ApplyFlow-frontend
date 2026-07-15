@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
-import { AppLayout } from '../components/layout/AppLayout'
 import { SplitPanel } from '../components/layout/SplitPanel'
 import { Section } from '../components/layout/Section'
 import { Button } from '../components/ui/Button'
@@ -25,7 +24,7 @@ import {
   X,
 } from '../lib/icons'
 
-export function ResumeStrategyPage() {
+export function ResumeStrategyTab() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
@@ -127,7 +126,7 @@ export function ResumeStrategyPage() {
   }
 
   return (
-    <AppLayout>
+    <div className="space-y-lg animate-in fade-in duration-200 h-full">
       <SplitPanel
         leftWeight={1}
         rightWeight={2}
@@ -144,14 +143,14 @@ export function ResumeStrategyPage() {
                   description="Go back and analyze a job description first"
                   action={{
                     label: 'Analyze JD',
-                    onClick: () => navigate('/jd-analysis'),
+                    onClick: () => navigate('/smart-application'),
                   }}
                 />
               ) : (
                 <div className="space-y-4">
                   <div>
                     <p className="text-label-sm text-on-surface-variant mb-2">
-                      Required Skills from JD
+                      {'Required Skills from JD'}
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {analysis.requiredSkills.map((skill) => (
@@ -169,7 +168,7 @@ export function ResumeStrategyPage() {
                   </div>
 
                   <div>
-                    <p className="text-label-sm text-on-surface-variant mb-2">Matched Skills</p>
+                    <p className="text-label-sm text-on-surface-variant mb-2">{'Matched Skills'}</p>
                     {selectedSkills.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
                         {selectedSkills.map((skill) => (
@@ -180,7 +179,7 @@ export function ResumeStrategyPage() {
                       </div>
                     ) : (
                       <p className="text-body-md text-on-surface-variant italic">
-                        Skills will appear after generating strategy
+                        {'Skills will appear after generating strategy'}
                       </p>
                     )}
                   </div>
@@ -195,7 +194,7 @@ export function ResumeStrategyPage() {
               size="lg"
               icon={<Sparkles className="h-4 w-4" />}
             >
-              Generate Strategy
+              {'Generate Strategy'}
             </Button>
           </div>
         }
@@ -210,7 +209,7 @@ export function ResumeStrategyPage() {
             <div className="rounded-xl border border-error/20 bg-red-50 p-4 text-body-md text-error flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
               <div className="flex-1">
-                <p className="font-semibold">Strategy Generation Failed</p>
+                <p className="font-semibold">{'Strategy Generation Failed'}</p>
                 <p className="text-error/80 mt-0.5">{error}</p>
               </div>
               <button onClick={() => setError(null)} className="p-1 rounded hover:bg-error/10 transition-colors shrink-0" aria-label="Dismiss">
@@ -319,7 +318,7 @@ export function ResumeStrategyPage() {
 
                 {strategy.excludedItems.length > 0 && (
                   <div className="mt-4">
-                    <p className="text-label-sm text-on-surface-variant mb-2">Excluded Items</p>
+                    <p className="text-label-sm text-on-surface-variant mb-2">{'Excluded Items'}</p>
                     <div className="space-y-1.5">
                       {strategy.excludedItems.map((item) => (
                         <div
@@ -343,7 +342,7 @@ export function ResumeStrategyPage() {
                   icon={<ArrowRight className="h-4 w-4" />}
                   size="lg"
                 >
-                  Proceed to Resume Editor
+                  {'Proceed to Resume Editor'}
                 </Button>
               </div>
             </div>
@@ -356,6 +355,6 @@ export function ResumeStrategyPage() {
           )
         }
       />
-    </AppLayout>
+    </div>
   )
 }

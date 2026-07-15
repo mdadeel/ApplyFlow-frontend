@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { Upload, FileText, Trash2, Briefcase, Code, GraduationCap, Award, Sparkles, Clock, ExternalLink } from '../lib/icons'
-import { AppLayout } from '../components/layout/AppLayout'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { Skeleton } from '../components/ui/Skeleton'
@@ -165,7 +164,7 @@ function ResumeSectionCertificates({ data }: { data: Record<string, any>[] }) {
   )
 }
 
-export function ResumeLibraryPage() {
+export function ResumeLibraryTab() {
   const { showToast } = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -317,7 +316,7 @@ export function ResumeLibraryPage() {
   }, [visibleTabs, activeSection])
 
   return (
-    <AppLayout>
+    <div className="space-y-lg animate-in fade-in duration-200">
       <div className="flex items-center justify-between mb-lg gap-3 flex-wrap">
         <div>
           <h2 className="text-headline-md text-on-surface">My Resumes</h2>
@@ -472,6 +471,6 @@ export function ResumeLibraryPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </AppLayout>
+    </div>
   )
 }

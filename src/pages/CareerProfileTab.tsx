@@ -20,7 +20,6 @@ import {
   Globe,
   Target,
 } from '../lib/icons'
-import { AppLayout } from '../components/layout/AppLayout'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -598,7 +597,7 @@ function InterestCard({
   )
 }
 
-export function CareerProfilePage() {
+export function CareerProfileTab() {
   const { showToast } = useToast()
   const [searchValue, setSearchValue] = useState('')
 
@@ -1830,17 +1829,11 @@ export function CareerProfilePage() {
   ].filter(Boolean).length * 10
 
   return (
-    <AppLayout onSearch={setSearchValue} searchValue={searchValue}>
+    <div className="space-y-lg animate-in fade-in duration-200">
       <div className="flex flex-col lg:flex-row gap-xl items-start relative max-w-7xl mx-auto">
         {/* Main Content Area */}
         <div className="flex-1 min-w-0 w-full">
           <div className="flex items-center justify-between mb-lg gap-3 flex-wrap">
-            <div>
-              <div>
-                <h1 className="text-heading-2 text-text-primary">Career Profile</h1>
-                <p className="text-body-sm text-text-secondary mt-0.5">Your professional story — experiences, skills, and credentials</p>
-              </div>
-            </div>
           </div>
 
           {showError && (
@@ -2367,7 +2360,7 @@ export function CareerProfilePage() {
         onSaveLanguage={handleSaveLanguage}
         onSaveInterest={handleSaveInterest}
       />
-    </AppLayout>
+    </div>
   )
 }
 
