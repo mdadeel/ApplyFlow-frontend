@@ -14,11 +14,11 @@ interface AppLayoutProps {
 function LayoutShell({ children, onSearch, searchValue }: AppLayoutProps) {
   const { sidebarCollapsed } = useLayout()
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f6f8fc]">
+    <div className="flex h-screen overflow-hidden bg-surface-secondary">
       <Sidebar />
-      <main id="main-content" className="flex-1 flex flex-col overflow-hidden">
+      <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-surface-secondary relative">
         <TopBar onSearch={onSearch} searchValue={searchValue} />
-        <div className={`flex-1 overflow-y-auto p-8 w-full transition-all duration-200 ${sidebarCollapsed ? 'max-w-none px-12' : 'max-w-7xl mx-auto'}`}>
+        <div className={`flex-1 overflow-y-auto p-4 lg:p-6 w-full transition-all duration-200 ${sidebarCollapsed ? 'max-w-none' : 'max-w-page mx-auto'}`}>
           {children}
         </div>
       </main>

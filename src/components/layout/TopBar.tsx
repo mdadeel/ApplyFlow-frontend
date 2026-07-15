@@ -6,6 +6,7 @@ import { NotificationPanel } from './NotificationPanel'
 import { HelpPanel } from './HelpPanel'
 import { ShortcutsModal } from './ShortcutsModal'
 import { WhatsNewModal } from './WhatsNewModal'
+import { CommandPalette } from '../ui/CommandPalette'
 import { getNotifications } from '../../services/notifications'
 
 interface TopBarProps {
@@ -19,10 +20,8 @@ const NOTIFICATION_POLL_INTERVAL_MS = 60_000
 export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
   const { setMobileSidebarOpen } = useLayout()
   const [localSearch, setLocalSearch] = useState(searchValue)
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [helpOpen, setHelpOpen] = useState(false)
-  const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false)
-  const [whatsNewModalOpen, setWhatsNewModalOpen] = useState(false)
+  const [activePanel, setActivePanel] = useState<'notifications' | 'help' | null>(null)
+  const [activeModal, setActiveModal] = useState<'shortcuts' | 'whats-new' | 'command-palette' | null>(null)
   const [unreadCount, setUnreadCount] = useState(0)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const notificationRef = useRef<HTMLDivElement>(null)
@@ -42,8 +41,13 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
 
     fetchUnreadCount()
     const intervalId = window.setInterval(() => {
-      if (!cancelled) fetchUnreadCount()
+      if (!cancelled && !document.hidden) fetchUnreadCount()
     }, NOTIFICATION_POLL_INTERVAL_MS)
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !cancelled) fetchUnreadCount()
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     const handleAuthExpired = (): void => {
       window.clearInterval(intervalId)
@@ -54,6 +58,7 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
     return () => {
       cancelled = true
       window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('auth:expired', handleAuthExpired)
     }
   }, [])
@@ -72,7 +77,11 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === '?' && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
         e.preventDefault()
-        setShortcutsModalOpen((prev) => !prev)
+        setActiveModal(prev => prev === 'shortcuts' ? null : 'shortcuts')
+      }
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setActiveModal('command-palette')
       }
     }
     document.addEventListener('keydown', onKeyDown)
@@ -89,33 +98,33 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
   }
 
   const handleHelpSelect = (id: string) => {
-    setHelpOpen(false)
+    setActivePanel(null)
     switch (id) {
       case 'docs':
         window.open('https://applyflow.ai/docs', '_blank', 'noopener,noreferrer')
         break
       case 'shortcuts':
-        setShortcutsModalOpen(true)
+        setActiveModal('shortcuts')
         break
       case 'feedback':
         window.open('mailto:feedback@applyflow.ai', '_blank')
         break
       case 'whats-new':
-        setWhatsNewModalOpen(true)
+        setActiveModal('whats-new')
         break
     }
   }
 
   const handleNotificationsToggle = () => {
-    setNotificationsOpen((prev) => !prev)
+    setActivePanel(prev => prev === 'notifications' ? null : 'notifications')
   }
 
   const handleNotificationsClose = () => {
-    setNotificationsOpen(false)
+    setActivePanel(null)
   }
 
   return (
-    <header className="h-14 border-b border-border bg-white flex items-center justify-between px-4 shrink-0">
+    <header className="h-14 border-b border-border bg-surface/70 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between px-4 shrink-0 transition-all duration-300">
       <div className="flex items-center gap-3 min-w-0 flex-1">
         <button
           onClick={() => setMobileSidebarOpen(true)}
@@ -130,24 +139,36 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-secondary border border-border text-text-secondary focus-within:border-primary focus-within:text-text-primary transition-colors">
-          <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
-          <input
-            type="search"
-            placeholder="Search..."
-            value={localSearch}
-            onChange={handleSearchChange}
-            className="bg-transparent border-none outline-none text-body-sm text-text-primary placeholder:text-text-tertiary w-48"
-            aria-label="Search"
-          />
-        </div>
+        {onSearch && (
+          <button
+            onClick={() => setActiveModal('command-palette')}
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 w-64 rounded-lg bg-surface-secondary border border-border text-text-secondary hover:border-primary hover:text-text-primary transition-colors text-left"
+            aria-label="Search or jump to..."
+          >
+            <Search className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span className="text-body-sm text-text-tertiary flex-1">Search or jump to...</span>
+            <span className="flex items-center justify-center h-5 px-1.5 rounded bg-surface-tertiary text-[10px] font-medium text-text-secondary border border-border">
+              ⌘K
+            </span>
+          </button>
+        )}
+        {!onSearch && (
+          <button
+            onClick={() => setActiveModal('command-palette')}
+            className="hidden md:flex items-center justify-center h-8 w-8 rounded-lg bg-surface-secondary border border-border text-text-secondary hover:border-primary hover:text-text-primary transition-colors"
+            aria-label="Open command palette"
+            title="Open command palette (⌘K)"
+          >
+            <Search className="w-4 h-4" />
+          </button>
+        )}
 
         <div className="relative" ref={notificationRef}>
           <button
             onClick={handleNotificationsToggle}
             className="relative p-1.5 rounded hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors"
             aria-label="Notifications"
-            aria-expanded={notificationsOpen}
+            aria-expanded={activePanel === 'notifications'}
             aria-haspopup="dialog"
           >
             <Bell className="w-5 h-5" />
@@ -160,7 +181,7 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
               </span>
             )}
           </button>
-          {notificationsOpen && (
+          {activePanel === 'notifications' && (
             <NotificationPanel
               onClose={handleNotificationsClose}
               onUnreadCountChange={setUnreadCount}
@@ -170,17 +191,17 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
 
         <div className="relative" ref={helpRef}>
           <button
-            onClick={() => setHelpOpen((prev) => !prev)}
+            onClick={() => setActivePanel(prev => prev === 'help' ? null : 'help')}
             className="p-1.5 rounded hover:bg-surface-secondary text-text-secondary hover:text-text-primary transition-colors"
             aria-label="Help"
-            aria-expanded={helpOpen}
+            aria-expanded={activePanel === 'help'}
             aria-haspopup="menu"
           >
             <CircleHelp className="w-5 h-5" />
           </button>
-          {helpOpen && (
+          {activePanel === 'help' && (
             <HelpPanel
-              onClose={() => setHelpOpen(false)}
+              onClose={() => setActivePanel(null)}
               onSelect={handleHelpSelect}
             />
           )}
@@ -189,12 +210,16 @@ export function TopBar({ onSearch, searchValue = '' }: TopBarProps) {
       </div>
 
       <ShortcutsModal
-        open={shortcutsModalOpen}
-        onClose={() => setShortcutsModalOpen(false)}
+        open={activeModal === 'shortcuts'}
+        onClose={() => setActiveModal(null)}
       />
       <WhatsNewModal
-        open={whatsNewModalOpen}
-        onClose={() => setWhatsNewModalOpen(false)}
+        open={activeModal === 'whats-new'}
+        onClose={() => setActiveModal(null)}
+      />
+      <CommandPalette
+        open={activeModal === 'command-palette'}
+        onClose={() => setActiveModal(null)}
       />
     </header>
   )

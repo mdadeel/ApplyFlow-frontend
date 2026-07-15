@@ -7,20 +7,11 @@ import {
   LayoutDashboard,
   Briefcase,
   User,
-  BarChart3,
-  BrainCircuit,
   Plus,
   ChevronRight,
-  Users,
-  MessageSquare,
   Sparkles,
-  Target,
   Zap,
-  FileSearch,
-  FileText,
-  MessageCircle,
   Settings,
-  FileCheck,
 } from '../../lib/icons'
 import type { LucideIcon } from '../../lib/icons'
 import { useLayout } from './useLayout'
@@ -28,7 +19,6 @@ import { Button } from '../ui/Button'
 import { Tooltip } from '../ui/Tooltip'
 import { Avatar } from './Avatar'
 import { getSuggestions } from '../../services/learning'
-import { getPersonal } from '../../services/profile'
 import { useAuthStore } from '../../stores/authStore'
 
 export interface SubNavItem {
@@ -60,27 +50,7 @@ const sections: Section[] = [
     id: 'overview',
     label: '',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard', visibleWhenCollapsed: true },
-    ],
-  },
-  {
-    id: 'ai-copilot',
-    label: 'AI Co-pilot',
-    items: [
-      { id: 'smart-application', label: 'Smart Application', icon: Zap, href: '/smart-application', visibleWhenCollapsed: true },
-      { id: 'jd-analysis', label: 'JD Analysis', icon: FileSearch, href: '/jd-analysis', visibleWhenCollapsed: true },
-      {
-        id: 'resumes',
-        label: 'Resumes',
-        icon: FileText,
-        href: '/resume-library',
-        visibleWhenCollapsed: true,
-        children: [
-          { id: 'resume-editor', label: 'Resume Editor', icon: FileText, href: '/resume-editor' },
-          { id: 'resume-library', label: 'Resume Library', icon: FileCheck, href: '/resume-library' },
-        ],
-      },
-      { id: 'interview-prep', label: 'Interview Prep', icon: MessageCircle, href: '/interview', visibleWhenCollapsed: true },
+      { id: 'dashboard', label: 'Today', icon: LayoutDashboard, href: '/dashboard', visibleWhenCollapsed: true },
     ],
   },
   {
@@ -88,26 +58,21 @@ const sections: Section[] = [
     label: 'Tracker',
     items: [
       { id: 'applications', label: 'Applications', icon: Briefcase, href: '/applications', visibleWhenCollapsed: true },
-      { id: 'analytics', label: 'Analytics', icon: BarChart3, href: '/analytics', visibleWhenCollapsed: true },
+      { id: 'smart-application', label: 'Smart Apply', icon: Zap, href: '/smart-application', visibleWhenCollapsed: true },
+    ],
+  },
+  {
+    id: 'identity',
+    label: 'Identity',
+    items: [
+      { id: 'identity', label: 'Identity Workspace', icon: User, href: '/identity', visibleWhenCollapsed: true },
     ],
   },
   {
     id: 'network',
     label: 'Network',
     items: [
-      { id: 'feed', label: 'Feed', icon: Sparkles, href: '/community/feed', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
-      { id: 'opportunities', label: 'Job Board', icon: Target, href: '/community/opportunities', visibleWhenCollapsed: true },
-      { id: 'discussions', label: 'Discussions', icon: MessageSquare, href: '/community/discussions', visibleWhenCollapsed: false },
-      { id: 'referrals', label: 'Referrals', icon: Users, href: '/community/referrals', visibleWhenCollapsed: false },
-      { id: 'templates', label: 'Templates', icon: FileText, href: '/community/templates', visibleWhenCollapsed: false },
-    ],
-  },
-  {
-    id: 'management',
-    label: 'Management',
-    items: [
-      { id: 'profile', label: 'Career Profile', icon: User, href: '/profile', visibleWhenCollapsed: true },
-      { id: 'learning', label: 'Learning Center', icon: BrainCircuit, href: '/admin/learning', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
+      { id: 'feed', label: 'Community & Jobs', icon: Sparkles, href: '/community/feed', badge: 'count', badgeCount: 0, visibleWhenCollapsed: true },
     ],
   },
 ]
@@ -121,12 +86,7 @@ export function Sidebar(): JSX.Element {
   const location = useLocation()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const userNameQuery = useQuery({
-    queryKey: ['sidebar', 'userName'],
-    queryFn: () => getPersonal(),
-    staleTime: 5 * 60 * 1000,
-  })
-  const userName = userNameQuery.data?.name ?? null
+  const userName = user?.name ?? null
 
   const suggestionsQuery = useQuery({
     queryKey: ['sidebar', 'suggestions'],
@@ -136,9 +96,7 @@ export function Sidebar(): JSX.Element {
   })
   const learningBadgeCount = suggestionsQuery.data?.count ?? 0
 
-  const [expandedParents, setExpandedParents] = useState<Record<string, boolean>>(() => ({
-    resumes: true,
-  }))
+  const [expandedParents, setExpandedParents] = useState<Map<string, boolean>>(() => new Map([['resumes', true]]))
 
   const userAvatarUrl = user?.avatarUrl ?? null
 
@@ -165,14 +123,18 @@ export function Sidebar(): JSX.Element {
   }
 
   function toggleParent(id: string) {
-    setExpandedParents((prev) => ({ ...prev, [id]: !prev[id] }))
+    setExpandedParents((prev) => {
+      const next = new Map(prev)
+      next.set(id, !prev.get(id))
+      return next
+    })
   }
 
   function renderNavItem(item: NavItem) {
     const Icon = item.icon
     const active = isActive(item)
     const hasChildren = item.children && item.children.length > 0
-    const isExpanded = expandedParents[item.id] ?? false
+    const isExpanded = expandedParents.get(item.id) ?? false
 
     const shouldAutoExpand = hasChildren && item.children!.some((child) => isChildActive(child))
     const effectiveExpanded = shouldAutoExpand || isExpanded
@@ -344,7 +306,7 @@ export function Sidebar(): JSX.Element {
       )}
 
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-border ${sidebarCollapsed ? 'w-[72px]' : 'w-60'} ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-200`}
+        className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col bg-surface border-r border-border ${sidebarCollapsed ? 'w-[72px]' : 'w-60'} ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} transition-transform duration-200`}
         aria-label="Main navigation"
         data-sidebar-collapsed={sidebarCollapsed}
       >
@@ -353,15 +315,15 @@ export function Sidebar(): JSX.Element {
             className="w-8 h-8 bg-primary text-white rounded-lg flex items-center justify-center text-caption font-bold shrink-0"
             aria-hidden="true"
           >
-            A
+            {'A'}
           </div>
           {!sidebarCollapsed && (
             <div className="flex flex-col overflow-hidden">
               <span className="text-body-sm font-semibold text-text-primary truncate">
-                ApplyFlow AI
+                {'ApplyFlow AI'}
               </span>
               <span className="text-meta text-text-tertiary truncate">
-                Career Workspace
+                {'Career Workspace'}
               </span>
             </div>
           )}
@@ -403,7 +365,7 @@ export function Sidebar(): JSX.Element {
             >
               <Settings className="w-5 h-5 shrink-0" />
               <span className="text-body-sm truncate opacity-0 w-0 group-hover:opacity-100 group-hover:w-auto overflow-hidden transition-all duration-150">
-                Settings
+                {'Settings'}
               </span>
             </a>
             <div
