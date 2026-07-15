@@ -13,6 +13,10 @@ import { Skeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 import { ApplicationTable } from '../components/features/ApplicationTable'
 import { ApplicationCard } from '../components/features/ApplicationCard'
+import { ApplicationOverview } from '../components/features/tracker/ApplicationOverview'
+import { ApplicationMatch } from '../components/features/tracker/ApplicationMatch'
+import { ApplicationInterview } from '../components/features/tracker/ApplicationInterview'
+import { SplitPanel } from '../components/layout/SplitPanel'
 import { useToast } from '../components/layout/useToast'
 import { applicationsService } from '../services/applications'
 import { getStatusDefinitions } from '../services/status'
@@ -111,6 +115,29 @@ export function ApplicationsPage() {
       : 'Failed to load applications'
     : null
 
+  const activeAppId = searchParams.get('appId')
+  const activeTabRight = searchParams.get('tab') || 'overview'
+  const setTabRight = (tab: string) => {
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('tab', tab)
+    setSearchParams(newParams)
+  }
+
+  const activeAppQuery = useQuery({
+    queryKey: ['application', activeAppId],
+    queryFn: () => applicationsService.getApplication(activeAppId!),
+    enabled: !!activeAppId,
+  })
+  const activeApp = activeAppQuery.data
+
+  // Simulate fetching tasks for the active app
+  const [activeTasks, setActiveTasks] = useState<any[]>([])
+  useEffect(() => {
+    if (activeApp?.trackerTasks) {
+      setActiveTasks(activeApp.trackerTasks)
+    }
+  }, [activeApp])
+
   useEffect(() => {
     setPage(1)
   }, [searchValue, statusFilter, activeTab])
@@ -188,7 +215,15 @@ export function ApplicationsPage() {
   }
 
   const handleRowClick = (app: Application) => {
-    navigate(`/applications/${app._id}`)
+    const newParams = new URLSearchParams(searchParams)
+    newParams.set('appId', app._id)
+    setSearchParams(newParams)
+  }
+
+  const closeSplitPane = () => {
+    const newParams = new URLSearchParams(searchParams)
+    newParams.delete('appId')
+    setSearchParams(newParams)
   }
 
   const filteredApplications = (() => {
@@ -249,7 +284,86 @@ export function ApplicationsPage() {
         </div>
       )}
 
-      {viewMode === 'list' ? (
+      {activeAppId ? (
+        <SplitPanel
+          leftWeight={1}
+          rightWeight={2.5}
+          left={
+            <div className="border border-border rounded-lg bg-surface flex flex-col h-[calc(100vh-200px)] overflow-hidden">
+              <div className="p-3 border-b border-border bg-surface-secondary flex items-center justify-between">
+                <span className="text-body-sm font-medium text-text-primary">Inbox</span>
+                <button onClick={closeSplitPane} className="text-body-xs text-text-tertiary hover:text-text-primary">Close Pane</button>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {filteredApplications.map(app => (
+                  <button
+                    key={app._id}
+                    onClick={() => handleRowClick(app)}
+                    className={`w-full text-left p-3 border-b border-border hover:bg-surface-secondary transition-colors ${activeAppId === app._id ? 'bg-primary/5 border-l-2 border-l-primary' : ''}`}
+                  >
+                    <div className="text-body-sm font-medium text-text-primary truncate">{app.company}</div>
+                    <div className="text-caption text-text-secondary truncate">{app.role}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          }
+          right={
+            <div className="border border-border rounded-lg bg-surface flex flex-col h-[calc(100vh-200px)] overflow-hidden">
+              {activeAppQuery.isLoading ? (
+                <div className="p-4 space-y-4">
+                  <Skeleton variant="rectangular" height={100} />
+                  <Skeleton variant="rectangular" height={300} />
+                </div>
+              ) : activeApp ? (
+                <>
+                  <div className="border-b border-border bg-surface px-4 pt-2">
+                    <div className="flex gap-4">
+                      {['overview', 'match', 'interview'].map(t => (
+                        <button
+                          key={t}
+                          onClick={() => setTabRight(t)}
+                          className={`pb-2 text-body-sm font-medium transition-colors border-b-2 ${
+                            activeTabRight === t 
+                              ? 'border-primary text-primary' 
+                              : 'border-transparent text-text-tertiary hover:text-text-primary'
+                          }`}
+                        >
+                          {t.charAt(0).toUpperCase() + t.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4">
+                    {activeTabRight === 'overview' && (
+                      <ApplicationOverview
+                        application={activeApp}
+                        tasks={activeTasks}
+                        onStatusChange={(s) => handleStatusChange(activeApp._id, s)}
+                        onDeleteClick={() => handleDelete(activeApp._id)}
+                        onAddTaskClick={() => {}}
+                        onEditTaskClick={() => {}}
+                        onDeleteTaskClick={() => {}}
+                        validNextStatusValues={[]}
+                      />
+                    )}
+                    {activeTabRight === 'match' && (
+                      <ApplicationMatch application={activeApp} />
+                    )}
+                    {activeTabRight === 'interview' && (
+                      <ApplicationInterview application={activeApp} />
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-text-tertiary p-4">
+                  Failed to load application details.
+                </div>
+              )}
+            </div>
+          }
+        />
+      ) : viewMode === 'list' ? (
         <ApplicationTable
           applications={filteredApplications}
           onRowClick={handleRowClick}
@@ -262,7 +376,7 @@ export function ApplicationsPage() {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white border border-border p-md rounded-lg space-y-3">
+                <div key={i} className="bg-surface border border-border p-md rounded-lg space-y-3">
                   <Skeleton variant="text" width="60%" />
                   <Skeleton variant="text" width="80%" />
                   <Skeleton variant="text" width="40%" />
@@ -335,7 +449,7 @@ export function ApplicationsPage() {
               onChange={(e) => setNewJdText(e.target.value)}
               placeholder="Paste the job description here..."
               rows={8}
-              className="w-full rounded-lg border border-border bg-white text-body-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors duration-150 focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none"
+              className="w-full rounded-lg border border-border bg-surface text-body-sm text-text-primary placeholder:text-text-tertiary outline-none transition-colors duration-150 focus:border-primary focus:ring-2 focus:ring-primary/20 p-3 resize-none"
             />
           </div>
           <div className="flex justify-end gap-3 pt-2">

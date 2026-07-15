@@ -89,7 +89,7 @@ export function SmartApplicationPage() {
     queryKey: ['jd-analyses', 'recent'],
     queryFn: async () => {
       const raw = await get<RecentJD[] | { data: RecentJD[] } | { items: RecentJD[] }>(
-        '/api/v1/jd-analyses',
+        '/jd',
         { limit: 20 },
       )
       if (Array.isArray(raw)) return raw
@@ -233,20 +233,20 @@ export function SmartApplicationPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-7xl mx-auto space-y-4">
+      <div className="max-w-7xl mx-auto space-y-3">
         {recentJDs.length > 0 && (
-          <div className="rounded-lg border border-border bg-white shadow-card p-4">
+          <div className="rounded-lg border border-border bg-surface shadow-card p-4">
             <div className="flex items-center gap-2 mb-2">
               <Briefcase className="h-4 w-4 text-primary" />
               <h3 className="text-body-sm font-semibold text-text-primary">
-                Use existing job description
+                {'Use existing job description'}
               </h3>
               {recentJDQuery.isFetching && (
-                <span className="text-caption text-text-tertiary">refreshing…</span>
+                <span className="text-caption text-text-tertiary">{'refreshing…'}</span>
               )}
             </div>
             <p className="text-caption text-text-secondary mb-2">
-              Pick a previously analyzed JD to auto-fill the description, company, and role below.
+              {'Pick a previously analyzed JD to auto-fill the description, company, and role below.'}
             </p>
             <select
               defaultValue=""
@@ -256,11 +256,11 @@ export function SmartApplicationPage() {
                   e.target.value = ''
                 }
               }}
-              className="w-full p-2 rounded-md border border-neutral-300 bg-neutral-50 hover:border-neutral-400 text-body-sm text-text-primary outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-150"
+              className="w-full p-2 rounded-md border border-neutral-300 bg-neutral-50 hover:border-neutral-400 text-body-sm text-text-primary outline-none focus:bg-surface focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all duration-150"
               aria-label="Select a recent job description"
             >
               <option value="" disabled>
-                Choose a recent JD…
+                {'Choose a recent JD…'}
               </option>
               {recentJDs.map((j) => (
                 <option key={j._id} value={j._id}>

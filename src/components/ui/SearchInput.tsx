@@ -17,7 +17,7 @@ export function SearchInput({ value, onChange, placeholder = 'Search...', classN
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="w-full h-10 pl-10 pr-3 rounded-lg border border-neutral-300 bg-neutral-50 text-text-primary placeholder:text-text-tertiary outline-none transition-all duration-150 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 hover:border-neutral-400"
+        className="w-full h-10 pl-10 pr-3 rounded-lg border border-neutral-300 bg-neutral-50 text-text-primary placeholder:text-text-tertiary outline-none transition-all duration-150 focus:border-primary focus:bg-surface focus:ring-2 focus:ring-primary/20 hover:border-neutral-400"
       />
     </div>
   );

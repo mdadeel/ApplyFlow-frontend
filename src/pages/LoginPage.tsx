@@ -66,20 +66,20 @@ export function LoginPage() {
   return (
     <div className="min-h-screen flex bg-surface-container">
       {/* Brand panel */}
-      <div className="hidden md:flex md:w-1/2 bg-primary-container items-center justify-center p-xl relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-primary blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-primary blur-3xl" />
+      <div className="hidden md:flex md:w-1/2 bg-primary items-center justify-center p-xl relative overflow-hidden">
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-10 left-10 w-72 h-72 rounded-full bg-white blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-white blur-3xl" />
         </div>
         <div className="relative z-10 text-center max-w-md">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-white mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md text-white mb-6">
             <Briefcase className="h-8 w-8" />
           </div>
-          <h1 className="text-display-md font-bold text-on-primary mb-3">ApplyFlow AI</h1>
-          <p className="text-headline-sm text-on-primary-container opacity-90">
+          <h1 className="text-display-md font-bold text-white mb-3">ApplyFlow AI</h1>
+          <p className="text-headline-sm text-white/90">
             Your Intelligent Job Application OS
           </p>
-          <p className="text-body-md text-on-primary-container opacity-70 mt-4 leading-relaxed">
+          <p className="text-body-md text-white/70 mt-4 leading-relaxed">
             Streamline your job search with AI-powered resume tailoring,
             intelligent job matching, and automated application tracking.
           </p>

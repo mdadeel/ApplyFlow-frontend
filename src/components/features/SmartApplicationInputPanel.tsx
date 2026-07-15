@@ -166,7 +166,7 @@ export function SmartApplicationInputPanel({
         {inputMode === 'csv' && (
           <div className="space-y-3">
             <div className="p-3 bg-surface-secondary rounded-lg">
-              <p className="text-body-sm text-text-secondary">
+              <p className="text-caption text-text-secondary">
                 Upload a CSV with columns: <code>company</code>, <code>role</code>,{' '}
                 <code>jd_text</code> (or <code>job_description</code>).
               </p>

@@ -64,7 +64,7 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
         aria-labelledby={title ? titleId : undefined}
         aria-label={title ? undefined : 'Dialog'}
         tabIndex={-1}
-        className={`relative w-full ${sizeStyles[size]} bg-white rounded-lg shadow-modal max-h-[90vh] flex flex-col animate-scaleIn outline-none`}
+        className={`relative w-full ${sizeStyles[size]} bg-surface rounded-lg shadow-modal max-h-[90vh] flex flex-col animate-scaleIn outline-none`}
       >
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">

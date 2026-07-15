@@ -218,7 +218,7 @@ export function LandingPage() {
                   className="w-full h-full object-contain drop-shadow-2xl" 
                   alt="ApplyFlow AI Career Dashboard illustration" 
                   src="/images/hero.png"
-                  fetchPriority="high"
+                   fetchpriority="high"
                 />
               </div>
             </div>
@@ -666,7 +666,7 @@ export function LandingPage() {
                   <div className="relative w-20 h-20 flex items-center justify-center">
                     <svg className="w-full h-full transform -rotate-90">
                       <circle className="text-surface-variant" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" strokeWidth="8"></circle>
-                      <circle className="text-primary" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" strokeDasharray="213.6" stroke-dashoffset="32" strokeWidth="8"></circle>
+                       <circle className="text-primary" cx="40" cy="40" fill="transparent" r="34" stroke="currentColor" strokeDasharray="213.6" strokeDashoffset="32" strokeWidth="8"></circle>
                     </svg>
                     <span className="absolute font-bold text-[16px]">85%</span>
                   </div>

@@ -29,7 +29,7 @@ export function Table<T extends Record<string, unknown>>({
   className = '',
 }: TableProps<T>) {
   return (
-    <div className={`overflow-x-auto rounded-xl border border-border bg-white shadow-card ${className}`}>
+    <div className={`overflow-x-auto rounded-xl border border-border bg-surface shadow-card ${className}`}>
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-surface-secondary border-b border-border">
